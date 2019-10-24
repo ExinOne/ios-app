@@ -48,7 +48,7 @@ class ConversationViewController: UIViewController {
     private var didInitData = false
     private var isShowingMenu = false
     private var isAppearanceAnimating = true
-    private var adjustTableViewContentOffsetWhenInputWrapperHeightChanges = true
+    private var adjustTableViewContentOffsetWhenInputWrapperHeightChanges = false
     private var didManuallyStoppedTableViewDecelerating = false
     private var numberOfParticipants: Int?
     private var isMember = true
@@ -169,6 +169,7 @@ class ConversationViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        adjustTableViewContentOffsetWhenInputWrapperHeightChanges = true
         isAppearanceAnimating = false
     }
     
@@ -1149,7 +1150,7 @@ extension ConversationViewController {
             }
         } else {
             navigationBarTopConstraint.constant = 0
-            tableView.contentInset.top = navigationBarView.frame.height
+            tableView.contentInset.top = titleViewTopConstraint.constant + titleViewHeightConstraint.constant
             tableView.scrollIndicatorInsets.top = tableView.contentInset.top
             if statusBarHidden {
                 UIView.animate(withDuration: 0.2, delay: 0, options: [.beginFromCurrentState], animations: {
@@ -1251,7 +1252,7 @@ extension ConversationViewController {
     }
     
     private func updateNavigationBarHeightAndTableViewTopInset() {
-        titleViewTopConstraint.constant = max(20, view.safeAreaInsets.top)
+        titleViewTopConstraint.constant = max(20, AppDelegate.current.window.safeAreaInsets.top)
         tableView.contentInset.top = titleViewTopConstraint.constant + titleViewHeightConstraint.constant
         tableView.scrollIndicatorInsets.top = tableView.contentInset.top
     }
