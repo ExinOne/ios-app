@@ -41,4 +41,11 @@ class PreKeyUtil {
                                 signedPreKey: SignedPreKeyRequest(signed: signedPreKey),
                                 oneTimePreKeys: oneTimePreKeys)
     }
+    
+    static func makeRandomPrekeyOffset() -> UInt32 {
+        let min: UInt32 = 1000
+        let max: UInt32 = .max / 2
+        return min + UInt32(arc4random_uniform(max - min))
+    }
+    
 }

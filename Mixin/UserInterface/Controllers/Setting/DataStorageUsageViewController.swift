@@ -60,7 +60,7 @@ class DataStorageUsageViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 0 {
-            func setAutoDownload(_ value: CommonUserDefault.AutoDownload) {
+            func setAutoDownload(_ value: AutoDownload) {
                 switch indexPath.row {
                 case 0:
                     CommonUserDefault.shared.autoDownloadPhotos = value

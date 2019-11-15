@@ -778,6 +778,15 @@
 		E0BEB778236B0DF8001FE534 /* ProfileMenuItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0BEB777236B0DF8001FE534 /* ProfileMenuItemView.swift */; };
 		E0BEB85B236C1BBC001FE534 /* ProfileView.xib in Resources */ = {isa = PBXBuildFile; fileRef = E0BEB85A236C1BBC001FE534 /* ProfileView.xib */; };
 		E0BEB85D236C1C49001FE534 /* ProfileMenuItemView.xib in Resources */ = {isa = PBXBuildFile; fileRef = E0BEB85C236C1C49001FE534 /* ProfileMenuItemView.xib */; };
+		E0D1FAFA23992B6600C27CB2 /* AutoDownload.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAEF23992B6500C27CB2 /* AutoDownload.swift */; };
+		E0D1FAFB23992B6600C27CB2 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF023992B6500C27CB2 /* Environment.swift */; };
+		E0D1FAFC23992B6600C27CB2 /* AutoBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF123992B6500C27CB2 /* AutoBackup.swift */; };
+		E0D1FAFD23992B6600C27CB2 /* AppGroupUserDefaults+Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF323992B6500C27CB2 /* AppGroupUserDefaults+Account.swift */; };
+		E0D1FAFE23992B6600C27CB2 /* AppGroupUserDefaults+Wallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF423992B6500C27CB2 /* AppGroupUserDefaults+Wallet.swift */; };
+		E0D1FAFF23992B6600C27CB2 /* AppGroupUserDefaults+User.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF523992B6600C27CB2 /* AppGroupUserDefaults+User.swift */; };
+		E0D1FB0023992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF723992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift */; };
+		E0D1FB0123992B6600C27CB2 /* AppGroupUserDefaults+Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF823992B6600C27CB2 /* AppGroupUserDefaults+Database.swift */; };
+		E0D1FB0223992B6600C27CB2 /* AppGroupUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D1FAF923992B6600C27CB2 /* AppGroupUserDefaults.swift */; };
 		E0D65E0D238BF99A00DC780A /* MixinServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0D65E0C238BF99A00DC780A /* MixinServer.swift */; };
 		E0E32F432396118C00276746 /* GiphyAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E32F422396118C00276746 /* GiphyAPI.swift */; };
 		E0FE4CCE237421F0009A14F6 /* ProfileMenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0FE4CCD237421F0009A14F6 /* ProfileMenuItem.swift */; };
@@ -1598,6 +1607,15 @@
 		E0BEB777236B0DF8001FE534 /* ProfileMenuItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileMenuItemView.swift; sourceTree = "<group>"; };
 		E0BEB85A236C1BBC001FE534 /* ProfileView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ProfileView.xib; sourceTree = "<group>"; };
 		E0BEB85C236C1C49001FE534 /* ProfileMenuItemView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ProfileMenuItemView.xib; sourceTree = "<group>"; };
+		E0D1FAEF23992B6500C27CB2 /* AutoDownload.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoDownload.swift; sourceTree = "<group>"; };
+		E0D1FAF023992B6500C27CB2 /* Environment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
+		E0D1FAF123992B6500C27CB2 /* AutoBackup.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoBackup.swift; sourceTree = "<group>"; };
+		E0D1FAF323992B6500C27CB2 /* AppGroupUserDefaults+Account.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppGroupUserDefaults+Account.swift"; sourceTree = "<group>"; };
+		E0D1FAF423992B6500C27CB2 /* AppGroupUserDefaults+Wallet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppGroupUserDefaults+Wallet.swift"; sourceTree = "<group>"; };
+		E0D1FAF523992B6600C27CB2 /* AppGroupUserDefaults+User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppGroupUserDefaults+User.swift"; sourceTree = "<group>"; };
+		E0D1FAF723992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppGroupUserDefaults+Crypto.swift"; sourceTree = "<group>"; };
+		E0D1FAF823992B6600C27CB2 /* AppGroupUserDefaults+Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppGroupUserDefaults+Database.swift"; sourceTree = "<group>"; };
+		E0D1FAF923992B6600C27CB2 /* AppGroupUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppGroupUserDefaults.swift; sourceTree = "<group>"; };
 		E0D65E0C238BF99A00DC780A /* MixinServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixinServer.swift; sourceTree = "<group>"; };
 		E0E32F422396118C00276746 /* GiphyAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphyAPI.swift; sourceTree = "<group>"; };
 		E0FE4CCD237421F0009A14F6 /* ProfileMenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileMenuItem.swift; sourceTree = "<group>"; };
@@ -1720,7 +1738,6 @@
 				27DA337E1FE8F92900A4D16F /* SignalProtocol.swift */,
 				27382EC51FECDF0D00437A1B /* PreKeyUtil.swift */,
 				DFCC433F206B60CE006F50BE /* KeyUtil.swift */,
-				DFF353031FEE657000058453 /* CryptoUserDefault.swift */,
 				DF0E2D2320FDEB2500BB2658 /* Keychain.swift */,
 				7B66E51422B373F500FC25F8 /* JWT.swift */,
 			);
@@ -2286,7 +2303,6 @@
 				DF114B052020551900EA8F9C /* AppDAO.swift */,
 				DF2A24511FC8744A003A8C1E /* ParticipantDAO.swift */,
 				DFF3530D1FEEA3DC00058453 /* SnapshotDAO.swift */,
-				DF3FF05C20134C4C000A0C0A /* DatabaseUserDefault.swift */,
 			);
 			path = Mixin;
 			sourceTree = "<group>";
@@ -2537,7 +2553,6 @@
 				7BB3855921E77C380070FF8F /* ProvisioningAPI.swift */,
 				7B280DEF22B124450084E49E /* EmergencyAPI.swift */,
 				DFD87C861FDA9DD300BBCFFC /* NetworkManager.swift */,
-				DFD9959F207C9D6100621FFA /* AccountUserDefault.swift */,
 				DF8A751E2362A65500765A82 /* MultisigAPI.swift */,
 				E0E32F422396118C00276746 /* GiphyAPI.swift */,
 			);
@@ -2820,7 +2835,6 @@
 				7B894AF2205BF8660065A1B8 /* AddressViewController.swift */,
 				DF06D91E222FAE1300FE7FBC /* TransferOutViewController.swift */,
 				7B894AF4205BFC9B0065A1B8 /* NewAddressViewController.swift */,
-				DFF353181FEEC83100058453 /* WalletUserDefault.swift */,
 				7BD7055E215BAEDE00639FA8 /* PeerTransactionsViewController.swift */,
 				7B4F5ACC224CBA4A00A8392D /* AssetFilterViewController.swift */,
 				DFB19001233219650021CAF3 /* PINLogViewController.swift */,
@@ -2831,7 +2845,6 @@
 		DFD294301FA5D01900FADAAD /* Base */ = {
 			isa = PBXGroup;
 			children = (
-				DFA4573A200AED2D001E10FA /* CommonUserDefault.swift */,
 				7BDB4726215A6932008B21F9 /* InitialViewControllerFactory.swift */,
 			);
 			path = Base;
@@ -3035,6 +3048,10 @@
 		E0D1FA13239927DE00C27CB2 /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
+				E0D1FAF223992B6500C27CB2 /* User Defaults */,
+				E0D1FAF123992B6500C27CB2 /* AutoBackup.swift */,
+				E0D1FAEF23992B6500C27CB2 /* AutoDownload.swift */,
+				E0D1FAF023992B6500C27CB2 /* Environment.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -3059,6 +3076,32 @@
 				DFD659C520501858000696B0 /* BaseDatabase.swift */,
 			);
 			path = Storage;
+			sourceTree = "<group>";
+		};
+		E0D1FAF223992B6500C27CB2 /* User Defaults */ = {
+			isa = PBXGroup;
+			children = (
+				E0D1FAF623992B6600C27CB2 /* Legacy */,
+				E0D1FAF323992B6500C27CB2 /* AppGroupUserDefaults+Account.swift */,
+				E0D1FAF423992B6500C27CB2 /* AppGroupUserDefaults+Wallet.swift */,
+				E0D1FAF523992B6600C27CB2 /* AppGroupUserDefaults+User.swift */,
+				E0D1FAF723992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift */,
+				E0D1FAF823992B6600C27CB2 /* AppGroupUserDefaults+Database.swift */,
+				E0D1FAF923992B6600C27CB2 /* AppGroupUserDefaults.swift */,
+			);
+			path = "User Defaults";
+			sourceTree = "<group>";
+		};
+		E0D1FAF623992B6600C27CB2 /* Legacy */ = {
+			isa = PBXGroup;
+			children = (
+				DFF353031FEE657000058453 /* CryptoUserDefault.swift */,
+				DF3FF05C20134C4C000A0C0A /* DatabaseUserDefault.swift */,
+				DFD9959F207C9D6100621FFA /* AccountUserDefault.swift */,
+				DFA4573A200AED2D001E10FA /* CommonUserDefault.swift */,
+				DFF353181FEEC83100058453 /* WalletUserDefault.swift */,
+			);
+			path = Legacy;
 			sourceTree = "<group>";
 		};
 		E0FE4CCC237421CE009A14F6 /* Model */ = {
@@ -3111,6 +3154,9 @@
 						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
 							com.apple.BackgroundModes = {
 								enabled = 1;
 							};
@@ -3457,6 +3503,7 @@
 				7BA9D9C8226DE71E00255943 /* NavigationAvatarIconView.swift in Sources */,
 				DFE356B31FB498D600E0E3A8 /* PhoneContactAPI.swift in Sources */,
 				7B09664620E0B018007DC179 /* PhotoAssetPickerNavigationController.swift in Sources */,
+				E0D1FAFC23992B6600C27CB2 /* AutoBackup.swift in Sources */,
 				DF6ED3EE1FE37D0400E958A3 /* ConcurrentJobQueue.swift in Sources */,
 				7BA9D9BD226D8BF700255943 /* SearchCategoryViewController.swift in Sources */,
 				DF2A0D972295734C00CA0280 /* AddressView.swift in Sources */,
@@ -3521,6 +3568,7 @@
 				7BE0726E2024A2AC00D7B44D /* AppButtonGroupMessageCell.swift in Sources */,
 				7BC26534207B595500EA7DFF /* ContactMessageCell.swift in Sources */,
 				DF6068C720BECD3100C38C64 /* AssetSendViewController.swift in Sources */,
+				E0D1FAFA23992B6600C27CB2 /* AutoDownload.swift in Sources */,
 				7B11788C2293D53B000F934E /* BalanceInputAccessoryView.swift in Sources */,
 				7B7B2BC51FB15B6A0002BED5 /* AvatarImageView.swift in Sources */,
 				DF17B51520525B47006447C2 /* ArrayExtension.swift in Sources */,
@@ -3572,6 +3620,7 @@
 				DF7A4B461FCDA6A000F21BCB /* User.swift in Sources */,
 				7B362BB522E87D38009BB0BF /* AssetSendVideoView.swift in Sources */,
 				DF8EF6AF2030679100E99CE8 /* UrlWindow.swift in Sources */,
+				E0D1FAFB23992B6600C27CB2 /* Environment.swift in Sources */,
 				7B833E9922C4904F0063929D /* AppLoadingIndicatorView.swift in Sources */,
 				7BAB76AA228AABEA009ECB8C /* MessageSearchResult.swift in Sources */,
 				273FACC7205FB9A800513327 /* SignedPreKeyStoreWrapper.swift in Sources */,
@@ -3582,6 +3631,7 @@
 				DF5D9F311F9C95410036D5FD /* CountryCodeLibrary.swift in Sources */,
 				DF048CD222433D69005F1EF5 /* LineHeightLabel.swift in Sources */,
 				7BB3855A21E77C380070FF8F /* ProvisioningAPI.swift in Sources */,
+				E0D1FAFE23992B6600C27CB2 /* AppGroupUserDefaults+Wallet.swift in Sources */,
 				7B91056022CF4A1E002E3608 /* LiveMessageViewModel.swift in Sources */,
 				DFD995A0207C9D6100621FFA /* AccountUserDefault.swift in Sources */,
 				7B3936CF20C15BA00075A97A /* MixinKeys.swift in Sources */,
@@ -3653,6 +3703,7 @@
 				7B369208233A43C1007321A7 /* SegmentedControl.swift in Sources */,
 				27DA337F1FE8F92900A4D16F /* SignalProtocol.swift in Sources */,
 				7BFE47DB228421D100FC4379 /* UserItemPeerViewController.swift in Sources */,
+				E0D1FAFD23992B6600C27CB2 /* AppGroupUserDefaults+Account.swift in Sources */,
 				7B17F06F22267FE100D617A2 /* ConversationExtensionViewController.swift in Sources */,
 				7B51DDB8223A50D5008ACDBB /* VerificationCodeViewController.swift in Sources */,
 				DF048CCE223FCA02005F1EF5 /* ModernSelectedBackgroundCell.swift in Sources */,
@@ -3679,6 +3730,7 @@
 				273FACBD205FB9A800513327 /* GroupSessionBuilder.swift in Sources */,
 				7BAB5D4020C5213C009F4EE6 /* AudioDownloadJob.swift in Sources */,
 				DFF3B68A20E25CB500DC82D9 /* Album.swift in Sources */,
+				E0D1FB0023992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift in Sources */,
 				7BADC842204C20820016B0FC /* ChangeNumberVerificationCodeViewController.swift in Sources */,
 				7B2A116122C20F5F00AD029C /* PlayerView.swift in Sources */,
 				7BB3855821E770BE0070FF8F /* ProvisionMessage.swift in Sources */,
@@ -3765,6 +3817,7 @@
 				7B836C7E1FD17D6100529754 /* DetailInfoMessageViewModel.swift in Sources */,
 				273FACBE205FB9A800513327 /* SessionPreKeyBundle.swift in Sources */,
 				DF6DB8412028C1A60060CF31 /* AppButtonData.swift in Sources */,
+				E0D1FB0123992B6600C27CB2 /* AppGroupUserDefaults+Database.swift in Sources */,
 				273FACB4205FB9A800513327 /* setup.c in Sources */,
 				7BC80A62221D1C07008586AD /* AssetTableHeaderView.swift in Sources */,
 				273FACAE205FB9A800513327 /* SignalSenderKeyName.swift in Sources */,
@@ -3849,6 +3902,7 @@
 				7B54F95B22B24A5600908A9D /* CreateEmergencyContactVerificationCodeViewController.swift in Sources */,
 				7B2A116322C2269800AD029C /* EmergencyContactViewController.swift in Sources */,
 				7B35AF74228A948A00E8101D /* UserSearchResult.swift in Sources */,
+				E0D1FB0223992B6600C27CB2 /* AppGroupUserDefaults.swift in Sources */,
 				7B3887BE22E1AD74002B0864 /* HomeContainerViewController.swift in Sources */,
 				DF6ABB162295049E00A012B2 /* AddressWindow.swift in Sources */,
 				7B333A8623406AD000FDA848 /* GalleryTransitionFromMessageCellView.swift in Sources */,
@@ -3908,6 +3962,7 @@
 				DF6ED3EB1FE36F3E00E958A3 /* JobQueue.swift in Sources */,
 				7B869C70202D7DA8009930BA /* NumberPadView.swift in Sources */,
 				DF8DA1A01FD64B7900425CEC /* BlazeMessage.swift in Sources */,
+				E0D1FAFF23992B6600C27CB2 /* AppGroupUserDefaults+User.swift in Sources */,
 				7B4E30762295659200A03F6E /* SearchBoxTextField.swift in Sources */,
 				7B75E6471FE0E20000CD66F1 /* InsetLabel.swift in Sources */,
 				7BD7534C2182CD7A00BAC172 /* CallMessageViewModel.swift in Sources */,
@@ -4253,7 +4308,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Mixin/Core/Audio/liboggopus",
+					"$(PROJECT_DIR)/Mixin/Audio/liboggopus",
 				);
 				MARKETING_VERSION = 0.14.1;
 				OTHER_CFLAGS = (
@@ -4320,7 +4375,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Mixin/Core/Audio/liboggopus",
+					"$(PROJECT_DIR)/Mixin/Audio/liboggopus",
 				);
 				MARKETING_VERSION = 0.14.1;
 				OTHER_CFLAGS = (
