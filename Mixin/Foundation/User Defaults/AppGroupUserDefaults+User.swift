@@ -5,6 +5,8 @@ extension AppGroupUserDefaults {
     public enum User {
         
         enum Key: String, CaseIterable {
+            case localVersion = "local_version"
+            case needsRebuildDatabase = "needs_rebuild_database"
             case lastUpdateOrInstallDate = "last_update_or_install_date"
             case isLogoutByServer = "logged_out_by_server"
             
@@ -28,6 +30,18 @@ extension AppGroupUserDefaults {
             case autoDownloadPhotos = "auto_download_photos"
             case autoDownloadVideos = "auto_download_videos"
             case autoDownloadFiles = "auto_download_files"
+        }
+        
+        public static let version = 5
+        
+        @Default(namespace: .user, key: Key.localVersion, defaultValue: 0)
+        public static var localVersion: Int
+        
+        @Default(namespace: .user, key: Key.needsRebuildDatabase, defaultValue: false)
+        public static var needsRebuildDatabase: Bool
+        
+        public static var needsUpgradeInMainApp: Bool {
+            return localVersion < version || needsRebuildDatabase
         }
         
         @Default(namespace: .user, key: Key.lastUpdateOrInstallDate, defaultValue: Date())
@@ -88,6 +102,8 @@ extension AppGroupUserDefaults {
         public static var autoDownloadFiles: AutoDownload
         
         internal static func migrate() {
+            localVersion = DatabaseUserDefault.shared.databaseVersion
+            needsRebuildDatabase = DatabaseUserDefault.shared.forceUpgradeDatabase
             lastUpdateOrInstallDate = CommonUserDefault.shared.lastUpdateOrInstallTime.toUTCDate()
             isLogoutByServer = CommonUserDefault.shared.hasForceLogout
             

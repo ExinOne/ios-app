@@ -20,7 +20,7 @@ extension AppGroupUserDefaults {
         public static var isSentSenderKeyCleared: Bool
         
         internal static func migrate() {
-            isStickersUpgraded = !DatabaseUserDefault.shared.upgradeStickers
+            isStickersUpgraded = DatabaseUserDefault.shared.upgradeStickers
             vacuumDate = Date(timeIntervalSince1970: DatabaseUserDefault.shared.lastVacuumTime)
             isSentSenderKeyCleared = !DatabaseUserDefault.shared.clearSentSenderKey
         }
