@@ -16,7 +16,7 @@ extension AppGroupUserDefaults {
         
         public enum Offset {
             
-            @Default(namespace: .crypto, key: Key.statusOffset, defaultValue: CommonUserDefault.shared.lastUpdateOrInstallTime.toUTCDate().nanosecond())
+            @Default(namespace: .crypto, key: Key.statusOffset, defaultValue: AppGroupUserDefaults.User.lastUpdateOrInstallDate.nanosecond())
             public static var status: Int64
             
             @NullableDefault(namespace: .crypto, key: Key.prekeyOffset, defaultValue: nil)

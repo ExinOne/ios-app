@@ -118,8 +118,8 @@ extension AppGroupUserDefaults {
         localVersion != 0 && version > localVersion
     }
     
-    @Default(namespace: nil, key: "first_launch_date", defaultValue: Date())
-    public static var firstLaunchDate: Date
+    @Default(namespace: nil, key: "first_shown_home_date", defaultValue: Date())
+    public static var firstShownHomeDate: Date
     
 }
 

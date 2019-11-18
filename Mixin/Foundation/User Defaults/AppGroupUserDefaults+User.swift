@@ -8,6 +8,7 @@ extension AppGroupUserDefaults {
             case localVersion = "local_version"
             case needsRebuildDatabase = "needs_rebuild_database"
             case lastUpdateOrInstallDate = "last_update_or_install_date"
+            case lastUpdateOrInstallVersion = "last_update_or_install_version"
             case isLogoutByServer = "logged_out_by_server"
             
             case hasShownRecallTips = "session_secret"
@@ -34,6 +35,8 @@ extension AppGroupUserDefaults {
         
         public static let version = 5
         
+        public static let didChangeRecentlyUsedAppIdsNotification = Notification.Name(rawValue: "one.mixin.ios.recently.used.app.ids.change")
+        
         @Default(namespace: .user, key: Key.localVersion, defaultValue: 0)
         public static var localVersion: Int
         
@@ -45,7 +48,10 @@ extension AppGroupUserDefaults {
         }
         
         @Default(namespace: .user, key: Key.lastUpdateOrInstallDate, defaultValue: Date())
-        public static var lastUpdateOrInstallDate: Date
+        public private(set) static var lastUpdateOrInstallDate: Date
+        
+        @Default(namespace: .user, key: Key.lastUpdateOrInstallVersion, defaultValue: "")
+        private static var lastUpdateOrInstallVersion: String
         
         @Default(namespace: .user, key: Key.isLogoutByServer, defaultValue: false)
         public static var isLogoutByServer: Bool
@@ -87,7 +93,7 @@ extension AppGroupUserDefaults {
         public static var hasUnreadAnnouncement: [String: Bool]
         
         @Default(namespace: .user, key: Key.recentlyUsedAppIds, defaultValue: [])
-        public static var recentlyUsedAppIds: [String]
+        public private(set) static var recentlyUsedAppIds: [String]
         
         @Default(namespace: .user, key: Key.autoUploadsContacts, defaultValue: true)
         public static var autoUploadsContacts: Bool
@@ -100,6 +106,26 @@ extension AppGroupUserDefaults {
         
         @RawRepresentableDefault(namespace: .user, key: Key.autoDownloadFiles, defaultValue: .never)
         public static var autoDownloadFiles: AutoDownload
+        
+        public static func insertRecentlyUsedAppId(id: String) {
+            let maxNumberOfIds = 12
+            var ids = recentlyUsedAppIds
+            ids.removeAll(where: { $0 == id })
+            ids.insert(id, at: 0)
+            if ids.count > maxNumberOfIds {
+                ids.removeLast(ids.count - maxNumberOfIds)
+            }
+            recentlyUsedAppIds = ids
+            NotificationCenter.default.post(name: Self.didChangeRecentlyUsedAppIdsNotification, object: self)
+        }
+        
+        public static func updateLastUpdateOrInstallDateIfNeeded() {
+            guard lastUpdateOrInstallVersion != Bundle.main.bundleVersion else {
+                return
+            }
+            lastUpdateOrInstallVersion = Bundle.main.bundleVersion
+            lastUpdateOrInstallDate = Date()
+        }
         
         internal static func migrate() {
             localVersion = DatabaseUserDefault.shared.databaseVersion
