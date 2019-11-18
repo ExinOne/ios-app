@@ -172,13 +172,20 @@ class HomeViewController: UIViewController {
             return
         }
         if account.has_pin {
-            if Date().timeIntervalSince1970 - WalletUserDefault.shared.lastInputPinTime > WalletUserDefault.shared.checkPinInterval {
+            let shouldValidatePin: Bool
+            if let date = AppGroupUserDefaults.Wallet.lastPinVerifiedDate {
+                shouldValidatePin = -date.timeIntervalSinceNow > AppGroupUserDefaults.Wallet.periodicPinVerificationInterval
+            } else {
+                shouldValidatePin = true
+            }
+            
+            if shouldValidatePin {
                 let validator = PinValidationViewController(onSuccess: { [weak self](_) in
                     self?.navigationController?.pushViewController(WalletViewController.instance(), animated: false)
                 })
                 present(validator, animated: true, completion: nil)
             } else {
-                WalletUserDefault.shared.initPinInterval()
+                AppGroupUserDefaults.Wallet.periodicPinVerificationInterval = PeriodicPinVerificationInterval.max
                 navigationController?.pushViewController(WalletViewController.instance(), animated: true)
             }
         } else {
