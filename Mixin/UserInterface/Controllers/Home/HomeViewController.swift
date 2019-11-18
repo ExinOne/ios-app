@@ -176,6 +176,7 @@ class HomeViewController: UIViewController {
             if let date = AppGroupUserDefaults.Wallet.lastPinVerifiedDate {
                 shouldValidatePin = -date.timeIntervalSinceNow > AppGroupUserDefaults.Wallet.periodicPinVerificationInterval
             } else {
+                AppGroupUserDefaults.Wallet.periodicPinVerificationInterval = PeriodicPinVerificationInterval.min
                 shouldValidatePin = true
             }
             
@@ -185,7 +186,6 @@ class HomeViewController: UIViewController {
                 })
                 present(validator, animated: true, completion: nil)
             } else {
-                AppGroupUserDefaults.Wallet.periodicPinVerificationInterval = PeriodicPinVerificationInterval.max
                 navigationController?.pushViewController(WalletViewController.instance(), animated: true)
             }
         } else {

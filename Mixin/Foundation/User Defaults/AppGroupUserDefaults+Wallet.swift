@@ -23,15 +23,13 @@ extension AppGroupUserDefaults {
         @NullableDefault(namespace: .wallet, key: Key.lastPinVerifiedDate, defaultValue: nil)
         public static var lastPinVerifiedDate: Date?
         
-        // FIXME: Clamp
         @Default(namespace: .wallet, key: Key.periodicPinVerificationInterval, defaultValue: 0)
         public static var periodicPinVerificationInterval: TimeInterval
         
         @Default(namespace: .wallet, key: Key.payWithBiometricAuthentication, defaultValue: false)
         public static var payWithBiometricAuthentication: Bool
         
-        // FIXME: Clamp
-        @Default(namespace: .wallet, key: Key.biometricPaymentExpirationInterval, defaultValue: 0)
+        @Default(namespace: .wallet, key: Key.biometricPaymentExpirationInterval, defaultValue: 60 * 120)
         public static var biometricPaymentExpirationInterval: TimeInterval
         
         @NullableDefault(namespace: .wallet, key: Key.defaultTransferAssetId, defaultValue: nil)

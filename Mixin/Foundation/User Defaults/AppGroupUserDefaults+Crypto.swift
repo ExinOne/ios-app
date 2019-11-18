@@ -36,7 +36,6 @@ extension AppGroupUserDefaults {
         @NullableDefault(namespace: .crypto, key: Key.oneTimePrekeyRefreshDate, defaultValue: nil)
         public static var oneTimePrekeyRefreshDate: Date?
         
-        // FIXME: iterator should greater than 1
         @Default(namespace: .crypto, key: Key.iterator, defaultValue: 1)
         public static var iterator: UInt64
         
