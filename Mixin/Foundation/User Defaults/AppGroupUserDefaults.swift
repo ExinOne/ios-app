@@ -27,8 +27,8 @@ public enum AppGroupUserDefaults {
         }
     }
     
-    // Property wrapper not working optional Value types
-    // Use NullableDefault<Value> if value type is optional
+    // FIXME: Property wrapper not working optional Value types
+    // Use NullableDefault<Value> as workaround
     @propertyWrapper
     public class Default<Value> {
         
@@ -60,7 +60,7 @@ public enum AppGroupUserDefaults {
     }
     
     @propertyWrapper
-    public class NullableDefault<Value>: Default<Optional<Value>> {
+    public class NullableDefault<Value>: Default<Value?> {
         
         public override var wrappedValue: Value? {
             get {

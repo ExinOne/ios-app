@@ -9,6 +9,7 @@ extension AppGroupUserDefaults {
             case prekeyOffset = "prekey_offset"
             case signedPrekeyOffset = "signed_prekey_offset"
             case isPrekeyLoaded = "prekey_loaded"
+            case isSessionSynchronized = "session_synchronized"
             case oneTimePrekeyRefreshDate = "one_time_prekey_refresh_date"
             case iterator = "iterator"
         }
@@ -29,6 +30,9 @@ extension AppGroupUserDefaults {
         @Default(namespace: .crypto, key: Key.isPrekeyLoaded, defaultValue: false)
         public static var isPrekeyLoaded: Bool
         
+        @Default(namespace: .crypto, key: Key.isSessionSynchronized, defaultValue: false)
+        public static var isSessionSynchronized: Bool
+        
         @NullableDefault(namespace: .crypto, key: Key.oneTimePrekeyRefreshDate, defaultValue: nil)
         public static var oneTimePrekeyRefreshDate: Date?
         
@@ -48,6 +52,7 @@ extension AppGroupUserDefaults {
             Offset.prekey = CryptoUserDefault.shared.prekeyOffset
             Offset.signedPrekey = CryptoUserDefault.shared.signedPrekeyOffset
             isPrekeyLoaded = CryptoUserDefault.shared.isLoaded
+            isSessionSynchronized = CryptoUserDefault.shared.isSyncSession
             oneTimePrekeyRefreshDate = Date(timeIntervalSince1970: CryptoUserDefault.shared.refreshOneTimePreKey)
             iterator = CryptoUserDefault.shared.iterator
         }
