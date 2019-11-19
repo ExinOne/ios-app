@@ -32,15 +32,21 @@ public enum AppGroupUserDefaults {
     @propertyWrapper
     public class Default<Value> {
         
+        fileprivate let namespace: Namespace?
         fileprivate let key: String
         fileprivate let defaultValue: Value
         
-        public init(namespace: Namespace?, key: String, defaultValue: Value) {
+        fileprivate var wrappedKey: String {
             if let namespace = namespace {
-                self.key = namespace.stringValue + "." + key
+                return namespace.stringValue + "." + key
             } else {
-                self.key = key
+                return key
             }
+        }
+        
+        public init(namespace: Namespace?, key: String, defaultValue: Value) {
+            self.namespace = namespace
+            self.key = key
             self.defaultValue = defaultValue
         }
         
@@ -50,10 +56,10 @@ public enum AppGroupUserDefaults {
         
         public var wrappedValue: Value {
             get {
-                defaults.object(forKey: key) as? Value ?? defaultValue
+                defaults.object(forKey: wrappedKey) as? Value ?? defaultValue
             }
             set {
-                defaults.set(newValue, forKey: key)
+                defaults.set(newValue, forKey: wrappedKey)
             }
         }
         
@@ -64,13 +70,13 @@ public enum AppGroupUserDefaults {
         
         public override var wrappedValue: Value? {
             get {
-                defaults.object(forKey: key) as? Value ?? defaultValue
+                defaults.object(forKey: wrappedKey) as? Value ?? defaultValue
             }
             set {
                 if let value = newValue {
-                    defaults.set(value, forKey: key)
+                    defaults.set(value, forKey: wrappedKey)
                 } else {
-                    defaults.removeObject(forKey: key)
+                    defaults.removeObject(forKey: wrappedKey)
                 }
             }
         }
@@ -82,14 +88,14 @@ public enum AppGroupUserDefaults {
         
         public override var wrappedValue: Value {
             get {
-                if let rawValue = defaults.object(forKey: key) as? Value.RawValue, let value = Value(rawValue: rawValue) {
+                if let rawValue = defaults.object(forKey: wrappedKey) as? Value.RawValue, let value = Value(rawValue: rawValue) {
                     return value
                 } else {
                     return defaultValue
                 }
             }
             set {
-                defaults.set(newValue.rawValue, forKey: key)
+                defaults.set(newValue.rawValue, forKey: wrappedKey)
             }
         }
         
