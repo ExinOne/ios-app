@@ -98,3 +98,18 @@ class DataStorageUsageViewController: UITableViewController {
     }
     
 }
+
+fileprivate extension AutoDownload {
+    
+    var description: String {
+        switch self {
+        case .never:
+            return R.string.localizable.setting_auto_download_never()
+        case .wifi:
+            return R.string.localizable.setting_auto_download_wifi()
+        case .wifiAndCellular:
+            return R.string.localizable.setting_auto_download_wifi_cellular()
+        }
+    }
+    
+}
