@@ -77,10 +77,10 @@ extension AppGroupUserDefaults {
         @Default(namespace: .user, key: Key.backupFiles, defaultValue: false)
         public static var backupFiles: Bool
         
-        @NullableDefault(namespace: .user, key: Key.lastBackupDate, defaultValue: nil)
+        @Default(namespace: .user, key: Key.lastBackupDate, defaultValue: nil)
         public static var lastBackupDate: Date?
         
-        @NullableDefault(namespace: .user, key: Key.lastBackupSize, defaultValue: nil)
+        @Default(namespace: .user, key: Key.lastBackupSize, defaultValue: nil)
         public static var lastBackupSize: Int64?
         
         @Default(namespace: .user, key: Key.showMessagePreviewInNotification, defaultValue: true)

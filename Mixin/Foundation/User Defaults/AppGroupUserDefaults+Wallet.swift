@@ -20,7 +20,7 @@ extension AppGroupUserDefaults {
             case currencyCode = "currency_code"
         }
         
-        @NullableDefault(namespace: .wallet, key: Key.lastPinVerifiedDate, defaultValue: nil)
+        @Default(namespace: .wallet, key: Key.lastPinVerifiedDate, defaultValue: nil)
         public static var lastPinVerifiedDate: Date?
         
         @Default(namespace: .wallet, key: Key.periodicPinVerificationInterval, defaultValue: 0)
@@ -32,7 +32,7 @@ extension AppGroupUserDefaults {
         @Default(namespace: .wallet, key: Key.biometricPaymentExpirationInterval, defaultValue: 60 * 120)
         public static var biometricPaymentExpirationInterval: TimeInterval
         
-        @NullableDefault(namespace: .wallet, key: Key.defaultTransferAssetId, defaultValue: nil)
+        @Default(namespace: .wallet, key: Key.defaultTransferAssetId, defaultValue: nil)
         public static var defaultTransferAssetId: String?
         
         @Default(namespace: .wallet, key: Key.withdrawnAddressIds, defaultValue: [:])
@@ -41,13 +41,13 @@ extension AppGroupUserDefaults {
         @Default(namespace: .wallet, key: Key.hiddenAssetIds, defaultValue: [:])
         public static var hiddenAssetIds: [String: Bool]
         
-        @NullableDefault(namespace: .wallet, key: Key.allTransactionsOffset, defaultValue: nil)
+        @Default(namespace: .wallet, key: Key.allTransactionsOffset, defaultValue: nil)
         public static var allTransactionsOffset: String?
         
         @Default(namespace: .wallet, key: Key.assetTransactionsOffset, defaultValue: [:])
         public static var assetTransactionsOffset: [String: String]
         
-        @NullableDefault(namespace: .wallet, key: Key.currencyCode, defaultValue: nil)
+        @Default(namespace: .wallet, key: Key.currencyCode, defaultValue: nil)
         public static var currencyCode: String?
         
         internal static func migrate() {

@@ -19,10 +19,10 @@ extension AppGroupUserDefaults {
             @Default(namespace: .crypto, key: Key.statusOffset, defaultValue: AppGroupUserDefaults.User.lastUpdateOrInstallDate.nanosecond())
             public static var status: Int64
             
-            @NullableDefault(namespace: .crypto, key: Key.prekeyOffset, defaultValue: nil)
+            @Default(namespace: .crypto, key: Key.prekeyOffset, defaultValue: nil)
             public static var prekey: UInt32?
             
-            @NullableDefault(namespace: .crypto, key: Key.signedPrekeyOffset, defaultValue: nil)
+            @Default(namespace: .crypto, key: Key.signedPrekeyOffset, defaultValue: nil)
             public static var signedPrekey: UInt32?
             
         }
@@ -33,7 +33,7 @@ extension AppGroupUserDefaults {
         @Default(namespace: .crypto, key: Key.isSessionSynchronized, defaultValue: false)
         public static var isSessionSynchronized: Bool
         
-        @NullableDefault(namespace: .crypto, key: Key.oneTimePrekeyRefreshDate, defaultValue: nil)
+        @Default(namespace: .crypto, key: Key.oneTimePrekeyRefreshDate, defaultValue: nil)
         public static var oneTimePrekeyRefreshDate: Date?
         
         @Default(namespace: .crypto, key: Key.iterator, defaultValue: 1)

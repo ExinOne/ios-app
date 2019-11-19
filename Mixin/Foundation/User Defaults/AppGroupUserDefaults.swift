@@ -27,8 +27,6 @@ public enum AppGroupUserDefaults {
         }
     }
     
-    // FIXME: Property wrapper not working optional Value types
-    // Use NullableDefault<Value> as workaround
     @propertyWrapper
     public class Default<Value> {
         
@@ -59,24 +57,10 @@ public enum AppGroupUserDefaults {
                 defaults.object(forKey: wrappedKey) as? Value ?? defaultValue
             }
             set {
-                defaults.set(newValue, forKey: wrappedKey)
-            }
-        }
-        
-    }
-    
-    @propertyWrapper
-    public class NullableDefault<Value>: Default<Value?> {
-        
-        public override var wrappedValue: Value? {
-            get {
-                defaults.object(forKey: wrappedKey) as? Value ?? defaultValue
-            }
-            set {
-                if let value = newValue {
-                    defaults.set(value, forKey: wrappedKey)
-                } else {
+                if let newValue = newValue as? AnyOptional, newValue.isNil {
                     defaults.removeObject(forKey: wrappedKey)
+                } else {
+                    defaults.set(newValue, forKey: wrappedKey)
                 }
             }
         }

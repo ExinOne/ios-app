@@ -16,16 +16,16 @@ extension AppGroupUserDefaults {
             case lastDesktopLoginDate = "last_desktop_login_date"
         }
         
-        @NullableDefault(namespace: .account, key: Key.account, defaultValue: nil)
+        @Default(namespace: .account, key: Key.account, defaultValue: nil)
         public static var serializedAccount: Data?
         
-        @NullableDefault(namespace: .account, key: Key.sessionSecret, defaultValue: nil)
+        @Default(namespace: .account, key: Key.sessionSecret, defaultValue: nil)
         public static var sessionSecret: String?
         
         @Default(namespace: .account, key: Key.pinToken, defaultValue: nil)
         public static var pinToken: String?
         
-        @Default(namespace: .account, key: Key.sessionSecret, defaultValue: false)
+        @Default(namespace: .account, key: Key.isClockSkewed, defaultValue: false)
         public static var isClockSkewed: Bool
         
         @Default(namespace: .account, key: Key.canRestoreChat, defaultValue: false)
@@ -37,10 +37,10 @@ extension AppGroupUserDefaults {
         @Default(namespace: .account, key: Key.hasUnfinishedBackup, defaultValue: false)
         public static var hasUnfinishedBackup: Bool
         
-        @NullableDefault(namespace: .account, key: Key.extensionSession, defaultValue: nil)
+        @Default(namespace: .account, key: Key.extensionSession, defaultValue: nil)
         public static var extensionSession: String?
         
-        @NullableDefault(namespace: .account, key: Key.lastDesktopLoginDate, defaultValue: nil)
+        @Default(namespace: .account, key: Key.lastDesktopLoginDate, defaultValue: nil)
         public static var lastDesktopLoginDate: Date?
         
         public static var isDesktopLoggedIn: Bool {
