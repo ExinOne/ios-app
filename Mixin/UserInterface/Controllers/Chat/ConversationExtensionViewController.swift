@@ -108,7 +108,8 @@ extension ConversationExtensionViewController: UICollectionViewDelegate {
         } else {
             let app = apps[indexPath.row - fixedExtensions.count]
             if let conversationId = dataSource?.conversationId, let parent = conversationViewController {
-                UIApplication.logEvent(eventName: "open_app", parameters: ["source": "ConversationExtension", "identityNumber": app.appNumber])
+                let userInfo = ["source": "ConversationExtension", "identityNumber": app.appNumber]
+                Reporter.report(event: .openApp, userInfo: userInfo)
                 WebViewController.presentInstance(with: .init(conversationId: conversationId, app: app), asChildOf: parent)
             }
         }

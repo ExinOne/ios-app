@@ -2,7 +2,7 @@ import Foundation
 
 public enum AppGroupUserDefaults {
     
-    internal static let defaults = UserDefaults(suiteName: "group.one.mixin.messenger")!
+    internal static let defaults = UserDefaults(suiteName: appGroupIdentifier)!
     
     public enum Namespace {
         case crypto
