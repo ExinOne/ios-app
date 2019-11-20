@@ -765,7 +765,9 @@
 		DFFDCF8420AD8A7A00B4956E /* FileSendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFFDCF8320AD8A7A00B4956E /* FileSendViewController.swift */; };
 		DFFDCF8C20ADC83900B4956E /* RecognizeWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFFDCF8B20ADC83900B4956E /* RecognizeWindow.swift */; };
 		DFFDCF8E20ADC8A200B4956E /* RecognizeWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = DFFDCF8D20ADC8A200B4956E /* RecognizeWindow.xib */; };
+		E00F52B22385454500955E4E /* MixinServicesError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00F52B12385454500955E4E /* MixinServicesError.swift */; };
 		E039AB06237277E40071386E /* ProfileScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E039AB05237277E40071386E /* ProfileScrollView.swift */; };
+		E06C73FC2385546200D9A2FD /* CallError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C73FB2385546200D9A2FD /* CallError.swift */; };
 		E0878E44239A331E005956F9 /* AnyOptional.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878E43239A331E005956F9 /* AnyOptional.swift */; };
 		E0878F1C239A33C0005956F9 /* Reporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878F1B239A33C0005956F9 /* Reporter.swift */; };
 		E09C5EB6236FF1860095F729 /* ProfileRelationshipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */; };
@@ -1596,7 +1598,9 @@
 		DFFDCF8320AD8A7A00B4956E /* FileSendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSendViewController.swift; sourceTree = "<group>"; };
 		DFFDCF8B20ADC83900B4956E /* RecognizeWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognizeWindow.swift; sourceTree = "<group>"; };
 		DFFDCF8D20ADC8A200B4956E /* RecognizeWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RecognizeWindow.xib; sourceTree = "<group>"; };
+		E00F52B12385454500955E4E /* MixinServicesError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixinServicesError.swift; sourceTree = "<group>"; };
 		E039AB05237277E40071386E /* ProfileScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScrollView.swift; sourceTree = "<group>"; };
+		E06C73FB2385546200D9A2FD /* CallError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallError.swift; sourceTree = "<group>"; };
 		E0878E43239A331E005956F9 /* AnyOptional.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyOptional.swift; sourceTree = "<group>"; };
 		E0878F1B239A33C0005956F9 /* Reporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reporter.swift; sourceTree = "<group>"; };
 		E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRelationshipView.swift; sourceTree = "<group>"; };
@@ -2071,6 +2075,7 @@
 				7BD97DD62179DDD600FAE490 /* IceServer.swift */,
 				7BD97DD42179DD3400FAE490 /* WebRTCClient.swift */,
 				7BF7837A2179D1AF00BECB4B /* Call.swift */,
+				E06C73FB2385546200D9A2FD /* CallError.swift */,
 				7B08CD2B2178700C00FB8CCF /* CallManager.swift */,
 				7B7E7143217D87860052C7DD /* CallView.xib */,
 				7B7E7145217D89790052C7DD /* CallView.swift */,
@@ -3068,6 +3073,7 @@
 				27567B891FBC48C30026CC92 /* Crypto */,
 				DF30D7421FA22CB200683C1A /* WebSocket */,
 				7BB788BB216CD1DA00EDE7B4 /* Call */,
+				E00F52B12385454500955E4E /* MixinServicesError.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -3530,6 +3536,7 @@
 				DF3AF36F22F17D1A00C5657D /* RefreshOneTimePreKeysJob.swift in Sources */,
 				DFB19006233220290021CAF3 /* PINLogCell.swift in Sources */,
 				7B61EB8F20978856001C1985 /* AttachmentEncryptingInputStream.swift in Sources */,
+				E00F52B22385454500955E4E /* MixinServicesError.swift in Sources */,
 				7BF42E3122DC85E9005066E6 /* GalleryImageItemViewController.swift in Sources */,
 				7B8ED48021198EC20039946B /* StickerInputModelController.swift in Sources */,
 				7BD5A88A233228D900DD4E9A /* WebViewController.swift in Sources */,
@@ -4021,6 +4028,7 @@
 				7BF0E07C221ABE050053040D /* AssetIconView.swift in Sources */,
 				7B4D112A205BA64B0074BF60 /* Address.swift in Sources */,
 				7B84218D2011A214000EF99C /* CardMessageCell.swift in Sources */,
+				E06C73FC2385546200D9A2FD /* CallError.swift in Sources */,
 				7B8144631FDD62B900404431 /* SystemMessageViewModel.swift in Sources */,
 				DF17B51C20528B36006447C2 /* UserItem.swift in Sources */,
 				7B5C77232220188200395C7D /* AssetFilterHeaderView.swift in Sources */,
