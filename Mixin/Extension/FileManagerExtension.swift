@@ -307,7 +307,7 @@ extension FileManager {
                     try log.write(toFile: path, atomically: true, encoding: .utf8)
                 }
             } catch {
-                UIApplication.traceError(error)
+                Reporter.report(error: error)
             }
         }
     }

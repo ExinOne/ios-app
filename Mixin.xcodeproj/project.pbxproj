@@ -769,6 +769,7 @@
 		E039AB06237277E40071386E /* ProfileScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E039AB05237277E40071386E /* ProfileScrollView.swift */; };
 		E06C73FC2385546200D9A2FD /* CallError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C73FB2385546200D9A2FD /* CallError.swift */; };
 		E06C73FE2385677A00D9A2FD /* WCDBError+CustomNSError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C73FD2385677A00D9A2FD /* WCDBError+CustomNSError.swift */; };
+		E06C740023856C1700D9A2FD /* MixinError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C73FF23856C1700D9A2FD /* MixinError.swift */; };
 		E0878E44239A331E005956F9 /* AnyOptional.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878E43239A331E005956F9 /* AnyOptional.swift */; };
 		E0878F1C239A33C0005956F9 /* Reporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878F1B239A33C0005956F9 /* Reporter.swift */; };
 		E09C5EB6236FF1860095F729 /* ProfileRelationshipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */; };
@@ -1603,6 +1604,7 @@
 		E039AB05237277E40071386E /* ProfileScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScrollView.swift; sourceTree = "<group>"; };
 		E06C73FB2385546200D9A2FD /* CallError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallError.swift; sourceTree = "<group>"; };
 		E06C73FD2385677A00D9A2FD /* WCDBError+CustomNSError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WCDBError+CustomNSError.swift"; sourceTree = "<group>"; };
+		E06C73FF23856C1700D9A2FD /* MixinError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixinError.swift; sourceTree = "<group>"; };
 		E0878E43239A331E005956F9 /* AnyOptional.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyOptional.swift; sourceTree = "<group>"; };
 		E0878F1B239A33C0005956F9 /* Reporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reporter.swift; sourceTree = "<group>"; };
 		E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRelationshipView.swift; sourceTree = "<group>"; };
@@ -2432,6 +2434,7 @@
 				DF5D9F1B1F9C62990036D5FD /* Constant.swift */,
 				7B3936CE20C15BA00075A97A /* MixinKeys.swift */,
 				DF6175C2222398BB00624609 /* MixinURL.swift */,
+				E06C73FF23856C1700D9A2FD /* MixinError.swift */,
 				DFF1AD7B22254C6E0087173D /* R.generated.swift */,
 			);
 			path = Constants;
@@ -4047,6 +4050,7 @@
 				DF503D301FECF6F000C008E7 /* SenderKeyDAO.swift in Sources */,
 				7BAD2E55207DE046006D7887 /* UnreadHintMessageCell.swift in Sources */,
 				DF8A752523633F3A00765A82 /* MultisigResponse.swift in Sources */,
+				E06C740023856C1700D9A2FD /* MixinError.swift in Sources */,
 				7BA9D9C4226DCFFC00255943 /* SearchConversationViewController.swift in Sources */,
 				DFB2062821ABC088006E4341 /* RestoreViewController.swift in Sources */,
 				7B04FAB822684242004F8F04 /* AssetSearchResult.swift in Sources */,
