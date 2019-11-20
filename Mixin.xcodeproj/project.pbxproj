@@ -768,6 +768,7 @@
 		E00F52B22385454500955E4E /* MixinServicesError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E00F52B12385454500955E4E /* MixinServicesError.swift */; };
 		E039AB06237277E40071386E /* ProfileScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E039AB05237277E40071386E /* ProfileScrollView.swift */; };
 		E06C73FC2385546200D9A2FD /* CallError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C73FB2385546200D9A2FD /* CallError.swift */; };
+		E06C73FE2385677A00D9A2FD /* WCDBError+CustomNSError.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06C73FD2385677A00D9A2FD /* WCDBError+CustomNSError.swift */; };
 		E0878E44239A331E005956F9 /* AnyOptional.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878E43239A331E005956F9 /* AnyOptional.swift */; };
 		E0878F1C239A33C0005956F9 /* Reporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878F1B239A33C0005956F9 /* Reporter.swift */; };
 		E09C5EB6236FF1860095F729 /* ProfileRelationshipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */; };
@@ -1601,6 +1602,7 @@
 		E00F52B12385454500955E4E /* MixinServicesError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MixinServicesError.swift; sourceTree = "<group>"; };
 		E039AB05237277E40071386E /* ProfileScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScrollView.swift; sourceTree = "<group>"; };
 		E06C73FB2385546200D9A2FD /* CallError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallError.swift; sourceTree = "<group>"; };
+		E06C73FD2385677A00D9A2FD /* WCDBError+CustomNSError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WCDBError+CustomNSError.swift"; sourceTree = "<group>"; };
 		E0878E43239A331E005956F9 /* AnyOptional.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyOptional.swift; sourceTree = "<group>"; };
 		E0878F1B239A33C0005956F9 /* Reporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reporter.swift; sourceTree = "<group>"; };
 		E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRelationshipView.swift; sourceTree = "<group>"; };
@@ -3085,6 +3087,7 @@
 				DF3C47481FA0BC9A00A07C71 /* Mixin */,
 				DF5CDA73204FEBA1004A52BA /* BaseCodable.swift */,
 				DFD659C520501858000696B0 /* BaseDatabase.swift */,
+				E06C73FD2385677A00D9A2FD /* WCDBError+CustomNSError.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -3708,6 +3711,7 @@
 				DF08F0A623828B8F005CFD34 /* PHAssetExtension.swift in Sources */,
 				7BD639CA2282B17B00B7B3A6 /* PeerViewController.swift in Sources */,
 				7BEBCE2D228185130037BF18 /* MediaPreviewViewController.swift in Sources */,
+				E06C73FE2385677A00D9A2FD /* WCDBError+CustomNSError.swift in Sources */,
 				7BF39FC9219AA8B000950F06 /* AssetHeaderView.swift in Sources */,
 				7BC1466D230D12680060FE19 /* CurrencySelectorViewController.swift in Sources */,
 				7BD7055F215BAEDE00639FA8 /* PeerTransactionsViewController.swift in Sources */,
