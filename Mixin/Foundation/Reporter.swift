@@ -74,10 +74,6 @@ public enum Reporter {
             let content = "[Error] " + error.localizedDescription
             write(content: content, to: .firebaseOnlyError)
         } else {
-            #if canImport(Bugsnag)
-            Bugsnag.notifyError(error)
-            #endif
-            
             #if canImport(Firebase)
             Crashlytics.sharedInstance().recordError(error)
             #endif
