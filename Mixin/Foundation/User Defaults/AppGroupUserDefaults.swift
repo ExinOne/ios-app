@@ -119,10 +119,10 @@ extension AppGroupUserDefaults {
         guard needsMigration else {
             return
         }
-        Crypto.migrate()
-        Database.migrate()
         Account.migrate()
         User.migrate()
+        Crypto.migrate()
+        Database.migrate()
         Wallet.migrate()
         localVersion = version
     }

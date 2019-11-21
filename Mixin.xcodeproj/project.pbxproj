@@ -3100,12 +3100,12 @@
 			children = (
 				E0D1FAF623992B6600C27CB2 /* Legacy */,
 				E0878E43239A331E005956F9 /* AnyOptional.swift */,
+				E0D1FAF923992B6600C27CB2 /* AppGroupUserDefaults.swift */,
 				E0D1FAF323992B6500C27CB2 /* AppGroupUserDefaults+Account.swift */,
-				E0D1FAF423992B6500C27CB2 /* AppGroupUserDefaults+Wallet.swift */,
 				E0D1FAF523992B6600C27CB2 /* AppGroupUserDefaults+User.swift */,
 				E0D1FAF723992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift */,
 				E0D1FAF823992B6600C27CB2 /* AppGroupUserDefaults+Database.swift */,
-				E0D1FAF923992B6600C27CB2 /* AppGroupUserDefaults.swift */,
+				E0D1FAF423992B6500C27CB2 /* AppGroupUserDefaults+Wallet.swift */,
 			);
 			path = "User Defaults";
 			sourceTree = "<group>";
