@@ -33,7 +33,7 @@ extension AppGroupUserDefaults {
             case autoDownloadFiles = "auto_download_files"
         }
         
-        public static let version = 5
+        public static let version = 6
         
         public static let didChangeRecentlyUsedAppIdsNotification = Notification.Name(rawValue: "one.mixin.ios.recently.used.app.ids.change")
         
