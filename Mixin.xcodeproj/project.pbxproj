@@ -775,6 +775,7 @@
 		E0879352239A3FBC005956F9 /* MixinFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879351239A3FBB005956F9 /* MixinFile.swift */; };
 		E0879356239A40D3005956F9 /* AppGroupContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879354239A40D3005956F9 /* AppGroupContainer.swift */; };
 		E0879357239A40D3005956F9 /* AttachmentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879355239A40D3005956F9 /* AttachmentContainer.swift */; };
+		E0879359239A425F005956F9 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879358239A425F005956F9 /* Logger.swift */; };
 		E09C5EB6236FF1860095F729 /* ProfileRelationshipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */; };
 		E09C5EB82370057B0095F729 /* UserProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB72370057B0095F729 /* UserProfileViewController.swift */; };
 		E09C5EBD237007650095F729 /* ProfileDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EBB237007650095F729 /* ProfileDescriptionView.swift */; };
@@ -1613,6 +1614,7 @@
 		E0879351239A3FBB005956F9 /* MixinFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MixinFile.swift; sourceTree = "<group>"; };
 		E0879354239A40D3005956F9 /* AppGroupContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppGroupContainer.swift; sourceTree = "<group>"; };
 		E0879355239A40D3005956F9 /* AttachmentContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AttachmentContainer.swift; sourceTree = "<group>"; };
+		E0879358239A425F005956F9 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRelationshipView.swift; sourceTree = "<group>"; };
 		E09C5EB72370057B0095F729 /* UserProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewController.swift; sourceTree = "<group>"; };
 		E09C5EBB237007650095F729 /* ProfileDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDescriptionView.swift; sourceTree = "<group>"; };
@@ -3092,6 +3094,7 @@
 				E0D1FAEF23992B6500C27CB2 /* AutoDownload.swift */,
 				E0D1FAF023992B6500C27CB2 /* Environment.swift */,
 				E0878F1B239A33C0005956F9 /* Reporter.swift */,
+				E0879358239A425F005956F9 /* Logger.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -3841,6 +3844,7 @@
 				7B09E55E1FD15BAA002E45D3 /* TransferMessageViewModel.swift in Sources */,
 				7BEDF9F820510CD300371266 /* ConversationDataSource.swift in Sources */,
 				DF503D3F1FED060900C008E7 /* MixinIdentityKeyStore.swift in Sources */,
+				E0879359239A425F005956F9 /* Logger.swift in Sources */,
 				7B369212233B5153007321A7 /* SharedMediaCell.swift in Sources */,
 				27FE22B81FC70399006F2AA5 /* SignalKeyAPI.swift in Sources */,
 				7BDB4727215A6932008B21F9 /* InitialViewControllerFactory.swift in Sources */,

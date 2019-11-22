@@ -21,7 +21,7 @@ class MixinService {
         var signalKeyMessages = [TransferMessage]()
         for p in participants {
             if SignalProtocol.shared.containsSession(recipient: p.userId, deviceId: SignalProtocol.convertSessionIdToDeviceId(p.sessionId)) {
-                FileManager.default.writeLog(conversationId: conversationId, log: "[CheckSessionSenderKey]...containsSession...\(p.userId)")
+                Logger.write(conversationId: conversationId, log: "[CheckSessionSenderKey]...containsSession...\(p.userId)")
                 let (cipherText, isError) = try SignalProtocol.shared.encryptSenderKey(conversationId: conversationId, recipientId: p.userId, sessionId: p.sessionId)
                 if isError {
                     requestSignalKeyUsers.append(BlazeMessageParamSession(userId: p.userId, sessionId: p.sessionId))
@@ -70,8 +70,8 @@ class MixinService {
             return try checkSessionSenderKey(conversationId: conversationId)
         }
 
-        FileManager.default.writeLog(conversationId: conversationId, log: "[CheckSessionSenderKey][CREATE_SIGNAL_KEY_MESSAGES]...deliver:\(success)...retry:\(retry)...\(signalKeyMessages.map { "{\($0.messageId):\($0.recipientId ?? "")}" }.joined(separator: ","))...")
-        FileManager.default.writeLog(conversationId: conversationId, log: "[CheckSessionSenderKey][SignalKeys]...\(signalKeys.map { "{\($0.userId ?? "")}" }.joined(separator: ","))...")
+        Logger.write(conversationId: conversationId, log: "[CheckSessionSenderKey][CREATE_SIGNAL_KEY_MESSAGES]...deliver:\(success)...retry:\(retry)...\(signalKeyMessages.map { "{\($0.messageId):\($0.recipientId ?? "")}" }.joined(separator: ","))...")
+        Logger.write(conversationId: conversationId, log: "[CheckSessionSenderKey][SignalKeys]...\(signalKeys.map { "{\($0.userId ?? "")}" }.joined(separator: ","))...")
     }
 
     internal func syncConversation(conversationId: String) {
@@ -103,7 +103,7 @@ class MixinService {
         if !SignalProtocol.shared.containsSession(recipient: recipientId, deviceId: deviceId) {
             let signalKeys = signalKeysChannel(requestSignalKeyUsers: [BlazeMessageParamSession(userId: recipientId, sessionId: sessionId)])
             guard signalKeys.count > 0 else {
-                FileManager.default.writeLog(log: "[MixinService][CheckSignalSession]...recipientId:\(recipientId)...sessionId:\(sessionId ?? "")...signal keys count is zero ")
+                Logger.write(log: "[MixinService][CheckSignalSession]...recipientId:\(recipientId)...sessionId:\(sessionId ?? "")...signal keys count is zero ")
                 return false
             }
             try SignalProtocol.shared.processSession(userId: recipientId, key: signalKeys[0], deviceId: deviceId)
@@ -119,7 +119,7 @@ class MixinService {
             if signalKeys.count > 0 {
                 try SignalProtocol.shared.processSession(userId: recipientId, key: signalKeys[0], deviceId: deviceId)
             } else {
-                FileManager.default.writeLog(conversationId: conversationId, log: "[SendSenderKey]...recipientId:\(recipientId)...No any signal key from server")
+                Logger.write(conversationId: conversationId, log: "[SendSenderKey]...recipientId:\(recipientId)...No any signal key from server")
                 if let sessionId = sessionId, !sessionId.isEmpty {
                     MixinDatabase.shared.insertOrReplace(objects: [ParticipantSession(conversationId: conversationId, userId: recipientId, sessionId: sessionId, sentToServer: SenderKeyStatus.UNKNOWN.rawValue, createdAt: Date().toUTCString())])
                 }
@@ -143,14 +143,14 @@ class MixinService {
         } else if retry {
             return try sendSenderKey(conversationId: conversationId, recipientId: recipientId, sessionId: sessionId, isForce: isForce)
         }
-        FileManager.default.writeLog(conversationId: conversationId, log: "[DeliverSenderKey]...messageId:\(blazeMessage.params?.messageId ?? "")...sessionId:\(sessionId ?? "")...recipientId:\(recipientId)...\(success)")
+        Logger.write(conversationId: conversationId, log: "[DeliverSenderKey]...messageId:\(blazeMessage.params?.messageId ?? "")...sessionId:\(sessionId ?? "")...recipientId:\(recipientId)...\(success)")
         return success
     }
 
     internal func resendSenderKey(conversationId: String, recipientId: String, sessionId: String?) throws {
         let result = try sendSenderKey(conversationId: conversationId, recipientId: recipientId, sessionId: sessionId, isForce: true)
         if !result {
-            FileManager.default.writeLog(conversationId: conversationId, log: "[ResendSenderKey]...recipientId:\(recipientId)...No any group signal key from server")
+            Logger.write(conversationId: conversationId, log: "[ResendSenderKey]...recipientId:\(recipientId)...No any group signal key from server")
             sendNoKeyMessage(conversationId: conversationId, recipientId: recipientId)
         }
     }

@@ -1462,7 +1462,7 @@ extension ConversationViewController {
                     return
                 }
             }
-            guard let developUser = user, let url = FileManager.default.exportLog(conversationId: conversationId) else {
+            guard let developUser = user, let url = Logger.export(conversationId: conversationId) else {
                 return
             }
             let targetUrl = AttachmentContainer.url(for: .files, filename: url.lastPathComponent)
