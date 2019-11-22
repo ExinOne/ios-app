@@ -773,6 +773,8 @@
 		E0878E44239A331E005956F9 /* AnyOptional.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878E43239A331E005956F9 /* AnyOptional.swift */; };
 		E0878F1C239A33C0005956F9 /* Reporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0878F1B239A33C0005956F9 /* Reporter.swift */; };
 		E0879352239A3FBC005956F9 /* MixinFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879351239A3FBB005956F9 /* MixinFile.swift */; };
+		E0879356239A40D3005956F9 /* AppGroupContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879354239A40D3005956F9 /* AppGroupContainer.swift */; };
+		E0879357239A40D3005956F9 /* AttachmentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879355239A40D3005956F9 /* AttachmentContainer.swift */; };
 		E09C5EB6236FF1860095F729 /* ProfileRelationshipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */; };
 		E09C5EB82370057B0095F729 /* UserProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB72370057B0095F729 /* UserProfileViewController.swift */; };
 		E09C5EBD237007650095F729 /* ProfileDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EBB237007650095F729 /* ProfileDescriptionView.swift */; };
@@ -1609,6 +1611,8 @@
 		E0878E43239A331E005956F9 /* AnyOptional.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnyOptional.swift; sourceTree = "<group>"; };
 		E0878F1B239A33C0005956F9 /* Reporter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reporter.swift; sourceTree = "<group>"; };
 		E0879351239A3FBB005956F9 /* MixinFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MixinFile.swift; sourceTree = "<group>"; };
+		E0879354239A40D3005956F9 /* AppGroupContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppGroupContainer.swift; sourceTree = "<group>"; };
+		E0879355239A40D3005956F9 /* AttachmentContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AttachmentContainer.swift; sourceTree = "<group>"; };
 		E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRelationshipView.swift; sourceTree = "<group>"; };
 		E09C5EB72370057B0095F729 /* UserProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewController.swift; sourceTree = "<group>"; };
 		E09C5EBB237007650095F729 /* ProfileDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDescriptionView.swift; sourceTree = "<group>"; };
@@ -3069,11 +3073,21 @@
 			path = Legacy;
 			sourceTree = "<group>";
 		};
+		E0879353239A40D3005956F9 /* File Management */ = {
+			isa = PBXGroup;
+			children = (
+				E0879354239A40D3005956F9 /* AppGroupContainer.swift */,
+				E0879355239A40D3005956F9 /* AttachmentContainer.swift */,
+			);
+			path = "File Management";
+			sourceTree = "<group>";
+		};
 		E0D1FA13239927DE00C27CB2 /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
 				E0879350239A3FBB005956F9 /* Legacy */,
 				E0D1FAF223992B6500C27CB2 /* User Defaults */,
+				E0879353239A40D3005956F9 /* File Management */,
 				E0D1FAF123992B6500C27CB2 /* AutoBackup.swift */,
 				E0D1FAEF23992B6500C27CB2 /* AutoDownload.swift */,
 				E0D1FAF023992B6500C27CB2 /* Environment.swift */,
@@ -3567,6 +3581,7 @@
 				7B2BB2CD2187FEBB00E02296 /* TurnServer.swift in Sources */,
 				DFE48AE020EBD7F3003E0BF8 /* ConversationCategoryStorage.swift in Sources */,
 				DFB18FFE2330E7350021CAF3 /* AnnouncementViewController.swift in Sources */,
+				E0879357239A40D3005956F9 /* AttachmentContainer.swift in Sources */,
 				7B14DFFC22F9AE3F009CCC45 /* LocalImageLoadToken.swift in Sources */,
 				DFA4573B200AED2D001E10FA /* CommonUserDefault.swift in Sources */,
 				7BB3855021E74DA60070FF8F /* JSONCoderExtension.swift in Sources */,
@@ -3714,6 +3729,7 @@
 				7BCAF54A216B0C3700D6564A /* GiphyCollectionViewFlowLayout.swift in Sources */,
 				DF5D9F241F9C79E10036D5FD /* Constant.swift in Sources */,
 				7B915F74215FB0C100A562C6 /* GiphySearchViewController.swift in Sources */,
+				E0879356239A40D3005956F9 /* AppGroupContainer.swift in Sources */,
 				7B7DACA623505793006AA2AC /* AudioCell.swift in Sources */,
 				DF5D9F251F9C79E10036D5FD /* LocalizedExtension.swift in Sources */,
 				DFD87C8B1FDBF10100BBCFFC /* RefreshOffsetJob.swift in Sources */,
