@@ -114,6 +114,9 @@ extension AppGroupUserDefaults {
     @Default(namespace: nil, key: "first_shown_home_date", defaultValue: Date())
     public static var firstShownHomeDate: Date
     
+    @Default(namespace: nil, key: "currency_rates", defaultValue: [:])
+    public static var currencyRates: [String: Double]
+    
 }
 
 extension AppGroupUserDefaults {
