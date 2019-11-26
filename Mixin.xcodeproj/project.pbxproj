@@ -776,6 +776,7 @@
 		E0879356239A40D3005956F9 /* AppGroupContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879354239A40D3005956F9 /* AppGroupContainer.swift */; };
 		E0879357239A40D3005956F9 /* AttachmentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879355239A40D3005956F9 /* AttachmentContainer.swift */; };
 		E0879359239A425F005956F9 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0879358239A425F005956F9 /* Logger.swift */; };
+		E087935B239A4763005956F9 /* AppGroupUserDefaults+Signal.swift in Sources */ = {isa = PBXBuildFile; fileRef = E087935A239A4763005956F9 /* AppGroupUserDefaults+Signal.swift */; };
 		E09C5EB6236FF1860095F729 /* ProfileRelationshipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */; };
 		E09C5EB82370057B0095F729 /* UserProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EB72370057B0095F729 /* UserProfileViewController.swift */; };
 		E09C5EBD237007650095F729 /* ProfileDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C5EBB237007650095F729 /* ProfileDescriptionView.swift */; };
@@ -1615,6 +1616,7 @@
 		E0879354239A40D3005956F9 /* AppGroupContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppGroupContainer.swift; sourceTree = "<group>"; };
 		E0879355239A40D3005956F9 /* AttachmentContainer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AttachmentContainer.swift; sourceTree = "<group>"; };
 		E0879358239A425F005956F9 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
+		E087935A239A4763005956F9 /* AppGroupUserDefaults+Signal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AppGroupUserDefaults+Signal.swift"; sourceTree = "<group>"; };
 		E09C5EB5236FF1860095F729 /* ProfileRelationshipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRelationshipView.swift; sourceTree = "<group>"; };
 		E09C5EB72370057B0095F729 /* UserProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewController.swift; sourceTree = "<group>"; };
 		E09C5EBB237007650095F729 /* ProfileDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileDescriptionView.swift; sourceTree = "<group>"; };
@@ -3131,6 +3133,7 @@
 				E0D1FAF923992B6600C27CB2 /* AppGroupUserDefaults.swift */,
 				E0D1FAF323992B6500C27CB2 /* AppGroupUserDefaults+Account.swift */,
 				E0D1FAF523992B6600C27CB2 /* AppGroupUserDefaults+User.swift */,
+				E087935A239A4763005956F9 /* AppGroupUserDefaults+Signal.swift */,
 				E0D1FAF723992B6600C27CB2 /* AppGroupUserDefaults+Crypto.swift */,
 				E0D1FAF823992B6600C27CB2 /* AppGroupUserDefaults+Database.swift */,
 				E0D1FAF423992B6500C27CB2 /* AppGroupUserDefaults+Wallet.swift */,
@@ -3820,6 +3823,7 @@
 				DF5D9F271F9C79E10036D5FD /* BundleExtension.swift in Sources */,
 				7B280DF022B124450084E49E /* EmergencyAPI.swift in Sources */,
 				DF8DA1891FD4F5D700425CEC /* DictionaryExtension.swift in Sources */,
+				E087935B239A4763005956F9 /* AppGroupUserDefaults+Signal.swift in Sources */,
 				7B4E3078229565C200A03F6E /* SearchBoxLeftView.swift in Sources */,
 				7BF3F67C22AE64FA007B6C77 /* ImageUploadJob.swift in Sources */,
 				273FACB6205FB9A800513327 /* Signal.swift in Sources */,

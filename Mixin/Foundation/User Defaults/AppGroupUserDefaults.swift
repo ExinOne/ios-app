@@ -5,6 +5,7 @@ public enum AppGroupUserDefaults {
     internal static let defaults = UserDefaults(suiteName: appGroupIdentifier)!
     
     public enum Namespace {
+        case signal
         case crypto
         case account
         case user
@@ -13,6 +14,8 @@ public enum AppGroupUserDefaults {
         
         var stringValue: String {
             switch self {
+            case .signal:
+                return "signal"
             case .crypto:
                 return "crypto"
             case .account:
@@ -121,6 +124,7 @@ extension AppGroupUserDefaults {
         }
         Account.migrate()
         User.migrate()
+        Signal.migrate()
         Crypto.migrate()
         Database.migrate()
         Wallet.migrate()
