@@ -6,7 +6,7 @@ class BackupJob: BaseJob {
     
     static let sharedId = "backup"
 
-    private let monitorQueue = DispatchQueue(label: "one.mixin.messenger.queue.backup")
+    private let monitorQueue = DispatchQueue(label: "com.exinone.messenger.queue.backup")
     private let immediatelyBackup: Bool
     private var monitors = SafeDictionary<String, Int64>()
     private var withoutUploadSize: Int64 = 0

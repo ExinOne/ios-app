@@ -5054,7 +5054,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 443;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -5160,7 +5160,7 @@
 					"-isystem",
 					"\"${PODS_ROOT}/Headers/Public/FirebaseInstanceID\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = one.mixin.messenger;
+				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.messenger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -5182,7 +5182,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 443;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -5288,7 +5288,7 @@
 					"-isystem",
 					"\"${PODS_ROOT}/Headers/Public/FirebaseInstanceID\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = one.mixin.messenger;
+				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.messenger;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = RELEASE;
@@ -5307,7 +5307,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinAppGroupAccess/MixinAppGroupAccess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinAppGroupAccess/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5316,7 +5316,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = one.mixin.MixinAppGroupAccess;
+				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.MixinAppGroupAccess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -5332,7 +5332,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinAppGroupAccess/MixinAppGroupAccess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinAppGroupAccess/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5340,7 +5340,7 @@
 					"@executable_path/Frameworks",
 				);
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = one.mixin.MixinAppGroupAccess;
+				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.MixinAppGroupAccess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -5355,7 +5355,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 443;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5366,7 +5366,7 @@
 				MARKETING_VERSION = 0.30.7;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = one.mixin.messenger.share;
+				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.messenger.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -5382,7 +5382,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 443;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5392,7 +5392,7 @@
 				);
 				MARKETING_VERSION = 0.30.7;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = one.mixin.messenger.share;
+				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.messenger.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -5408,7 +5408,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 443;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5419,7 +5419,7 @@
 				MARKETING_VERSION = 0.30.7;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "one.mixin.messenger.notification-service";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.exinone.messenger.notification-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -5435,7 +5435,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 443;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5445,7 +5445,7 @@
 				);
 				MARKETING_VERSION = 0.30.7;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "one.mixin.messenger.notification-service";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.exinone.messenger.notification-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;

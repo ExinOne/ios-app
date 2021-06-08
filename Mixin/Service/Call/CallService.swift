@@ -8,10 +8,10 @@ class CallService: NSObject {
     
     static let shared = CallService()
     static let maxNumberOfKrakenRetries: UInt = 30
-    static let mutenessDidChangeNotification = Notification.Name("one.mixin.messenger.CallService.MutenessDidChange")
-    static let willStartCallNotification = Notification.Name("one.mixin.messenger.CallService.WillStartCall")
-    static let willActivateCallNotification = Notification.Name("one.mixin.messenger.CallService.WillActivateCall")
-    static let willDeactivateCallNotification = Notification.Name("one.mixin.messenger.CallService.WillDeactivateCall")
+    static let mutenessDidChangeNotification = Notification.Name("com.exinone.messenger.CallService.MutenessDidChange")
+    static let willStartCallNotification = Notification.Name("com.exinone.messenger.CallService.WillStartCall")
+    static let willActivateCallNotification = Notification.Name("com.exinone.messenger.CallService.WillActivateCall")
+    static let willDeactivateCallNotification = Notification.Name("com.exinone.messenger.CallService.WillDeactivateCall")
     static let callUserInfoKey = "call"
     
     let queue = DispatchQueue(label: "one.mixin.messenger.CallService")

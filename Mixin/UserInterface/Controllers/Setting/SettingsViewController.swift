@@ -23,11 +23,11 @@ class SettingsViewController: SettingsTableViewController {
                         title: R.string.localizable.setting_appearance(),
                         accessory: .disclosure)
         ]),
-        SettingsSection(rows: [
-            SettingsRow(icon: R.image.setting.ic_category_desktop(),
-                        title: R.string.localizable.setting_desktop(),
-                        accessory: .disclosure)
-        ]),
+//        SettingsSection(rows: [
+//            SettingsRow(icon: R.image.setting.ic_category_desktop(),
+//                        title: R.string.localizable.setting_desktop(),
+//                        accessory: .disclosure)
+//        ]),
         SettingsSection(rows: [
             SettingsRow(icon: R.image.setting.ic_category_feedback(),
                         title: R.string.localizable.setting_feedback(),
@@ -81,8 +81,8 @@ extension SettingsViewController: UITableViewDelegate {
         case 1:
             vc = AppearanceSettingsViewController.instance()
         case 2:
-            vc = DesktopViewController.instance()
-        case 3:
+//            vc = DesktopViewController.instance()
+//        case 3:
             if indexPath.row == 0 {
                 if let user = UserDAO.shared.getUser(identityNumber: "7000") {
                     vc = ConversationViewController.instance(ownerUser: user)

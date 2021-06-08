@@ -279,14 +279,14 @@ extension UserProfileViewController {
         window.presentPopupControllerAnimated()
     }
     
-    @objc func showMyMoneyReceivingCode() {
-        guard let account = LoginManager.shared.account else {
-            return
-        }
-        let window = QrcodeWindow.instance()
-        window.renderMoneyReceivingCode(account: account)
-        window.presentPopupControllerAnimated()
-    }
+//    @objc func showMyMoneyReceivingCode() {
+//        guard let account = LoginManager.shared.account else {
+//            return
+//        }
+//        let window = QrcodeWindow.instance()
+//        window.renderMoneyReceivingCode(account: account)
+//        window.presentPopupControllerAnimated()
+//    }
     
     @objc func changeAvatarWithCamera() {
         imagePicker.presentCamera()
@@ -326,6 +326,14 @@ extension UserProfileViewController {
             let vc = WalletPasswordViewController.instance(dismissTarget: .changePhone)
             dismissAndPush(vc)
         }
+        
+//        var context = ChangeNumberContext()
+//        context.pin = ""
+//        let vc = ChangeNumberNewNumberViewController()
+//        vc.context = context
+////        navigationController?.pushViewController(vc, animated: true)
+//
+//        dismissAndPresent(vc)
     }
     
     @objc func openApp() {
@@ -625,11 +633,11 @@ extension UserProfileViewController {
                 [ProfileMenuItem(title: R.string.localizable.profile_my_qrcode(),
                                  subtitle: nil,
                                  style: [],
-                                 action: #selector(showMyQrCode)),
-                 ProfileMenuItem(title: R.string.localizable.contact_receive_money(),
-                                 subtitle: nil,
-                                 style: [],
-                                 action: #selector(showMyMoneyReceivingCode))],
+                                 action: #selector(showMyQrCode))],
+//                 ProfileMenuItem(title: R.string.localizable.contact_receive_money(),
+//                                 subtitle: nil,
+//                                 style: [],
+//                                 action: #selector(showMyMoneyReceivingCode))],
                 [ProfileMenuItem(title: R.string.localizable.profile_edit_name(),
                                  subtitle: nil,
                                  style: [],

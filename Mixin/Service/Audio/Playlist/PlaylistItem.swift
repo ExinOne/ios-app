@@ -5,8 +5,8 @@ import MixinServices
 
 final class PlaylistItem {
     
-    static let beginLoadingAssetNotification = Notification.Name("one.mixin.messenger.PlaylistItem.beginLoadingAsset")
-    static let finishLoadingAssetNotification = Notification.Name("one.mixin.messenger.PlaylistItem.finishLoadingAsset")
+    static let beginLoadingAssetNotification = Notification.Name("com.exinone.messenger.PlaylistItem.beginLoadingAsset")
+    static let finishLoadingAssetNotification = Notification.Name("com.exinone.messenger.PlaylistItem.finishLoadingAsset")
     
     let id: String
     

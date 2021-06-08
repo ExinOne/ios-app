@@ -62,7 +62,7 @@ final class OggOpusRecorder {
     private(set) var isRecording: Bool
     
     private let writer: OggOpusWriter
-    private let processingQueue = DispatchQueue(label: "one.mixin.messenger.OggOpusRecorder")
+    private let processingQueue = DispatchQueue(label: "com.exinone.messenger.OggOpusRecorder")
     private let waveformPeakSampleScope = 100
     private let numberOfWaveformIntensities = 63
     

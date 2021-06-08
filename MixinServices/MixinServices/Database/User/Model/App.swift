@@ -20,7 +20,7 @@ public enum AppCategory: String, Codable {
 
 public struct App {
     
-    public static let walletAppId = "1462e610-7de1-4865-bc06-d71cfcbd0329"
+//    public static let walletAppId = "1462e610-7de1-4865-bc06-d71cfcbd0329"
     public static let scanAppId = "1cc9189a-ddcd-4b95-a18b-4411da1b8d80"
     public static let cameraAppId = "15366a81-077c-414b-8829-552c5c87a2ae"
     

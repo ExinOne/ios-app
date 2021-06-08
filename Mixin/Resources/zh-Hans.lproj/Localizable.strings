@@ -1,4 +1,4 @@
-"app_name" = "Mixin";
+"app_name" = "Exin";
 
 // Common
 "dialog_button_ok" = "确定";
@@ -68,24 +68,24 @@
 "date_format_week_date" = "yyyy 年 MM 月 d 日 E";
 
 // Search
-"search_placeholder_number" = "搜索 Mixin ID 或手机号码：";
+"search_placeholder_number" = "搜索 Exin ID 或手机号码：";
 "search_placeholder_address" = "标签名";
 "search_placeholder_asset" = "名称, 符号";
 "search_placeholder_currency" = "货币代码";
 "search_placeholder_home" = "联系人, 资产, 聊天";
-"search_placeholder_contact" = "Mixin ID, 名称, 手机号码";
-"search_placeholder_authorization" = "Mixin ID, 名称";
+"search_placeholder_contact" = "Exin ID, 名称, 手机号码";
+"search_placeholder_authorization" = "Exin ID, 名称";
 "search_related_messages_count" = "条相关消息";
 "search_section_title_asset" = "资产";
 "search_section_title_user" = "联系人";
 "search_section_title_conversation_by_name" = "会话";
 "search_section_title_conversation_by_message" = "消息";
-"search_result_prefix_id" = "Mixin ID：";
+"search_result_prefix_id" = "Exin ID：";
 "search_result_prefix_phone" = "手机号码：";
 
 // Toast
-"permission_denied_camera" = "Mixin 需要摄像头权限，请点击'设置'打开系统授权。";
-"permission_denied_microphone" = "Mixin 需要麦克风权限，请点击'设置'打开系统授权。";
+"permission_denied_camera" = "Exin 需要摄像头权限，请点击'设置'打开系统授权。";
+"permission_denied_microphone" = "Exin 需要麦克风权限，请点击'设置'打开系统授权。";
 "toast_copied" = "已复制";
 "toast_added" = "已添加";
 "toast_saved" = "已保存";
@@ -94,8 +94,8 @@
 "toast_authorized" = "已授权";
 "toast_changed" = "已修改";
 "toast_blocked" = "已屏蔽";
-"permission_denied_photo_library" = "Mixin 需要相册权限，请点击'设置'打开系统授权。";
-"permission_denied_network" = "Mixin 需要无线数据权限，请点击'设置'打开系统授权。";
+"permission_denied_photo_library" = "Exin 需要相册权限，请点击'设置'打开系统授权。";
+"permission_denied_network" = "Exin 需要无线数据权限，请点击'设置'打开系统授权。";
 "biometry_suggestion" = "建议使用%@支付";
 "clock_skew_title" = "系统时间异常";
 "clock_skew_tips" = "请校正后再继续使用，设置 > 通用 > 日期与时间 > 自动设置。";
@@ -131,9 +131,9 @@
 "navigation_title_enter_mobile_number" = "输入你的手机号码";
 "navigation_title_enter_verification_code" = "请输入发送至以下号码的4位验证码： %@";
 "navigation_title_enter_name" = "名字";
-"navigation_title_enter_emergency_contact_id" = "输入紧急联系人的 Mixin ID";
-"navigation_title_enter_emergency_contact_verification_code" = "请输入发送至以下 Mixin ID 的 4 位验证码：%@";
-"landing_welcome_title" = "欢迎使用 Mixin";
+"navigation_title_enter_emergency_contact_id" = "输入紧急联系人的 Exin ID";
+"navigation_title_enter_emergency_contact_verification_code" = "请输入发送至以下 Exin ID 的 4 位验证码：%@";
+"landing_welcome_title" = "欢迎使用 Exin";
 "text_intro" = "继续使用即表示你同意 %@ 和 %@";
 "text_mobile_number_privacy" = "我们不会公开你的手机号码";
 "text_confirm_send_code" = "确认你的手机号码 %@";
@@ -155,8 +155,8 @@
 "init_signal" = "正在初始化";
 "init_explain" = "用户之间的消息将受到端对端加密保护";
 "toast_captcha_timeout" = "验证超时";
-"desktop_login_confim" = "确认登录 Mixin Messenger 桌面端？";
-"desktop_upgrade" = "请升级 Mixin Messenger 桌面端至最新版！";
+"desktop_login_confim" = "确认登录 Exin Messenger 桌面端？";
+"desktop_upgrade" = "请升级 Exin Messenger 桌面端至最新版！";
 
 // Contacts
 "contact_title" = "联系人";
@@ -164,20 +164,20 @@
 "contact_new_group_title" = "新群聊";
 "contact_new_group_summary" = "创建一个最多支持 256 人的群";
 "contact_add_title" = "添加联系人";
-"contact_add_summary" = "通过 Mixin ID 或手机号添加联系人";
-"contact_qr_code_title" = "Mixin 二维码";
+"contact_add_summary" = "通过 Exin ID 或手机号添加联系人";
+"contact_qr_code_title" = "Exin 二维码";
 "contact_qr_code_summary" = "扫描好友的二维码";
 "contact_invite_title" = "邀请好友";
 "contact_invite_summary" = "我的邀请码 %@";
-"contact_invite" = "我正在使用 Mixin 聊天。下载：https://mixin.one/messenger";
+"contact_invite" = "我正在使用 Exin 聊天。下载：https://Exin.one/messenger";
 "contact_profile_title" = "我的";
 "contact_phone_contacts" = "通讯录";
 "contact_upload_mobile_contacts" = "上传通讯录找好友";
-"contact_phone_contact_summary" = "上传你的手机通讯录，如果你的通讯录中有朋友已经注册了 Mixin，系统会帮你自动添加为好友";
-"contact_my_identity_number" = "我的 Mixin ID: %@";
+"contact_phone_contact_summary" = "上传你的手机通讯录，如果你的通讯录中有朋友已经注册了 Exin，系统会帮你自动添加为好友";
+"contact_my_identity_number" = "我的 Exin ID: %@";
 "contact_error_compose_avatar" = "头像解析失败，请尝试使用其他图片。";
 "contact_phone_contact_invite" = "邀请";
-"contact_identity_number" = "Mixin ID: %@";
+"contact_identity_number" = "Exin ID: %@";
 "contact_mobile" = "手机号: %@";
 "contact_avatar_picking_fail" = "上传头像失败，请稍后重试";
 "contact_change_name_fail" = "修改名称失败，请稍后重试";
@@ -187,7 +187,7 @@
 "user_not_found" = "找不到这个用户";
 
 "button_title_search" = "搜索";
-"placeholder_mixin_id_or_phone" = "Mixin ID 或手机号";
+"placeholder_Exin_id_or_phone" = "Exin ID 或手机号";
 "placeholder_new_name" = "名称";
 "navigation_title_add_people" = "添加联系人";
 
@@ -195,7 +195,7 @@
 "app_not_found" = "找不到这个机器人";
 
 // Home
-"home_start_messaging_guide" = "你可以与你的 Mixin 好友一起聊天。";
+"home_start_messaging_guide" = "你可以与你的 Exin 好友一起聊天。";
 "home_start_messaging" = "开始聊天";
 "home_cell_action_pin" = "置顶";
 "home_cell_action_unpin" = "取消置顶";
@@ -214,7 +214,7 @@
 
 // Circle
 "circle_title" = "圈子";
-"circle_default_all" = "Mixin";
+"circle_default_all" = "Exin";
 "circle_default_strangers" = "陌生人";
 "circle_default_bots" = "机器人";
 "circle_default_contacts" = "联系人";
@@ -262,7 +262,7 @@
 "chat_message_not_found" = "找不到该消息";
 "chat_message_sent" = "消息已发送";
 "chat_cell_title_encryption" = "此对话中的消息使用端对端加密。点击了解更多。";
-"chat_cell_title_unknown_category" = "不支持此类型消息。请升级 Mixin 查看。";
+"chat_cell_title_unknown_category" = "不支持此类型消息。请升级 Exin 查看。";
 "chat_forward_title" = "转发";
 "chat_forward_chats" = "最近聊天";
 "chat_forward_contacts" = "联系人";
@@ -302,7 +302,7 @@
 "chat_restore_title" = "从 iCloud 恢复\n您的聊天记录";
 "chat_restore_subtitle" = "如果现在不恢复，未来将无法恢复这些记录。媒体文件将在信息恢复完成后在后台继续运行。";
 "chat_stranger_tip" = "对方不是你的联系人";
-"chat_delete_tip" = "这条消息将从所有使用最新版本 Mixin Messenger 的设备上删除";
+"chat_delete_tip" = "这条消息将从所有使用最新版本 Exin Messenger 的设备上删除";
 "chat_badge_live" = "直播";
 "chat_shared_media" = "媒体内容";
 "chat_media_category_media" = "媒体";
@@ -350,7 +350,7 @@
 // Call
 "call_encryption" = "端对端加密";
 "call_encryption_title" = "此通话使用端对端加密进行保护";
-"call_encryption_description" = "除了参与通话的人，其他人包含Mixin在内都无法听取或查看。";
+"call_encryption_description" = "除了参与通话的人，其他人包含Exin在内都无法听取或查看。";
 "call_hint_on_another_call" = "正在通话中，请挂断当前电话后重试";
 "call_status_outgoing" = "正在呼叫...";
 "call_status_incoming" = "语音通话来电";
@@ -361,7 +361,7 @@
 "call_func_accept" = "接听";
 "call_func_mute" = "静音";
 "call_func_speaker" = "扬声器";
-"call_no_microphone_permission" = "如果使用语音通话，Mixin 需要麦克风权限，请点击'设置'打开系统授权。";
+"call_no_microphone_permission" = "如果使用语音通话，Exin 需要麦克风权限，请点击'设置'打开系统授权。";
 "call_no_network" = "通话服务不可用，请确认网络连接正常并重试";
 "call_user_not_found" = "找不到用户";
 "call_declined_lack_microphone_permission" = "已拒绝通话";
@@ -394,7 +394,7 @@
 "camera_save_video_success" = "视频已成功保存在相册";
 "camera_save_video_failed" = "保存视频失败";
 "image_picker_title_albums" = "相册";
-"camera_qrcode_codes" = "检测到一个 Mixin 二维码，点击识别";
+"camera_qrcode_codes" = "检测到一个 Exin 二维码，点击识别";
 
 // Group
 "group_navigation_title_add_member" = "添加成员";
@@ -426,7 +426,7 @@
 "group_participant_menu_admin" = "设为管理员";
 "group_participant_menu_dismiss_admin" = "撤销管理员";
 "group_participant_menu_remove" = "从群组中移除";
-"group_invite_hint" = "Mixin 使用者可使用此链接加入这个群组，请只跟你信任的人分享链接。";
+"group_invite_hint" = "Exin 使用者可使用此链接加入这个群组，请只跟你信任的人分享链接。";
 "group_join_fail_title" = "无法加入群组";
 "group_join_fail_summary" = "没有找到这个邀请链接相关的群组";
 "group_link_checking" = "正在检查链接";
@@ -472,7 +472,7 @@
 "wallet_address_memo" = "Memo（标签）";
 "wallet_deposit_attention" = "首次充值建议小额尝试！";
 "wallet_deposit_attention_minimum" = "首次充值建议小额尝试！首次充值至少 %@ %@！";
-"wallet_deposit_account_attention" = "注意：首次充值建议小额尝试！地址和 Memo（标签）同时使用才能充值 %@ 到 Mixin Messenger。";
+"wallet_deposit_account_attention" = "注意：首次充值建议小额尝试！地址和 Memo（标签）同时使用才能充值 %@ 到 Exin Messenger。";
 "wallet_menu_show_hidden_assets" = "隐藏资产";
 "wallet_menu_show_asset" = "显示资产";
 "wallet_menu_hide_asset" = "隐藏资产";
@@ -618,11 +618,11 @@
 // QRCode
 "qr_code_not_found" = "未检测到二维码";
 "myqrcode_title" = "我的二维码";
-"myqrcode_prompt" = "用 Mixin 扫描二维码加我为联系人";
-"transfer_qrcode_prompt" = "用 Mixin 扫描二维码给我转账";
+"myqrcode_prompt" = "用 Exin 扫描二维码加我为联系人";
+"transfer_qrcode_prompt" = "用 Exin 扫描二维码给我转账";
 "group_qr_code" = "群组二维码";
 "group_qr_code_prompt" = "扫描二维码加入群组";
-"not_mixin_qr_code" = "无法识别该二维码";
+"not_Exin_qr_code" = "无法识别该二维码";
 "auth_permission_profile" = "个人资料(必须)";
 "auth_permission_phone" = "手机号码";
 "auth_permission_assets" = "查看资产";
@@ -670,7 +670,7 @@
 "profile_change_number_succeeded" = "更换手机号成功";
 "profile_change_number_verify_pin" = "验证钱包密码";
 "profile_change_number_new_number" = "请输入新号码";
-"profile_mixin_id" = "Mixin ID: %@";
+"profile_Exin_id" = "Exin ID: %@";
 "profile_reputation_score" = "荣誉值: %@";
 "profile_edit_name" = "编辑名称";
 "profile_edit_biography" = "编辑个人简介";
@@ -711,13 +711,13 @@
 "emergency_remove" = "删除紧急联系人";
 "emergency_tip_remove" = "确定删除紧急联系人？";
 "emergency_tip_before" = "紧急联系人旨在帮助你在丢失且无法找回手机号的情况下登录你的账号。";
-"emergency_tip_after" = "当您的电话号码无法使用时，请向紧急联系人索取 Mixin ID 与验证码。阅读紧急联系人了解更多。";
+"emergency_tip_after" = "当您的电话号码无法使用时，请向紧急联系人索取 Exin ID 与验证码。阅读紧急联系人了解更多。";
 "emergency_tip_link" = "紧急联系人";
 "emergency_pin_protection_hint" = "紧急联系人经密码加密保护";
 "emergency_change_number_tip" = "立即更换手机号？";
 "emergency_tip_pin" = "注意：紧急联系人无法帮助找回密码";
 "enable_emergency_contact" = "启用紧急联系人";
-"emergency_confirm" = "确认设置 Mixin ID %@ 为你的紧急联系人？注意双方必须互为联系人才能设置成功！";
+"emergency_confirm" = "确认设置 Exin ID %@ 为你的紧急联系人？注意双方必须互为联系人才能设置成功！";
 
 // Database
 "database_upgrade" = "数据库升级";
@@ -726,8 +726,8 @@
 
 // App
 "app_update_button" = "更新";
-"app_update_title" = "更新 Mixin";
-"app_update_short_tips" = "请从 App Store 更新 Mixin 至最新版";
+"app_update_title" = "更新 Exin";
+"app_update_short_tips" = "请从 App Store 更新 Exin 至最新版";
 "app_update_tips" = "当前版本（%@）已失效！请点击下方“更新”从 App Store 更新至最新版。";
 
 // Setting
@@ -752,7 +752,7 @@
 "setting_blocked_empty" = "没有人被屏蔽";
 "setting_blocked_summary" = "被屏蔽的用户不能给你发消息也不能邀请你入群。";
 "setting_conversation" = "会话";
-"setting_desktop" = "Mixin Messenger 桌面版";
+"setting_desktop" = "Exin Messenger 桌面版";
 "setting_desktop_last_active" = "最后登入于 %@";
 "setting_desktop_desktop_on" = "桌面版已登入";
 "setting_desktop_log_out" = "从桌面版退出";
@@ -797,7 +797,7 @@
 "setting_backup_monthly" = "每月";
 "setting_backup_off" = "关闭";
 "setting_backup_disable_tips" = "需要登录 iCloud 来备份你的聊天记录。 设置 > iCloud > 打开 iCloud 云盘。";
-"setting_backup_tips" = "备份你的聊天记录到 iCloud。如果你丢失或者更换手机，你可以在重新安装 Mixin Messenger 时恢复你的聊天记录。注意备份到 iCloud 中的聊天记录不受端对端加密保护！";
+"setting_backup_tips" = "备份你的聊天记录到 iCloud。如果你丢失或者更换手机，你可以在重新安装 Exin Messenger 时恢复你的聊天记录。注意备份到 iCloud 中的聊天记录不受端对端加密保护！";
 "setting_backup_auto_tips" = "只会在 Wi-Fi 下自动备份聊天记录。";
 "setting_backup_last" = "上次备份是%@，占用空间 %@。";
 "setting_backup_preparing" = "备份中...";
@@ -812,8 +812,8 @@
 "setting_phone_number_title" = "手机号搜索";
 "setting_contacts_title" = "手机通讯录";
 "setting_contacts_delete" = "删除已同步的通讯录";
-"setting_contacts_delete_confirm" = "确定删除已同步到 Mixin 服务器的通讯录？";
-"setting_contacts_tips" = "同步通讯录到 Mixin 发现更多好友。";
+"setting_contacts_delete_confirm" = "确定删除已同步到 Exin 服务器的通讯录？";
+"setting_contacts_tips" = "同步通讯录到 Exin 发现更多好友。";
 "setting_contacts_upload" = "上传手机通讯录";
 "setting_permissions" = "授权列表";
 "setting_permissions_date" = "授权时间: %@, 上次访问: %@";
@@ -821,7 +821,7 @@
 "setting_pin" = "密码";
 "setting_feedback" = "反馈";
 "setting_share_this_app" = "分享此 App";
-"setting_share_this_app_content" = "快来 Mixin 与我聊天！简单、安全好用还支持比特币、以太坊等加密货币，下载 https://mixin.one/messenger 后搜索 %@ 加我好友。";
+"setting_share_this_app_content" = "快来 Exin 与我聊天！简单、安全好用还支持比特币、以太坊等加密货币，下载 https://Exin.one/messenger 后搜索 %@ 加我好友。";
 
 // About
 "about_twitter" = "关注我们的 Twitter";
@@ -937,6 +937,6 @@
 "error_withdrawal_amount_too_small" = "提现金额太少了";
 "error_blockchian_not_in_sync" = "区块链同步异常，请稍后重试";
 "error_malformed_address" = "地址格式错误";
-"error_malformed_address_eos" = "地址格式错误。Mixin 不支持提现到 EOS 合约地址！";
+"error_malformed_address_eos" = "地址格式错误。Exin 不支持提现到 EOS 合约地址！";
 
 "error_network_task_failed" = "网络连接失败，请检查或切换网络后重试";
