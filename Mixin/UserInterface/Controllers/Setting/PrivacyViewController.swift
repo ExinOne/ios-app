@@ -4,10 +4,10 @@ import MixinServices
 final class PrivacyViewController: SettingsTableViewController {
     
     private let dataSource = SettingsDataSource(sections: [
-//        SettingsSection(rows: [
-//            SettingsRow(title: R.string.localizable.setting_pin(), accessory: .disclosure),
-//            SettingsRow(title: R.string.localizable.setting_emergency_contact(), accessory: .disclosure)
-//        ]),
+        SettingsSection(rows: [
+            SettingsRow(title: R.string.localizable.setting_pin(), accessory: .disclosure),
+            SettingsRow(title: R.string.localizable.setting_emergency_contact(), accessory: .disclosure)
+        ]),
         SettingsSection(footer: R.string.localizable.setting_privacy_and_security_summary(), rows: [
             SettingsRow(title: R.string.localizable.setting_blocked(), accessory: .disclosure),
             SettingsRow(title: R.string.localizable.setting_conversation(), accessory: .disclosure)
@@ -71,43 +71,29 @@ extension PrivacyViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         let vc: UIViewController
         switch indexPath.section {
-//        case 0:
-//            if LoginManager.shared.account?.has_pin ?? false {
-//                if indexPath.row == 0 {
-//                    vc = PinSettingsViewController.instance()
-//                } else {
-//                    vc = EmergencyContactViewController.instance()
-//                }
-//            } else {
-//                vc = WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil)
-//            }
-//        case 1:
-//            if indexPath.row == 0 {
-//                vc = BlockedUsersViewController.instance()
-//            } else {
-//                vc = ConversationSettingViewController.instance()
-//            }
-//        case 2:
-//            if indexPath.row == 0 {
-//                vc = PhoneNumberSettingViewController.instance()
-//            } else {
-//                vc = PhoneContactsSettingViewController.instance()
-//            }
-//        case 3:
-//            vc = AuthorizationsViewController.instance()
         case 0:
+            if LoginManager.shared.account?.has_pin ?? false {
+                if indexPath.row == 0 {
+                    vc = PinSettingsViewController.instance()
+                } else {
+                    vc = EmergencyContactViewController.instance()
+                }
+            } else {
+                vc = WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil)
+            }
+        case 1:
             if indexPath.row == 0 {
                 vc = BlockedUsersViewController.instance()
             } else {
                 vc = ConversationSettingViewController.instance()
             }
-        case 1:
+        case 2:
             if indexPath.row == 0 {
                 vc = PhoneNumberSettingViewController.instance()
             } else {
                 vc = PhoneContactsSettingViewController.instance()
             }
-        case 2:
+        case 3:
             vc = AuthorizationsViewController.instance()
         default:
             vc = LogViewController.instance()

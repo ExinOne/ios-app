@@ -487,9 +487,11 @@
 "wallet_withdrawal_pay_password" = "Withdraw with PIN";
 "wallet_withdrawal_reserve" = " %@ has a minimum %@ reserve requirement.";
 "wallet_no_price" = "N/A";
-"wallet_pin_create_title" = "Set a 6 digit PIN to create your first digital wallet";
+//"wallet_pin_create_title" = "Set a 6 digit PIN to create your first digital wallet";
+"wallet_pin_create_title" = "Set a 6 digit PIN";
 "wallet_pin_confirm_title" = "Please confirm the 6 digit PIN and remember it";
-"wallet_pin_confirm_subtitle" = "If lost, there is no way to recover your wallet.";
+//"wallet_pin_confirm_subtitle" = "If lost, there is no way to recover your wallet.";
+"wallet_pin_confirm_subtitle" = "";
 "wallet_pin_confirm_again_title" = "Please confirm your 6 digit PIN again";
 "wallet_pin_confirm_again_subtitle" = "It's rare to see a third confirmation somewhere else, so please remember the PIN is unrecoverable if lost.";
 "wallet_pin_more_confirm" = "Yes, there is a fourth PIN confirmation, and I promise it's the last one to ensure you have remembered your PIN. The PIN is unrecoverable if lost.";
@@ -502,7 +504,7 @@
 "wallet_all_transactions_title" = "All Transactions";
 "wallet_pin_touch_id_prompt" = "Confirm PIN to enable Touch Pay";
 "wallet_pin_face_id_prompt" = "Confirm PIN to enable Face Pay";
-"wallet_setting" = "Wallet";
+"wallet_setting" = "";
 "wallet_enable_biometric_pay_title" = "Pay with %@";
 "wallet_enable_biometric_pay_prompt" = "Once enabled, %@ can be used to make quick transfers";
 "wallet_biometric_pay_prompt" = "Authorize payment via %@";
