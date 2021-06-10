@@ -442,7 +442,8 @@
 "code_recognition_fail_summary" = "This codes doesn't match any Exin groups or users.";
 
 // Wallet
-"wallet_title" = "Wallet";
+"wallet_title" = "";
+//"wallet_title" = "Wallet";
 "wallet_title_withdrawal" = "Withdrawal";
 "wallet_title_add_asset" = "Add asset";
 "wallet_already_had_the_asset" = "Already had";
@@ -530,7 +531,8 @@
 "wallet_asset_key" = "Asset Key";
 "wallet_asset_key_tips" = "Asset key is NOT a deposit address!";
 "wallet_hide_asset_confirmation" = "Are you sure you want to hide %@?";
-"wallet_asset_is_hidden_prompt" = "The asset is hidden from wallet. Unhide it?";
+"wallet_asset_is_hidden_prompt" = "";
+//"wallet_asset_is_hidden_prompt" = "The asset is hidden from wallet. Unhide it?";
 "wallet_asset_is_unhidden" = "Unhidden";
 "wallet_store_encrypted_pin" = "Enable %@ Pay";
 "wallet_store_encrypted_pin_tip" = "Enable %@ Pay?";

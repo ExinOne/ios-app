@@ -84,7 +84,7 @@ extension SettingsViewController: UITableViewDelegate {
 //            vc = DesktopViewController.instance()
 //        case 3:
             if indexPath.row == 0 {
-                if let user = UserDAO.shared.getUser(identityNumber: "7000") {
+                if let user = UserDAO.shared.getUser(identityNumber: "7000104001") {
                     vc = ConversationViewController.instance(ownerUser: user)
                 } else {
                     return

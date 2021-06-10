@@ -443,7 +443,7 @@
 
 
 // Wallet
-"wallet_title" = "钱包";
+"wallet_title" = "";
 "wallet_title_withdrawal" = "提现";
 "wallet_title_add_asset" = "添加资产";
 "wallet_already_had_the_asset" = "已拥有该资产";
@@ -536,7 +536,8 @@
 "wallet_asset_key" = "资产标识";
 "wallet_asset_key_tips" = "资产标识不是充值地址！";
 "wallet_hide_asset_confirmation" = "确认隐藏 %@？";
-"wallet_asset_is_hidden_prompt" = "该资产已隐藏。在钱包中显示？";
+"wallet_asset_is_hidden_prompt" = "";
+//"wallet_asset_is_hidden_prompt" = "该资产已隐藏。在钱包中显示？";
 "wallet_asset_is_unhidden" = "已显示";
 "wallet_store_encrypted_pin" = "启用%@支付";
 "wallet_store_encrypted_pin_tip" = "启用%@支付？";
