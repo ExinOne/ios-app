@@ -18,11 +18,11 @@ class SettingsViewController: SettingsTableViewController {
                         title: R.string.localizable.setting_data_and_storage(),
                         accessory: .disclosure),
         ]),
-        SettingsSection(rows: [
-            SettingsRow(icon: R.image.setting.ic_category_appearance(),
-                        title: R.string.localizable.setting_appearance(),
-                        accessory: .disclosure)
-        ]),
+//        SettingsSection(rows: [
+//            SettingsRow(icon: R.image.setting.ic_category_appearance(),
+//                        title: R.string.localizable.setting_appearance(),
+//                        accessory: .disclosure)
+//        ]),
 //        SettingsSection(rows: [
 //            SettingsRow(icon: R.image.setting.ic_category_desktop(),
 //                        title: R.string.localizable.setting_desktop(),
@@ -79,8 +79,8 @@ extension SettingsViewController: UITableViewDelegate {
                 vc = DataAndStorageSettingsViewController.instance()
             }
         case 1:
-            vc = AppearanceSettingsViewController.instance()
-        case 2:
+//            vc = AppearanceSettingsViewController.instance()
+//        case 2:
 //            vc = DesktopViewController.instance()
 //        case 3:
             if indexPath.row == 0 {

@@ -361,15 +361,15 @@ extension UserProfileViewController {
         }
     }
     
-    @objc func transfer() {
-        let viewController: UIViewController
-        if LoginManager.shared.account?.has_pin ?? false {
-            viewController = TransferOutViewController.instance(asset: nil, type: .contact(user))
-        } else {
-            viewController = WalletPasswordViewController.instance(dismissTarget: .transfer(user: user))
-        }
-        dismissAndPush(viewController)
-    }
+//    @objc func transfer() {
+//        let viewController: UIViewController
+//        if LoginManager.shared.account?.has_pin ?? false {
+//            viewController = TransferOutViewController.instance(asset: nil, type: .contact(user))
+//        } else {
+//            viewController = WalletPasswordViewController.instance(dismissTarget: .transfer(user: user))
+//        }
+//        dismissAndPush(viewController)
+//    }
     
     @objc func editAlias() {
         let userId = user.userId
@@ -610,13 +610,19 @@ extension UserProfileViewController {
                 shortcutView.leftShortcutButton.setImage(R.image.ic_open_app(), for: .normal)
                 shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
                 shortcutView.leftShortcutButton.addTarget(self, action: #selector(openApp), for: .touchUpInside)
+                shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+                shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             } else {
-                shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
+//                shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
+//                shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
+//                shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
+                shortcutView.leftShortcutButton.setImage(R.image.ic_send_msg(), for: .normal)
                 shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
-                shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
+                shortcutView.leftShortcutButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+                shortcutView.sendMessageButton.isHidden = true
             }
-            shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
-            shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+//            shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+//            shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             shortcutView.toggleSizeButton.removeTarget(nil, action: nil, for: .allEvents)
             shortcutView.toggleSizeButton.addTarget(self, action: #selector(toggleSize), for: .touchUpInside)
             centerStackView.addArrangedSubview(shortcutView)
@@ -751,10 +757,10 @@ extension UserProfileViewController {
                                                  style: [],
                                                  action: #selector(showDeveloper)))
                 }
-                group.append(ProfileMenuItem(title: R.string.localizable.profile_transactions(),
-                                             subtitle: nil,
-                                             style: [],
-                                             action: #selector(showTransactions)))
+//                group.append(ProfileMenuItem(title: R.string.localizable.profile_transactions(),
+//                                             subtitle: nil,
+//                                             style: [],
+//                                             action: #selector(showTransactions)))
                 return group
             }()
             if !editAliasAndBotRelatedGroup.isEmpty {

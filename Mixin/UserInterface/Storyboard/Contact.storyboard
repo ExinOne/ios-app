@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BoV-vw-2hq">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BoV-vw-2hq">
     <device id="retina4_7" orientation="portrait" appearance="dark"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -186,14 +186,14 @@
                                         <constraint firstAttribute="height" constant="10" id="kYs-0W-85K"/>
                                     </constraints>
                                 </view>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2xb-X7-N9D">
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2xb-X7-N9D">
                                     <rect key="frame" x="0.0" y="0.0" width="375" height="90"/>
                                     <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <connections>
                                         <action selector="showAccountAction:" destination="BoV-vw-2hq" eventType="touchUpInside" id="QOw-n1-QHt"/>
                                     </connections>
                                 </button>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EAx-Ng-lbn">
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EAx-Ng-lbn">
                                     <rect key="frame" x="0.0" y="90" width="187.5" height="56"/>
                                     <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
                                     <userDefinedRuntimeAttributes>
@@ -203,7 +203,7 @@
                                         <action selector="newGroupAction:" destination="BoV-vw-2hq" eventType="touchUpInside" id="id0-2K-5xF"/>
                                     </connections>
                                 </button>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7Tj-c3-RuX">
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7Tj-c3-RuX">
                                     <rect key="frame" x="187.5" y="90" width="187.5" height="56"/>
                                     <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
                                     <userDefinedRuntimeAttributes>
@@ -339,13 +339,13 @@
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="Ttc-dn-kK9">
                                                     <rect key="frame" x="66" y="4.5" width="184" height="41.5"/>
                                                     <subviews>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="OVER140" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N1f-yz-cUB">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="OVER140" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N1f-yz-cUB">
                                                             <rect key="frame" x="0.0" y="0.0" width="68.5" height="19.5"/>
                                                             <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
                                                             <nil key="textColor"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="+8613800138000" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BhL-J6-wdk">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="+8613800138000" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BhL-J6-wdk">
                                                             <rect key="frame" x="0.0" y="24.5" width="117.5" height="17"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                             <color key="textColor" name="text_accessory"/>
@@ -358,7 +358,7 @@
                                                 </stackView>
                                             </subviews>
                                         </stackView>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vxf-Oa-RU6" customClass="RoundedButton" customModule="Mixin" customModuleProvider="target">
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vxf-Oa-RU6" customClass="RoundedButton" customModule="Mixin" customModuleProvider="target">
                                             <rect key="frame" x="290" y="25.5" width="65" height="31"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                             <inset key="contentEdgeInsets" minX="15" minY="7" maxX="15" maxY="7"/>
@@ -447,13 +447,13 @@
                                     <constraint firstAttribute="height" constant="40" id="eIS-e4-oOu"/>
                                 </constraints>
                             </view>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="My Mixin ID: (25566)" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f7c-5c-m2p">
-                                <rect key="frame" x="36" y="72" width="119" height="14.5"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="My Exin ID: (25566)" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f7c-5c-m2p">
+                                <rect key="frame" x="36" y="72" width="113" height="15"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
                                 <color key="textColor" name="text_accessory"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VyB-7K-Dd4" customClass="RoundedButton" customModule="Mixin" customModuleProvider="target">
+                            <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VyB-7K-Dd4" customClass="RoundedButton" customModule="Mixin" customModuleProvider="target">
                                 <rect key="frame" x="133.5" y="459" width="108" height="48"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
                                 <inset key="contentEdgeInsets" minX="30" minY="15" maxX="30" maxY="15"/>
@@ -476,6 +476,7 @@
                                 </constraints>
                             </view>
                         </subviews>
+                        <viewLayoutGuide key="safeArea" id="4Nu-Sa-oGf"/>
                         <color key="backgroundColor" name="background"/>
                         <constraints>
                             <constraint firstItem="VyB-7K-Dd4" firstAttribute="centerX" secondItem="4Nu-Sa-oGf" secondAttribute="centerX" id="CLU-wv-Yz0"/>
@@ -489,7 +490,6 @@
                             <constraint firstItem="JU3-i5-j7Y" firstAttribute="top" secondItem="VyB-7K-Dd4" secondAttribute="bottom" constant="20" id="xzh-Zi-22H"/>
                             <constraint firstItem="ihp-OG-KgB" firstAttribute="top" secondItem="4Nu-Sa-oGf" secondAttribute="top" constant="20" id="yiP-NY-Yf3"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="4Nu-Sa-oGf"/>
                     </view>
                     <connections>
                         <outlet property="keyboardPlaceholderHeightConstraint" destination="RNx-p3-zjT" id="LXO-CE-XOR"/>
@@ -596,6 +596,7 @@
                                 </constraints>
                             </view>
                         </subviews>
+                        <viewLayoutGuide key="safeArea" id="cvB-9b-lOU"/>
                         <color key="backgroundColor" name="background_secondary"/>
                         <constraints>
                             <constraint firstItem="Wiy-Rg-LoV" firstAttribute="leading" secondItem="BPV-De-UXl" secondAttribute="leading" id="Alq-bR-d1v"/>
@@ -607,7 +608,6 @@
                             <constraint firstItem="mUx-un-Jbj" firstAttribute="top" secondItem="cvB-9b-lOU" secondAttribute="top" id="Zjb-y6-DgM"/>
                             <constraint firstAttribute="bottom" secondItem="Wiy-Rg-LoV" secondAttribute="bottom" id="mK8-zQ-rOM"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="cvB-9b-lOU"/>
                     </view>
                     <connections>
                         <outlet property="noAppIndicator" destination="mUx-un-Jbj" id="XCu-W2-68R"/>
@@ -684,6 +684,7 @@
                                 </prototypes>
                             </tableView>
                         </subviews>
+                        <viewLayoutGuide key="safeArea" id="iqm-nl-x9S"/>
                         <color key="backgroundColor" name="background"/>
                         <constraints>
                             <constraint firstItem="iqm-nl-x9S" firstAttribute="trailing" secondItem="N09-ZC-3VE" secondAttribute="trailing" id="CNt-Au-tWv"/>
@@ -694,7 +695,6 @@
                             <constraint firstItem="yCf-E3-Am8" firstAttribute="leading" secondItem="vcM-ez-pKq" secondAttribute="leading" constant="20" id="j8h-cI-yfD"/>
                             <constraint firstItem="yCf-E3-Am8" firstAttribute="top" secondItem="iqm-nl-x9S" secondAttribute="top" id="oXs-sN-mU3"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="iqm-nl-x9S"/>
                     </view>
                     <connections>
                         <outlet property="tableView" destination="N09-ZC-3VE" id="sp9-By-HF0"/>
@@ -724,7 +724,7 @@
             <color red="0.20000000000000001" green="0.20000000000000001" blue="0.20000000000000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
         <namedColor name="text_accessory">
-            <color red="0.72200000286102295" green="0.74099999666213989" blue="0.77999997138977051" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+            <color red="0.72156862745098038" green="0.74117647058823533" blue="0.7803921568627451" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
         <namedColor name="theme">
             <color red="0.23921568627450981" green="0.45882352941176469" blue="0.8901960784313725" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
