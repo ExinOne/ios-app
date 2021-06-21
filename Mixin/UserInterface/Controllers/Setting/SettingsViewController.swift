@@ -87,6 +87,18 @@ extension SettingsViewController: UITableViewDelegate {
                 if let user = UserDAO.shared.getUser(identityNumber: "7000104001") {
                     vc = ConversationViewController.instance(ownerUser: user)
                 } else {
+//                    DispatchQueue.global().async { [weak self] in
+//                        switch UserAPI.showUser(userId: "0f7305a4-a72f-462c-a566-c7e70d8fb7ab") {
+//                        case let .success(user):
+//                            DispatchQueue.main.async {
+//                                let u = UserItem.createUser(from: user)
+//                                let vc2 = ConversationViewController.instance(ownerUser: u)
+//                                self?.navigationController?.pushViewController(vc2, animated: true)
+//                            }
+//                        case let .failure(error):
+//                        }
+//                    }
+                    
                     return
                 }
             } else {
