@@ -40,6 +40,9 @@ extension AboutViewController: UITableViewDelegate {
             UIApplication.shared.openURL(url: .terms)
         case 1:
             UIApplication.shared.openURL(url: .privacy)
+//        case 2:
+//            let acknow = AcknowledgementsViewController.instance()
+//            navigationController?.pushViewController(acknow, animated: true)
 //        case 0:
 //            UIApplication.shared.openURL(url: "https://twitter.com/MixinMessenger")
 //        case 1:

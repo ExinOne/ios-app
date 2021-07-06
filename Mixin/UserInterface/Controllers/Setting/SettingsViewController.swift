@@ -32,9 +32,9 @@ class SettingsViewController: SettingsTableViewController {
             SettingsRow(icon: R.image.setting.ic_category_feedback(),
                         title: R.string.localizable.setting_feedback(),
                         accessory: .disclosure),
-            SettingsRow(icon: R.image.setting.ic_category_share(),
-                        title: R.string.localizable.setting_share_this_app(),
-                        accessory: .disclosure)
+//            SettingsRow(icon: R.image.setting.ic_category_share(),
+//                        title: R.string.localizable.setting_share_this_app(),
+//                        accessory: .disclosure)
         ]),
         SettingsSection(rows: [
             SettingsRow(icon: R.image.setting.ic_category_about(),
@@ -95,10 +95,10 @@ extension SettingsViewController: UITableViewDelegate {
 //                                let vc2 = ConversationViewController.instance(ownerUser: u)
 //                                self?.navigationController?.pushViewController(vc2, animated: true)
 //                            }
-//                        case let .failure(error):
+//                        case .failure:
+//                            break
 //                        }
 //                    }
-                    
                     return
                 }
             } else {
