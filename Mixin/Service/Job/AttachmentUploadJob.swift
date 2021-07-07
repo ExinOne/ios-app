@@ -2,10 +2,11 @@ import Foundation
 import UIKit
 import MixinServices
 
-class AttachmentUploadJob: UploadOrDownloadJob {
-
+class AttachmentUploadJob: AttachmentLoadingJob {
+    
     private var stream: InputStream?
-
+    
+    var message: Message!
     var attachResponse: AttachmentResponse?
     
     var fileUrl: URL? {
@@ -13,6 +14,14 @@ class AttachmentUploadJob: UploadOrDownloadJob {
             return nil
         }
         return AttachmentContainer.url(for: .photos, filename: mediaUrl)
+    }
+    
+    public init(message: Message, jobId: String? = nil) {
+        self.message = message
+        super.init(transcriptId: nil,
+                   messageId: message.messageId,
+                   jobId: jobId,
+                   isRecoverAttachment: false)
     }
     
     class func jobId(messageId: String) -> String {
@@ -28,6 +37,22 @@ class AttachmentUploadJob: UploadOrDownloadJob {
             removeJob()
             return false
         }
+        
+        let isAttachmentMetadataReady = message.category.hasPrefix("PLAIN_")
+            || (message.category.hasPrefix("SIGNAL_") && message.mediaKey != nil && message.mediaDigest != nil)
+        if let content = message.content,
+           !content.isEmpty,
+           isAttachmentMetadataReady,
+           let data = Data(base64Encoded: content),
+           let attachmentExtra = try? JSONDecoder.default.decode(AttachmentExtra.self, from: data),
+           UUID(uuidString: attachmentExtra.attachmentId) != nil,
+           !attachmentExtra.createdAt.isEmpty,
+           abs(attachmentExtra.createdAt.toUTCDate().timeIntervalSinceNow) < secondsPerDay {
+            uploadFinished(attachmentId: attachmentExtra.attachmentId, key: message.mediaKey, digest: message.mediaDigest, createdAt: attachmentExtra.createdAt)
+            finishJob()
+            return true
+        }
+        
         repeat {
             switch MessageAPI.requestAttachment() {
             case let .success(attachResponse):
@@ -121,28 +146,44 @@ class AttachmentUploadJob: UploadOrDownloadJob {
         }
         let key = (stream as? AttachmentEncryptingInputStream)?.key
         let digest = (stream as? AttachmentEncryptingInputStream)?.digest
-        let content = getMediaDataText(attachmentId: attachResponse.attachmentId, key: key, digest: digest)
+        uploadFinished(attachmentId: attachResponse.attachmentId, key: key, digest: digest, createdAt: attachResponse.createdAt)
+    }
+    
+    private func uploadFinished(attachmentId: String, key: Data?, digest: Data?, createdAt: String?) {
+        let transferMediaData = TransferAttachmentData(key: key,
+                                                       digest: digest,
+                                                       attachmentId: attachmentId,
+                                                       mimeType: message.mediaMimeType ?? "",
+                                                       width: message.mediaWidth,
+                                                       height: message.mediaHeight,
+                                                       size: message.mediaSize ?? 0,
+                                                       thumbnail: message.thumbImage,
+                                                       name: message.name,
+                                                       duration: message.mediaDuration,
+                                                       waveform: message.mediaWaveform,
+                                                       createdAt: createdAt)
+        let content = (try? JSONEncoder.default.encode(transferMediaData).base64EncodedString()) ?? ""
         message.content = content
-        MessageDAO.shared.updateMessageContentAndMediaStatus(content: content, mediaStatus: .DONE, messageId: message.messageId, conversationId: message.conversationId)
+        message.mediaKey = key
+        message.mediaDigest = digest
+        MessageDAO.shared.updateMessageContentAndMediaStatus(content: content, mediaStatus: .DONE, key: key, digest: digest, messageId: message.messageId, conversationId: message.conversationId)
         
         SendMessageService.shared.sendMessage(message: message, data: content)
         removeJob()
     }
-    
-    func getMediaDataText(attachmentId: String, key: Data?, digest: Data?) -> String {
-        let transferMediaData = TransferAttachmentData(key: key, digest: digest, attachmentId: attachmentId, mimeType: message.mediaMimeType ?? "", width: message.mediaWidth, height: message.mediaHeight, size:message.mediaSize ?? 0, thumbnail: message.thumbImage, name: message.name, duration: message.mediaDuration, waveform: message.mediaWaveform)
-        return (try? JSONEncoder.default.encode(transferMediaData).base64EncodedString()) ?? ""
-    }
-    
 }
 
 extension AttachmentUploadJob: URLSessionTaskDelegate {
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-        let progress = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
-        let change = ConversationChange(conversationId: message.conversationId,
-                                        action: .updateUploadProgress(messageId: message.messageId, progress: progress))
-        NotificationCenter.default.post(onMainThread: MixinServices.conversationDidChangeNotification, object: change)
+        let userInfo: [String: Any] = [
+            Self.UserInfoKey.progress: Double(totalBytesSent) / Double(totalBytesExpectedToSend),
+            Self.UserInfoKey.conversationId: message.conversationId,
+            Self.UserInfoKey.messageId: message.messageId
+        ]
+        NotificationCenter.default.post(onMainThread: Self.progressNotification,
+                                        object: self,
+                                        userInfo: userInfo)
     }
     
 }

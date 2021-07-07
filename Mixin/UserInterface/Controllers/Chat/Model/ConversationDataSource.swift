@@ -13,7 +13,7 @@ class ConversationDataSource {
         static let mentionedMessageIds = "mention_ids"
     }
     
-    static let newMessageOutOfVisibleBoundsNotification = Notification.Name("one.mixin.ios.conversation-datasource.new.msg")
+    static let newMessageOutOfVisibleBoundsNotification = Notification.Name("one.mixin.messenger.ConversationDataSource.MessageOutOfBounds")
     
     let queue = DispatchQueue(label: "one.mixin.ios.conversation.datasource")
     
@@ -24,19 +24,10 @@ class ConversationDataSource {
     
     weak var tableView: ConversationTableView?
     
-    private let windowRect = AppDelegate.current.mainWindow.bounds
     private let numberOfMessagesOnPaging = 100
     private let numberOfMessagesOnReloading = 35
     private let me = LoginManager.shared.account!
-    
-    private lazy var thumbnailRequestOptions: PHImageRequestOptions = {
-        let options = PHImageRequestOptions()
-        options.deliveryMode = .fastFormat
-        options.resizeMode = .fast
-        options.isNetworkAccessAllowed = false
-        options.isSynchronous = true
-        return options
-    }()
+    private let factory = MessageViewModelFactory()
     
     private(set) var conversation: ConversationItem {
         didSet {
@@ -57,13 +48,15 @@ class ConversationDataSource {
     private var messageProcessingIsCancelled = false
     private var didInitializedData = false
     private var tableViewContentInset: UIEdgeInsets {
-        return performSynchronouslyOnMainThread {
+        return Queue.main.autoSync {
             self.tableView?.contentInset ?? .zero
         }
     }
     
     var layoutSize: CGSize {
-        return windowRect.inset(by: tableViewContentInset).size
+        Queue.main.autoSync {
+            AppDelegate.current.mainWindow.bounds.inset(by: tableViewContentInset).size
+        }
     }
     
     var conversationId: String {
@@ -91,12 +84,15 @@ class ConversationDataSource {
         self.highlight = highlight
         self.ownerUser = ownerUser
         self.category = conversation.category == ConversationCategory.CONTACT.rawValue ? .contact : .group
+        factory.delegate = self
     }
     
     func initData(completion: @escaping () -> Void) {
         NotificationCenter.default.addObserver(self, selector: #selector(conversationDidChange(_:)), name: MixinServices.conversationDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(messageDaoDidInsertMessage(_:)), name: MessageDAO.didInsertMessageNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(messageDaoDidRedecryptMessage(_:)), name: MessageDAO.didRedecryptMessageNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMediaProgress(_:)), name: AttachmentLoadingJob.progressNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMessageMediaStatus(_:)), name: MessageDAO.messageMediaStatusDidUpdateNotification, object: nil)
         reload(completion: completion)
     }
     
@@ -144,7 +140,7 @@ class ConversationDataSource {
             self.firstUnreadMessageId = nil
             canInsertUnreadHint = false
         }
-        var (dates, viewModels) = self.viewModels(with: messages, fits: layoutSize.width)
+        var (dates, viewModels) = factory.viewModels(with: messages, fits: layoutSize.width)
         if canInsertEncryptionHint && didLoadEarliestMessage {
             let date: String
             if let firstDate = dates.first {
@@ -154,7 +150,7 @@ class ConversationDataSource {
                 dates.append(date)
             }
             let hint = MessageItem.encryptionHintMessage(conversationId: self.conversationId)
-            let viewModel = self.viewModel(withMessage: hint, style: .bottomSeparator, fits: layoutSize.width)
+            let viewModel = factory.viewModel(withMessage: hint, style: .bottomSeparator, fits: layoutSize.width)
             if viewModels[date] != nil {
                 viewModels[date]?.insert(viewModel, at: 0)
             } else {
@@ -181,7 +177,7 @@ class ConversationDataSource {
             }
             offset -= ConversationDateHeaderView.height
         }
-        performSynchronouslyOnMainThread {
+        Queue.main.autoSync {
             guard let tableView = self.tableView, !self.messageProcessingIsCancelled else {
                 return
             }
@@ -303,11 +299,11 @@ class ConversationDataSource {
             let shouldInsertEncryptionHint = self.canInsertEncryptionHint && didLoadEarliestMessage
             messages = messages.filter{ !self.loadedMessageIds.contains($0.messageId) }
             self.loadedMessageIds.formUnion(messages.map({ $0.messageId }))
-            var (dates, viewModels) = self.viewModels(with: messages, fits: layoutWidth)
+            var (dates, viewModels) = self.factory.viewModels(with: messages, fits: layoutWidth)
             if shouldInsertEncryptionHint {
                 let hint = MessageItem.encryptionHintMessage(conversationId: conversationId)
                 messages.insert(hint, at: 0)
-                let encryptionHintViewModel = self.viewModel(withMessage: hint, style: .bottomSeparator, fits: layoutWidth)
+                let encryptionHintViewModel = self.factory.viewModel(withMessage: hint, style: .bottomSeparator, fits: layoutWidth)
                 if let firstDate = dates.first {
                     viewModels[firstDate]?.insert(encryptionHintViewModel, at: 0)
                 } else if let firstDate = self.dates.first {
@@ -321,7 +317,9 @@ class ConversationDataSource {
             if let lastDate = dates.last, let viewModelsBeforeInsertion = self.viewModels[lastDate] {
                 let messagesBeforeInsertion = Array(viewModelsBeforeInsertion.prefix(2)).map({ $0.message })
                 let messagesForTheDate = Array(messages.suffix(2)) + messagesBeforeInsertion
-                let styles = Array(0..<messagesForTheDate.count).map{ self.style(forIndex: $0, messages: messagesForTheDate)}
+                let styles = Array(0..<messagesForTheDate.count).map{
+                    self.factory.style(forIndex: $0, messages: messagesForTheDate)
+                }
                 viewModels[lastDate]?.last?.style = styles[styles.count - messagesBeforeInsertion.count - 1]
                 DispatchQueue.main.sync {
                     guard let tableView = self.tableView, !self.messageProcessingIsCancelled else {
@@ -384,10 +382,12 @@ class ConversationDataSource {
                 messages.insert(hint, at: index)
                 self.canInsertUnreadHint = false
             }
-            let (dates, viewModels) = self.viewModels(with: messages, fits: layoutWidth)
+            let (dates, viewModels) = self.factory.viewModels(with: messages, fits: layoutWidth)
             if let firstDate = dates.first, let messagesBeforeAppend = self.viewModels[firstDate]?.suffix(2).map({ $0.message }) {
                 let messagesForTheDate = messagesBeforeAppend + messages.prefix(2)
-                let styles = Array(0..<messagesForTheDate.count).map{ self.style(forIndex: $0, messages: messagesForTheDate)}
+                let styles = Array(0..<messagesForTheDate.count).map {
+                    self.factory.style(forIndex: $0, messages: messagesForTheDate)
+                }
                 viewModels[firstDate]?.first?.style = styles[messagesBeforeAppend.count]
                 DispatchQueue.main.sync {
                     guard let tableView = self.tableView, !self.messageProcessingIsCancelled else {
@@ -445,11 +445,11 @@ class ConversationDataSource {
             let indexBeforeDeletedMessage = indexPath.row - 1
             let indexAfterDeletedMessage = indexPath.row
             if indexBeforeDeletedMessage >= 0 {
-                let style = self.style(forIndex: indexBeforeDeletedMessage, viewModels: viewModels)
+                let style = factory.style(forIndex: indexBeforeDeletedMessage, viewModels: viewModels)
                 self.viewModels[date]?[indexBeforeDeletedMessage].style = style
             }
             if indexAfterDeletedMessage < viewModels.count {
-                let style = self.style(forIndex: indexAfterDeletedMessage, viewModels: viewModels)
+                let style = factory.style(forIndex: indexAfterDeletedMessage, viewModels: viewModels)
                 self.viewModels[date]?[indexAfterDeletedMessage].style = style
             }
         }
@@ -501,12 +501,8 @@ extension ConversationDataSource {
             updateMessageStatus(messageId: messageId, status: newStatus)
         case .updateMessageMentionStatus(let messageId, let newStatus):
             updateMessageMentionStatus(messageId: messageId, status: newStatus)
-        case .updateMediaStatus(let messageId, let mediaStatus):
-            updateMessageMediaStatus(messageId: messageId, mediaStatus: mediaStatus)
-        case .updateUploadProgress(let messageId, let progress):
-            updateMediaProgress(messageId: messageId, progress: progress)
-        case .updateDownloadProgress(let messageId, let progress):
-            updateMediaProgress(messageId: messageId, progress: progress)
+        case .updateMediaKey(let messageId, let content, let key, let digest):
+            updateMediaKey(messageId: messageId, content: content, key: key, digest: digest)
         case .updateMediaContent(let messageId, let message):
             updateMediaContent(messageId: messageId, message: message)
         case .recallMessage(let messageId):
@@ -531,7 +527,7 @@ extension ConversationDataSource {
         }
         let messageIsSentByMe = message.userId == me.user_id
         if !messageIsSentByMe && message.status == MessageStatus.DELIVERED.rawValue {
-            performSynchronouslyOnMainThread {
+            Queue.main.autoSync {
                 guard UIApplication.shared.applicationState == .active else {
                     return
                 }
@@ -575,6 +571,50 @@ extension ConversationDataSource {
         updateMessage(messageId: message.messageId)
     }
     
+    @objc private func updateMediaProgress(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let conversationId = userInfo[AttachmentLoadingJob.UserInfoKey.conversationId] as? String,
+            let messageId = userInfo[AttachmentLoadingJob.UserInfoKey.messageId] as? String,
+            let progress = userInfo[AttachmentLoadingJob.UserInfoKey.progress] as? Double,
+            conversationId == self.conversationId,
+            let indexPath = indexPath(where: { $0.messageId == messageId }),
+            let viewModel = viewModel(for: indexPath) as? MessageViewModel & AttachmentLoadingViewModel
+        else {
+            return
+        }
+        viewModel.progress = progress
+        if let cell = tableView?.cellForRow(at: indexPath) as? AttachmentLoadingMessageCell {
+            cell.updateProgress()
+        }
+    }
+    
+    @objc private func updateMessageMediaStatus(_ notification: Notification) {
+        guard
+            let userInfo = notification.userInfo,
+            let messageId = userInfo[MessageDAO.UserInfoKey.messageId] as? String,
+            let mediaStatus = userInfo[MessageDAO.UserInfoKey.mediaStatus] as? MediaStatus,
+            let indexPath = indexPath(where: { $0.messageId == messageId })
+        else {
+            return
+        }
+        let viewModel = self.viewModel(for: indexPath)
+        let cell = tableView?.cellForRow(at: indexPath)
+        if let viewModel = viewModel as? AttachmentLoadingViewModel {
+            viewModel.mediaStatus = mediaStatus.rawValue
+            if let cell = cell as? (PhotoRepresentableMessageCell & AttachmentExpirationHintingMessageCell) {
+                cell.updateOperationButtonAndExpiredHintLabel()
+            } else if let cell = cell as? AttachmentLoadingMessageCell {
+                cell.updateOperationButtonStyle()
+            }
+        } else {
+            viewModel?.message.mediaStatus = mediaStatus.rawValue
+        }
+        if let cell = cell as? AudioMessageCell {
+            cell.updateUnreadStyle()
+        }
+    }
+    
     private func updateMessageStatus(messageId: String, status: MessageStatus) {
         guard let indexPath = indexPath(where: { $0.messageId == messageId }), let viewModel = viewModel(for: indexPath) as? DetailInfoMessageViewModel else {
             return
@@ -595,44 +635,34 @@ extension ConversationDataSource {
         message.hasMentionRead = status == .MENTION_READ
     }
     
-    private func updateMessageMediaStatus(messageId: String, mediaStatus: MediaStatus) {
-        guard let indexPath = indexPath(where: { $0.messageId == messageId }) else {
+    private func updateMediaKey(messageId: String, content: String, key: Data?, digest: Data?) {
+        guard let indexPath = indexPath(where: { $0.messageId == messageId }), let viewModel = viewModel(for: indexPath) else {
             return
         }
-        let viewModel = self.viewModel(for: indexPath)
-        let cell = tableView?.cellForRow(at: indexPath)
-        if let viewModel = viewModel as? AttachmentLoadingViewModel {
-            viewModel.mediaStatus = mediaStatus.rawValue
-            if let cell = cell as? (PhotoRepresentableMessageCell & AttachmentExpirationHintingMessageCell) {
-                cell.updateOperationButtonAndExpiredHintLabel()
-            } else if let cell = cell as? AttachmentLoadingMessageCell {
-                cell.updateOperationButtonStyle()
-            }
-        }
-        if let cell = cell as? AudioMessageCell {
-            cell.updateUnreadStyle()
-        }
-    }
-    
-    private func updateMediaProgress(messageId: String, progress: Double) {
-        guard let indexPath = indexPath(where: { $0.messageId == messageId }), let viewModel = viewModel(for: indexPath) as? MessageViewModel & AttachmentLoadingViewModel else {
-            return
-        }
-        viewModel.progress = progress
-        if let cell = tableView?.cellForRow(at: indexPath) as? AttachmentLoadingMessageCell {
-            cell.updateProgress()
-        }
+        viewModel.updateKey(content: content,
+                         key: key,
+                         digest: digest)
     }
     
     private func updateMediaContent(messageId: String, message: Message) {
-        guard let indexPath = indexPath(where: { $0.messageId == messageId }), let viewModel = viewModel(for: indexPath) as? PhotoRepresentableMessageViewModel else {
-            return
-        }
-        viewModel.update(mediaUrl: message.mediaUrl,
-                         mediaSize: message.mediaSize,
-                         mediaDuration: message.mediaDuration)
-        if let cell = tableView?.cellForRow(at: indexPath) as? PhotoRepresentableMessageCell {
-            cell.reloadMedia(viewModel: viewModel)
+        queue.async {
+            // Dispatch view model's processing synchornously inside processing queue
+            // to prevent the "missing view model" problem
+            DispatchQueue.main.sync {
+                guard
+                    !self.messageProcessingIsCancelled,
+                    let indexPath = self.indexPath(where: { $0.messageId == messageId }),
+                    let viewModel = self.viewModel(for: indexPath) as? PhotoRepresentableMessageViewModel
+                else {
+                    return
+                }
+                viewModel.update(mediaUrl: message.mediaUrl,
+                                 mediaSize: message.mediaSize,
+                                 mediaDuration: message.mediaDuration)
+                if let cell = self.tableView?.cellForRow(at: indexPath) as? PhotoRepresentableMessageCell {
+                    cell.reloadMedia(viewModel: viewModel)
+                }
+            }
         }
     }
     
@@ -649,7 +679,7 @@ extension ConversationDataSource {
             }
             
             if message.status == MessageStatus.DELIVERED.rawValue && message.userId != myUserId {
-                performSynchronouslyOnMainThread {
+                Queue.main.autoSync {
                     guard UIApplication.shared.applicationState == .active else {
                         return
                     }
@@ -663,7 +693,7 @@ extension ConversationDataSource {
                 }
                 let date = DateFormatter.yyyymmdd.string(from: message.createdAt.toUTCDate())
                 if let style = self.viewModels[date]?[indexPath.row].style {
-                    let viewModel = self.viewModel(withMessage: message, style: style, fits: self.layoutSize.width)
+                    let viewModel = self.factory.viewModel(withMessage: message, style: style, fits: self.layoutSize.width)
                     self.viewModels[date]?[indexPath.row] = viewModel
                     tableView.reloadData()
                     self.selectTableViewRowsWithPreviousSelection()
@@ -674,164 +704,20 @@ extension ConversationDataSource {
     
 }
 
-// MARK: - Send Message
-extension ConversationDataSource {
+// MARK: - MessageViewModelFactoryDelegate
+extension ConversationDataSource: MessageViewModelFactoryDelegate {
     
-    func sendMessage(type: MessageCategory, messageId: String? = nil, quote: MessageItem? = nil , value: Any) {
-        let isGroupMessage = category == .group
-        let ownerUser = self.ownerUser
-        let createdAt: Date = {
-            var date = Date()
-            if let quote = quote {
-                let quoteDate = quote.createdAt.toUTCDate()
-                if quoteDate > date {
-                    date = quoteDate.addingTimeInterval(0.001)
-                }
-            }
-            return date
-        }()
-        var message = Message.createMessage(category: type.rawValue,
-                                            conversationId: conversationId,
-                                            createdAt: createdAt.toUTCString(),
-                                            userId: me.user_id)
-        message.quoteMessageId = quote?.messageId
-        if let messageId = messageId {
-            message.messageId = messageId
-        }
-        if type == .SIGNAL_TEXT || type == .SIGNAL_POST, let text = value as? String {
-            message.content = text
-            queue.async {
-                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
-            }
-        } else if type == .SIGNAL_DATA, let url = value as? URL {
-            queue.async {
-                guard FileManager.default.fileSize(url.path) > 0 else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
-                    return
-                }
-                let fileExtension = url.pathExtension.lowercased()
-                let targetUrl = AttachmentContainer.url(for: .files, filename: "\(message.messageId).\(fileExtension)")
-                do {
-                    try FileManager.default.copyItem(at: url, to: targetUrl)
-                } catch {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
-                    return
-                }
-                message.name = url.lastPathComponent
-                message.mediaSize = FileManager.default.fileSize(targetUrl.path)
-                message.mediaMimeType = FileManager.default.mimeType(ext: fileExtension)
-                message.mediaUrl = targetUrl.lastPathComponent
-                message.mediaStatus = MediaStatus.PENDING.rawValue
-                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
-            }
-        } else if type == .SIGNAL_VIDEO, let url = value as? URL {
-            queue.async {
-                let asset = AVAsset(url: url)
-                guard asset.duration.isValid, let videoTrack = asset.tracks(withMediaType: .video).first else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
-                    return
-                }
-                if let thumbnail = UIImage(withFirstFrameOfVideoAtURL: url) {
-                    let thumbnailURL = AttachmentContainer.url(for: .videos, filename: url.lastPathComponent.substring(endChar: ".") + ExtensionName.jpeg.withDot)
-                    thumbnail.saveToFile(path: thumbnailURL)
-                    message.thumbImage = thumbnail.base64Thumbnail()
-                } else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
-                    return
-                }
-                message.mediaDuration = Int64(asset.duration.seconds * millisecondsPerSecond)
-                let size = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
-                message.mediaWidth = Int(abs(size.width))
-                message.mediaHeight = Int(abs(size.height))
-                message.mediaSize = FileManager.default.fileSize(url.path)
-                message.mediaMimeType = FileManager.default.mimeType(ext: url.pathExtension)
-                message.mediaUrl = url.lastPathComponent
-                message.mediaStatus = MediaStatus.PENDING.rawValue
-                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
-            }
-        } else if type == .SIGNAL_AUDIO, let value = value as? (tempUrl: URL, metadata: AudioMetadata) {
-            queue.async {
-                guard FileManager.default.fileSize(value.tempUrl.path) > 0 else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
-                    return
-                }
-                let url = AttachmentContainer.url(for: .audios, filename: message.messageId + ExtensionName.ogg.withDot)
-                do {
-                    try FileManager.default.moveItem(at: value.tempUrl, to: url)
-                    message.mediaSize = FileManager.default.fileSize(url.path)
-                    message.mediaMimeType = FileManager.default.mimeType(ext: url.pathExtension)
-                    message.mediaUrl = url.lastPathComponent
-                    message.mediaStatus = MediaStatus.PENDING.rawValue
-                    message.mediaWaveform = value.metadata.waveform
-                    message.mediaDuration = Int64(value.metadata.duration)
-                    SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
-                } catch {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
-                }
-            }
-        } else if type == .SIGNAL_STICKER, let sticker = value as? StickerItem {
-            message.mediaStatus = MediaStatus.PENDING.rawValue
-            message.mediaUrl = sticker.assetUrl
-            message.stickerId = sticker.stickerId
-            queue.async {
-                reporter.report(event: .sendSticker, userInfo: ["stickerId": sticker.stickerId])
-                let albumId = AlbumDAO.shared.getAlbum(stickerId: sticker.stickerId)?.albumId
-                let transferData = TransferStickerData(stickerId: sticker.stickerId, name: sticker.name, albumId: albumId)
-                message.content = try! JSONEncoder().encode(transferData).base64EncodedString()
-                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
-            }
-        }
+    func messageViewModelFactory(_ factory: MessageViewModelFactory, showUsernameForMessageIfNeeded message: MessageItem) -> Bool {
+        message.isRepresentativeMessage(conversation: conversation)
     }
     
-    func send(image: GiphyImage, thumbnail: UIImage?) {
-        let conversationId = self.conversationId
-        let ownerUser = self.ownerUser
-        let isGroupMessage = category == .group
-        queue.async {
-            var message = Message.createMessage(category: MessageCategory.SIGNAL_IMAGE.rawValue,
-                                                conversationId: conversationId,
-                                                userId: myUserId)
-            message.mediaStatus = MediaStatus.PENDING.rawValue
-            message.mediaUrl = image.fullsizedUrl.absoluteString
-            message.mediaWidth = image.size.width
-            message.mediaHeight = image.size.height
-            if let thumbnail = thumbnail {
-                message.thumbImage = thumbnail.base64Thumbnail()
-            }
-            message.mediaMimeType = "image/gif"
-            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
-        }
+    func messageViewModelFactory(_ factory: MessageViewModelFactory, isMessageForwardedByBot message: MessageItem) -> Bool {
+        isMessageForwardedByBot(message)
     }
     
-    func send(asset: PHAsset, quoteMessageId: String?) {
-        let conversationId = self.conversationId
-        let ownerUser = self.ownerUser
-        let isGroupMessage = category == .group
-        let options = self.thumbnailRequestOptions
-        queue.async {
-            assert(asset.mediaType == .image || asset.mediaType == .video)
-            let assetMediaTypeIsImage = asset.mediaType == .image
-            let category: MessageCategory = assetMediaTypeIsImage ? .SIGNAL_IMAGE : .SIGNAL_VIDEO
-            var message = Message.createMessage(category: category.rawValue,
-                                                conversationId: conversationId,
-                                                userId: myUserId)
-            message.mediaStatus = MediaStatus.PENDING.rawValue
-            message.mediaLocalIdentifier = asset.localIdentifier
-            message.mediaWidth = asset.pixelWidth
-            message.mediaHeight = asset.pixelHeight
-            message.quoteMessageId = quoteMessageId
-            if assetMediaTypeIsImage {
-                message.mediaMimeType = asset.isGif ? "image/gif" : "image/jpeg"
-            } else {
-                message.mediaMimeType = "video/mp4"
-            }
-            let thumbnailSize = CGSize(width: 48, height: 48)
-            PHImageManager.default().requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options) { (image, info) in
-                if let image = image {
-                    message.thumbImage = image.base64Thumbnail()
-                }
-            }
-            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: isGroupMessage)
+    func messageViewModelFactory(_ factory: MessageViewModelFactory, updateViewModelForPresentation viewModel: MessageViewModel) {
+        if let viewModel = viewModel as? TextMessageViewModel, let keyword = highlight?.keyword {
+            viewModel.highlight(keyword: keyword)
         }
     }
     
@@ -883,126 +769,6 @@ extension ConversationDataSource {
         }
     }
     
-    typealias CategorizedViewModels = (dates: [String], viewModels: [String: [MessageViewModel]])
-    private func viewModels(with messages: [MessageItem], fits layoutWidth: CGFloat) -> CategorizedViewModels {
-        var dates = [String]()
-        var cataloguedMessages = [String: [MessageItem]]()
-        for i in 0..<messages.count {
-            let message = messages[i]
-            let date = DateFormatter.yyyymmdd.string(from: message.createdAt.toUTCDate())
-            if cataloguedMessages[date] != nil {
-                cataloguedMessages[date]!.append(message)
-            } else {
-                cataloguedMessages[date] = [message]
-            }
-        }
-        dates = cataloguedMessages.keys.sorted(by: <)
-        
-        var viewModels = [String: [MessageViewModel]]()
-        for date in dates {
-            let messages = cataloguedMessages[date] ?? []
-            for (row, message) in messages.enumerated() {
-                let style = self.style(forIndex: row, messages: messages)
-                let viewModel = self.viewModel(withMessage: message, style: style, fits: layoutWidth)
-                if viewModels[date] != nil {
-                    viewModels[date]!.append(viewModel)
-                } else {
-                    viewModels[date] = [viewModel]
-                }
-            }
-        }
-        return (dates: dates, viewModels: viewModels)
-    }
-    
-    private func viewModel(withMessage message: MessageItem, style: MessageViewModel.Style, fits layoutWidth: CGFloat) -> MessageViewModel {
-        let viewModel: MessageViewModel
-        if message.status == MessageStatus.FAILED.rawValue {
-            viewModel = DecryptionFailedMessageViewModel(message: message)
-        } else if message.status == MessageStatus.UNKNOWN.rawValue {
-            viewModel = UnknownMessageViewModel(message: message)
-        } else {
-            if message.category.hasSuffix("_TEXT") {
-                viewModel = TextMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_IMAGE") {
-                viewModel = PhotoMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_STICKER") {
-                viewModel = StickerMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_DATA") {
-                viewModel = DataMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_VIDEO") {
-                viewModel = VideoMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_AUDIO") {
-                viewModel = AudioMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_CONTACT") {
-                viewModel = ContactMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_LIVE") {
-                viewModel = LiveMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_POST") {
-                viewModel = PostMessageViewModel(message: message)
-            } else if message.category.hasSuffix("_LOCATION") {
-                viewModel = LocationMessageViewModel(message: message)
-            } else if message.category.hasPrefix("WEBRTC_") {
-                viewModel = CallMessageViewModel(message: message)
-            } else if message.category == MessageCategory.SYSTEM_ACCOUNT_SNAPSHOT.rawValue {
-                viewModel = TransferMessageViewModel(message: message)
-            } else if message.category == MessageCategory.SYSTEM_CONVERSATION.rawValue {
-                viewModel = SystemMessageViewModel(message: message)
-            } else if message.category == MessageCategory.APP_BUTTON_GROUP.rawValue {
-                viewModel = AppButtonGroupViewModel(message: message)
-            } else if message.category == MessageCategory.APP_CARD.rawValue {
-                viewModel = AppCardMessageViewModel(message: message)
-            } else if message.category == MessageCategory.MESSAGE_RECALL.rawValue {
-                viewModel = RecalledMessageViewModel(message: message)
-            } else if message.category == MessageCategory.EXT_UNREAD.rawValue {
-                viewModel = MessageViewModel(message: message)
-                viewModel.cellHeight = 38
-            } else if message.category == MessageCategory.EXT_ENCRYPTION.rawValue {
-                viewModel = EncryptionHintViewModel(message: message)
-            } else if MessageCategory.krakenCategories.contains(message.category) {
-                viewModel = SystemMessageViewModel(message: message)
-            } else {
-                viewModel = UnknownMessageViewModel(message: message)
-            }
-        }
-        viewModel.layout(width: layoutWidth, style: style)
-        if let viewModel = viewModel as? TextMessageViewModel, let keyword = highlight?.keyword {
-            viewModel.highlight(keyword: keyword)
-        }
-        return viewModel
-    }
-    
-    private func style(forIndex index: Int, isFirstMessage: Bool, isLastMessage: Bool, messageAtIndex: (Int) -> MessageItem) -> MessageViewModel.Style {
-        let message = messageAtIndex(index)
-        var style: MessageViewModel.Style = []
-        if message.userId != me.user_id {
-            style = .received
-        }
-        if isLastMessage
-            || messageAtIndex(index + 1).userId != message.userId
-            || messageAtIndex(index + 1).isExtensionMessage
-            || messageAtIndex(index + 1).isSystemMessage {
-            style.insert(.tail)
-        }
-        if message.category == MessageCategory.EXT_ENCRYPTION.rawValue {
-            style.insert(.bottomSeparator)
-        } else if !isLastMessage && (message.isSystemMessage
-            || messageAtIndex(index + 1).userId != message.userId
-            || messageAtIndex(index + 1).isSystemMessage
-            || messageAtIndex(index + 1).isExtensionMessage) {
-            style.insert(.bottomSeparator)
-        }
-        if message.isRepresentativeMessage(conversation: conversation) {
-            if (isFirstMessage && !message.isExtensionMessage && !message.isSystemMessage)
-                || (!isFirstMessage && (messageAtIndex(index - 1).userId != message.userId || messageAtIndex(index - 1).isExtensionMessage || messageAtIndex(index - 1).isSystemMessage)) {
-                style.insert(.fullname)
-            }
-        }
-        if isMessageForwardedByBot(message) {
-            style.insert(.forwardedByBot)
-        }
-        return style
-    }
-    
     private func isMessageForwardedByBot(_ message: MessageItem) -> Bool {
         if let ownerUser = ownerUser {
             return ownerUser.isBot
@@ -1011,20 +777,6 @@ extension ConversationDataSource {
         } else {
             return false
         }
-    }
-    
-    private func style(forIndex index: Int, messages: [MessageItem]) -> MessageViewModel.Style {
-        return style(forIndex: index,
-                     isFirstMessage: index == 0,
-                     isLastMessage: index == messages.count - 1,
-                     messageAtIndex: { messages[$0] })
-    }
-    
-    private func style(forIndex index: Int, viewModels: [MessageViewModel]) -> MessageViewModel.Style {
-        return style(forIndex: index,
-                     isFirstMessage: index == 0,
-                     isLastMessage: index == viewModels.count - 1,
-                     messageAtIndex: { viewModels[$0].message })
     }
     
     private func addMessageAndDisplay(message: MessageItem) {
@@ -1085,7 +837,7 @@ extension ConversationDataSource {
                     }
                 }
             }
-            viewModel = self.viewModel(withMessage: message, style: style, fits: layoutSize.width)
+            viewModel = factory.viewModel(withMessage: message, style: style, fits: layoutSize.width)
             if !isLastCell {
                 let nextViewModel = viewModels[row]
                 if viewModel.message.userId != nextViewModel.message.userId {
@@ -1115,7 +867,7 @@ extension ConversationDataSource {
             if style.contains(.received) && message.isRepresentativeMessage(conversation: conversation) {
                 style.insert(.fullname)
             }
-            viewModel = self.viewModel(withMessage: message, style: style, fits: layoutSize.width)
+            viewModel = factory.viewModel(withMessage: message, style: style, fits: layoutSize.width)
         }
         DispatchQueue.main.sync {
             guard let tableView = self.tableView, !self.messageProcessingIsCancelled else {

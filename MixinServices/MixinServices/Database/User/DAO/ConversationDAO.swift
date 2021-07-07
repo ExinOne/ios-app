@@ -179,8 +179,8 @@ public final class ConversationDAO: UserDatabaseDAO {
     
     public func deleteChat(conversationId: String) {
         let mediaUrls = MessageDAO.shared.getMediaUrls(conversationId: conversationId, categories: MessageCategory.allMediaCategories)
-        
         db.write { db in
+            let deletedTranscriptIds = try deleteTranscriptChildrenReferenced(by: conversationId, from: db)
             try Message
                 .filter(Message.column(of: .conversationId) == conversationId)
                 .deleteAll(db)
@@ -198,7 +198,10 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .deleteAll(db)
             try deleteFTSContent(with: conversationId, from: db)
             db.afterNextTransactionCommit { (_) in
-                ConcurrentJobQueue.shared.addJob(job: AttachmentCleanUpJob(conversationId: conversationId, mediaUrls: mediaUrls))
+                let job = AttachmentCleanUpJob(conversationId: conversationId,
+                                               mediaUrls: mediaUrls,
+                                               transcriptIds: deletedTranscriptIds)
+                ConcurrentJobQueue.shared.addJob(job: job)
                 NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: nil)
             }
         }
@@ -206,8 +209,8 @@ public final class ConversationDAO: UserDatabaseDAO {
     
     public func clearChat(conversationId: String) {
         let mediaUrls = MessageDAO.shared.getMediaUrls(conversationId: conversationId, categories: MessageCategory.allMediaCategories)
-        
         db.write { db in
+            let deletedTranscriptIds = try deleteTranscriptChildrenReferenced(by: conversationId, from: db)
             NotificationCenter.default.post(onMainThread: Self.willClearConversationNotification,
                                             object: self,
                                             userInfo: [Self.conversationIdUserInfoKey: conversationId])
@@ -222,7 +225,10 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .updateAll(db, [Conversation.column(of: .unseenMessageCount).set(to: 0)])
             try deleteFTSContent(with: conversationId, from: db)
             db.afterNextTransactionCommit { (_) in
-                ConcurrentJobQueue.shared.addJob(job: AttachmentCleanUpJob(conversationId: conversationId, mediaUrls: mediaUrls))
+                let job = AttachmentCleanUpJob(conversationId: conversationId,
+                                               mediaUrls: mediaUrls,
+                                               transcriptIds: deletedTranscriptIds)
+                ConcurrentJobQueue.shared.addJob(job: job)
                 let change = ConversationChange(conversationId: conversationId, action: .reload)
                 NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: change)
             }
@@ -446,7 +452,7 @@ public final class ConversationDAO: UserDatabaseDAO {
                 ConcurrentJobQueue.shared.addJob(job: RefreshUserJob(userIds: userIds))
             }
             
-            resultConversation = try ConversationItem.fetchOne(db, sql: ParticipantDAO.sqlUpdateStatus, arguments: [conversationId], adapter: nil)
+            resultConversation = try ConversationItem.fetchOne(db, sql: ConversationDAO.sqlQueryConversationByCoversationId, arguments: [conversationId], adapter: nil)
             
             db.afterNextTransactionCommit { (_) in
                 let change = ConversationChange(conversationId: conversationId,
@@ -528,6 +534,16 @@ extension ConversationDAO {
     private func deleteFTSContent(with conversationId: String, from db: GRDB.Database) throws {
         let sql = "DELETE FROM \(Message.ftsTableName) WHERE conversation_id MATCH ?"
         try db.execute(sql: sql, arguments: [uuidTokenString(uuidString: conversationId)])
+    }
+    
+    private func deleteTranscriptChildrenReferenced(by conversationId: String, from db: GRDB.Database) throws -> [String] {
+        let transcriptMessageIds = try MessageDAO.shared.getTranscriptMessageIds(conversationId: conversationId, database: db)
+        for id in transcriptMessageIds {
+            try TranscriptMessage
+                .filter(TranscriptMessage.column(of: .transcriptId) == id)
+                .deleteAll(db)
+        }
+        return transcriptMessageIds
     }
     
 }

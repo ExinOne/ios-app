@@ -40,7 +40,7 @@ class SharedMediaAudioMessagePlayingManager: AudioMessagePlayingManager {
         guard next.category.hasSuffix("_AUDIO"), next.mediaStatus == MediaStatus.CANCELED.rawValue || next.mediaStatus == MediaStatus.PENDING.rawValue else {
             return
         }
-        let job = AudioDownloadJob(messageId: next.messageId)
+        let job = AttachmentDownloadJob(messageId: next.messageId)
         ConcurrentJobQueue.shared.addJob(job: job)
     }
     
@@ -53,9 +53,7 @@ class SharedMediaAudioMessagePlayingManager: AudioMessagePlayingManager {
                 center.playbackState = .playing
             case .paused:
                 center.playbackState = .paused
-            case .readyToPlay:
-                break
-            case .didReachEnd:
+            case .stopped:
                 center.playbackState = .stopped
             }
         }
@@ -67,10 +65,8 @@ class SharedMediaAudioMessagePlayingManager: AudioMessagePlayingManager {
             }
         case .paused:
             updateNowPlayingInfoElapsedPlaybackTime()
-        case .didReachEnd:
+        case .stopped:
             removePlayingInfoAndRemoteCommandTarget()
-        default:
-            break
         }
     }
     

@@ -25,6 +25,7 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
     private(set) var playingMessage: MessageItem?
     
     private var cells = [String: WeakCellBox]()
+    private var displayAwakeningToken: DisplayAwakener.Token?
     
     override init() {
         super.init()
@@ -52,7 +53,7 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
         cells[message.messageId]?.cell?.style = .playing
         
         func handle(error: Error) {
-            performSynchronouslyOnMainThread {
+            Queue.main.autoSync {
                 self.cells[message.messageId]?.cell?.style = .stopped
                 NotificationCenter.default.removeObserver(self)
             }
@@ -88,13 +89,11 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
         
         queue.async {
             if shouldUpdateMediaStatus {
-                MessageDAO.shared.updateMediaStatus(messageId: message.messageId,
-                                                    status: .READ,
-                                                    conversationId: message.conversationId)
+                self.updateMediaStatusToRead(message: message)
             }
             
             activateAudioSession()
-            let path = AttachmentContainer.url(for: .audios, filename: mediaUrl).path
+            let path = self.filePath(message: message, mediaUrl: mediaUrl)
             DispatchQueue.main.sync {
                 guard self.playingMessage?.messageId == message.messageId else {
                     return
@@ -146,7 +145,7 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
                 cell.style = .playing
             case .paused:
                 cell.style = .paused
-            case .readyToPlay, .didReachEnd:
+            case .stopped:
                 cell.style = .stopped
             }
         } else {
@@ -156,6 +155,16 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
     
     func unregister(cell: AudioCell, forMessageId messageId: String) {
         cells[messageId] = nil
+    }
+    
+    func updateMediaStatusToRead(message: MessageItem) {
+        MessageDAO.shared.updateMediaStatus(messageId: message.messageId,
+                                            status: .READ,
+                                            conversationId: message.conversationId)
+    }
+    
+    func filePath(message: MessageItem, mediaUrl: String) -> String {
+        AttachmentContainer.url(for: .audios, filename: mediaUrl).path
     }
     
     func playableMessage(nextTo message: MessageItem) -> MessageItem? {
@@ -178,7 +187,7 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
         guard next.category.hasSuffix("_AUDIO"), next.mediaStatus != MediaStatus.DONE.rawValue && next.mediaStatus != MediaStatus.READ.rawValue else {
             return
         }
-        let job = AudioDownloadJob(messageId: next.messageId)
+        let job = AttachmentDownloadJob(messageId: next.messageId)
         ConcurrentJobQueue.shared.addJob(job: job)
     }
     
@@ -199,8 +208,14 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
     }
     
     func handleStatusChange(player: OggOpusPlayer) {
-        UIApplication.shared.isIdleTimerDisabled = player.status == .playing
-        if player.status == .didReachEnd, let playingMessage = playingMessage {
+        if let token = displayAwakeningToken {
+            DisplayAwakener.shared.release(token: token)
+            displayAwakeningToken = nil
+        }
+        if player.status == .playing {
+            displayAwakeningToken = DisplayAwakener.shared.retain()
+        }
+        if player.status == .stopped, let playingMessage = playingMessage {
             cells[playingMessage.messageId]?.cell?.style = .stopped
             DispatchQueue.global().async {
                 if let next = self.playableMessage(nextTo: playingMessage) {

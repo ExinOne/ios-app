@@ -1,81 +1,93 @@
 import Foundation
 import UIKit
 
-open class AttachmentDownloadJob: UploadOrDownloadJob {
-    
-    public enum UserInfoKey {
-        public static let messageId = "mid"
-        public static let mediaURL = "url"
-    }
+open class AttachmentDownloadJob: AttachmentLoadingJob {
     
     public static let didFinishNotification = Notification.Name("one.mixin.services.AttachmentDownloadJob.DidFinish")
     
-    private(set) var stream: OutputStream!
-    
+    private var stream: OutputStream?
     private var contentLength: Double?
     private var downloadedContentLength: Double = 0
+    private var attachResponse: AttachmentResponse?
+    private var owner: AttachmentOwner!
     
-    internal var fileName: String {
-        
-        var originalPathExtension: String? {
-            message.name?.pathExtension()?.lowercased()
+    private var originalPathExtension: String? {
+        owner.mediaName?.pathExtension()?.lowercased()
+    }
+    
+    private var mimeInferredPathExtension: String? {
+        if let mimeType = owner.mediaMimeType?.lowercased() {
+            return FileManager.default.pathExtension(mimeType: mimeType)?.lowercased()
+        } else {
+            return nil
         }
-        
-        var mimeInferredPathExtension: String? {
-            if let mimeType = message.mediaMimeType?.lowercased() {
-                return FileManager.default.pathExtension(mimeType: mimeType)?.lowercased()
-            } else {
-                return nil
-            }
-        }
-        
+    }
+    
+    private lazy var fileName: String = {
         let extensionName: String?
-        if message.category.hasSuffix("_VIDEO") {
+        let category = owner.category
+        if category.hasSuffix("_VIDEO") {
             extensionName = ExtensionName.mp4.rawValue
-        } else if message.category.hasSuffix("_IMAGE") {
+        } else if category.hasSuffix("_IMAGE") {
             extensionName = mimeInferredPathExtension
                 ?? originalPathExtension
                 ?? ExtensionName.jpeg.rawValue
-        } else if message.category.hasSuffix("_AUDIO") {
+        } else if category.hasSuffix("_AUDIO") {
             extensionName = ExtensionName.ogg.rawValue
         } else {
             extensionName = originalPathExtension ?? mimeInferredPathExtension
         }
         
-        var filename = message.messageId
+        var filename = owner.messageId
         if let name = extensionName {
             filename += ".\(name)"
         }
         return filename
-    }
+    }()
     
-    internal var fileUrl: URL {
-        return AttachmentContainer.url(for: .photos, filename: fileName)
-    }
-
-    open class func jobId(messageId: String) -> String {
-        return "attachment-download-\(messageId)"
-    }
-    
-    open class func jobId(category: String, messageId: String) -> String {
-        if category.hasSuffix("_IMAGE") {
-            return AttachmentDownloadJob.jobId(messageId: messageId)
-        } else if category.hasSuffix("_DATA") {
-            return FileDownloadJob.jobId(messageId: messageId)
-        } else if category.hasSuffix("_AUDIO") {
-            return AudioDownloadJob.jobId(messageId: messageId)
-        } else if category.hasSuffix("_VIDEO") {
-            return VideoDownloadJob.jobId(messageId: messageId)
+    private lazy var fileUrl: URL = {
+        if let tid = transcriptId {
+            return AttachmentContainer.url(transcriptId: tid, filename: fileName)
+        } else {
+            let category = AttachmentContainer.Category(messageCategory: owner.category) ?? .files
+            return AttachmentContainer.url(for: category, filename: fileName)
         }
-        return ""
+    }()
+    
+    public init(message: Message, jobId: String? = nil, isRecoverAttachment: Bool = false) {
+        self.owner = .message(message)
+        super.init(transcriptId: nil,
+                   messageId: message.messageId,
+                   jobId: jobId,
+                   isRecoverAttachment: isRecoverAttachment)
+    }
+    
+    public override init(
+        transcriptId: String? = nil,
+        messageId: String,
+        jobId: String? = nil,
+        isRecoverAttachment: Bool = false
+    ) {
+        super.init(transcriptId: transcriptId,
+                   messageId: messageId,
+                   jobId: jobId,
+                   isRecoverAttachment: isRecoverAttachment)
+    }
+    
+    open class func jobId(transcriptId: String?, messageId: String) -> String {
+        if let tid = transcriptId {
+            return "attachment-download-\(tid)-\(messageId)"
+        } else {
+            return "attachment-download-\(messageId)"
+        }
     }
     
     override open func getJobId() -> String {
-        return AttachmentDownloadJob.jobId(messageId: messageId)
+        Self.jobId(transcriptId: transcriptId, messageId: messageId)
     }
     
     override open func execute() -> Bool {
-        guard let attachmentId = validAttachmentMessage() else {
+        guard let attachmentId = validateAttachmentOwner() else {
             removeJob()
             return false
         }
@@ -100,29 +112,152 @@ open class AttachmentDownloadJob: UploadOrDownloadJob {
         } while LoginManager.shared.isLoggedIn && !isCancelled
         return false
     }
+    
+    override open func taskFinished() {
+        if let error = stream?.streamError {
+            try? FileManager.default.removeItem(at: fileUrl)
+            reporter.report(error: error)
+            updateMediaMessage(mediaUrl: fileName, status: .CANCELED)
+        } else {
+            if owner.category.hasSuffix("_VIDEO") {
+                let thumbnail = UIImage(withFirstFrameOfVideoAtURL: fileUrl)
+                let thumbnailURL: URL
+                if let tid = transcriptId {
+                    thumbnailURL = AttachmentContainer.videoThumbnailURL(transcriptId: tid, videoFilename: fileName)
+                } else {
+                    thumbnailURL = AttachmentContainer.videoThumbnailURL(videoFilename: fileName)
+                }
+                thumbnail?.saveToFile(path: thumbnailURL)
+            }
+            let content: String? = {
+                guard let response = attachResponse else {
+                    return nil
+                }
+                guard let createdAt = response.createdAt else {
+                    return nil
+                }
+                let extra = AttachmentExtra(attachmentId: response.attachmentId, createdAt: createdAt)
+                guard let json = try? JSONEncoder.default.encode(extra) else {
+                    return nil
+                }
+                return json.base64EncodedString()
+            }()
+            updateMediaMessage(mediaUrl: fileName, status: .DONE, content: content)
+            let userInfo = [
+                Self.UserInfoKey.transcriptId: transcriptId,
+                Self.UserInfoKey.messageId: messageId,
+                Self.UserInfoKey.mediaURL: fileName
+            ]
+            NotificationCenter.default.post(onMainThread: Self.didFinishNotification, object: self, userInfo: userInfo)
+            removeJob()
+        }
+    }
+    
+    override open func downloadExpired() {
+        switch owner! {
+        case .message(let message):
+            MessageDAO.shared.updateMediaStatus(messageId: messageId, status: .EXPIRED, conversationId: message.conversationId)
+        case .transcriptMessage(let message):
+            if let tid = transcriptId {
+                TranscriptMessageDAO.shared.updateMediaStatus(.EXPIRED, transcriptId: tid, messageId: messageId)
+            }
+        }
+    }
+    
+    func updateMediaMessage(mediaUrl: String, status: MediaStatus, content: String? = nil) {
+        switch owner! {
+        case .message(let message):
+            MessageDAO.shared.updateMediaMessage(messageId: messageId,
+                                                 mediaUrl: fileName,
+                                                 status: status,
+                                                 conversationId: message.conversationId,
+                                                 content: content)
+        case .transcriptMessage(let message):
+            TranscriptMessageDAO.shared.update(transcriptId: message.transcriptId,
+                                               messageId: message.messageId,
+                                               mediaStatus: status,
+                                               mediaUrl: fileName)
+        }
+    }
+    
+}
 
-    private func validAttachmentMessage() -> String? {
+extension AttachmentDownloadJob: URLSessionDataDelegate {
+    
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Swift.Void) {
+        contentLength = Double(response.expectedContentLength)
+        completionHandler(.allow)
+    }
+    
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        data.withUnsafeUInt8Pointer {
+            _ = stream?.write($0!, maxLength: data.count)
+        }
+        if let contentLength = contentLength {
+            downloadedContentLength += Double(data.count)
+            var userInfo: [String: Any] = [
+                UserInfoKey.progress: downloadedContentLength / contentLength,
+                UserInfoKey.messageId: messageId
+            ]
+            if let tid = transcriptId {
+                userInfo[UserInfoKey.transcriptId] = tid
+            }
+            if case .message(let message) = owner {
+                userInfo[UserInfoKey.conversationId] = message.conversationId
+            }
+            NotificationCenter.default.post(onMainThread: Self.progressNotification,
+                                            object: self,
+                                            userInfo: userInfo)
+        }
+    }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        stream?.close()
+        completionHandler(nil, task.response, error)
+    }
+    
+}
+
+extension AttachmentDownloadJob {
+    
+    private func validateAttachmentOwner() -> String? {
         guard !messageId.isEmpty else {
             return nil
         }
-        guard let message = self.message ?? MessageDAO.shared.getMessage(messageId: messageId) else {
+        let owner: AttachmentOwner
+        if let o = self.owner {
+            owner = o
+        } else {
+            if let tid = transcriptId {
+                guard let transcriptMessage = TranscriptMessageDAO.shared.transcriptMessage(transcriptId: tid, messageId: messageId) else {
+                    return nil
+                }
+                owner = .transcriptMessage(transcriptMessage)
+            } else {
+                guard let message = MessageDAO.shared.getMessage(messageId: messageId) else {
+                    return nil
+                }
+                owner = .message(message)
+            }
+        }
+        guard owner.category != MessageCategory.MESSAGE_RECALL.rawValue else {
             return nil
         }
-        guard message.category != MessageCategory.MESSAGE_RECALL.rawValue else {
-            return nil
-        }
-        guard let attachmentId = message.content, !attachmentId.isEmpty else {
+        guard let attachmentId = owner.content, !attachmentId.isEmpty else {
             return nil
         }
         guard UUID(uuidString: attachmentId) != nil else {
-            Logger.write(errorMsg: "[AttachmentDownloadJob][\(message.category)][\(message.messageId)]...attachment id is not uuid...mediaUrl:\(message.mediaUrl)...mediaStatus:\(message.mediaStatus ?? "")...attachmentId:\(attachmentId)")
+            let log = """
+                [AttachmentDownloadJob] Message with id: \(owner.messageId), category: \(owner.category), mediaUrl:\(owner.mediaUrl), mediaStatus:\(owner.mediaStatus ?? "")
+                    has an invalid content: \(attachmentId)
+            """
+            Logger.write(errorMsg: log)
             return nil
         }
-        guard !(jobId?.isEmpty ?? true) || message.mediaUrl == nil || (message.mediaStatus != MediaStatus.DONE.rawValue && message.mediaStatus != MediaStatus.READ.rawValue && message.category != MessageCategory.MESSAGE_RECALL.rawValue) else {
+        guard !(jobId?.isEmpty ?? true) || owner.mediaUrl == nil || (owner.mediaStatus != MediaStatus.DONE.rawValue && owner.mediaStatus != MediaStatus.READ.rawValue && owner.category != MessageCategory.MESSAGE_RECALL.rawValue) else {
             return nil
         }
-
-        self.message = message
+        self.owner = owner
         return attachmentId
     }
     
@@ -130,24 +265,23 @@ open class AttachmentDownloadJob: UploadOrDownloadJob {
         guard let viewUrl = attachResponse.viewUrl, let downloadUrl = URL(string: viewUrl) else {
             return false
         }
+        self.attachResponse = attachResponse
         
-        if message.category.hasPrefix("SIGNAL_") {
-            guard let key = message.mediaKey, let digest = message.mediaDigest else {
+        let encrypts = owner.category.hasPrefix("SIGNAL_")
+        if encrypts {
+            guard let key = owner.mediaKey, let digest = owner.mediaDigest else {
                 return false
             }
             stream = AttachmentDecryptingOutputStream(url: fileUrl, key: key, digest: digest)
-            if stream == nil {
-                reporter.report(error: MixinServicesError.initDecryptingOutputStream)
-                return false
-            }
         } else {
             stream = OutputStream(url: fileUrl, append: false)
-            if stream == nil {
-                reporter.report(error: MixinServicesError.initOutputStream)
-                return false
-            }
         }
         
+        guard let stream = stream else {
+            let error: MixinServicesError = encrypts ? .initDecryptingOutputStream : .initOutputStream
+            reporter.report(error: error)
+            return false
+        }
         downloadedContentLength = 0
         stream.open()
         
@@ -161,52 +295,6 @@ open class AttachmentDownloadJob: UploadOrDownloadJob {
         task?.resume()
         session.finishTasksAndInvalidate()
         return true
-    }
-    
-    override open func taskFinished() {
-        if let error = stream.streamError {
-            try? FileManager.default.removeItem(at: fileUrl)
-            reporter.report(error: error)
-            MessageDAO.shared.updateMediaMessage(messageId: messageId, mediaUrl: fileName, status: .CANCELED, conversationId: message.conversationId)
-        } else {
-            MessageDAO.shared.updateMediaMessage(messageId: messageId, mediaUrl: fileName, status: .DONE, conversationId: message.conversationId)
-            let userInfo = [
-                Self.UserInfoKey.messageId: messageId,
-                Self.UserInfoKey.mediaURL: fileName
-            ]
-            NotificationCenter.default.post(onMainThread: Self.didFinishNotification, object: self, userInfo: userInfo)
-            removeJob()
-        }
-    }
-    
-    override open func downloadExpired() {
-        MessageDAO.shared.updateMediaStatus(messageId: messageId, status: .EXPIRED, conversationId: message.conversationId)
-    }
-}
-
-extension AttachmentDownloadJob: URLSessionDataDelegate {
-    
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Swift.Void) {
-        contentLength = Double(response.expectedContentLength)
-        completionHandler(.allow)
-    }
-    
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        data.withUnsafeUInt8Pointer {
-            _ = stream.write($0!, maxLength: data.count)
-        }
-        if let contentLength = contentLength {
-            downloadedContentLength += Double(data.count)
-            let progress = downloadedContentLength / contentLength
-            let change = ConversationChange(conversationId: message.conversationId,
-                                            action: .updateDownloadProgress(messageId: messageId, progress: progress))
-            NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: change)
-        }
-    }
-    
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        stream.close()
-        completionHandler(nil, task.response, error)
     }
     
 }

@@ -3,7 +3,7 @@ import MixinServices
 
 extension SendMessageService {
     
-    func sendMessage(message: Message, ownerUser: UserItem?, isGroupMessage: Bool) {
+    func sendMessage(message: Message, children: [TranscriptMessage]? = nil, ownerUser: UserItem?, isGroupMessage: Bool) {
         guard let account = LoginManager.shared.account else {
             return
         }
@@ -18,7 +18,15 @@ extension SendMessageService {
         }
 
         if msg.category.hasSuffix("_TEXT") {
-            msg.category = isSignalMessage ? MessageCategory.SIGNAL_TEXT.rawValue :  MessageCategory.PLAIN_TEXT.rawValue
+            if isSignalMessage {
+                if let content = msg.content, willTextMessageWithContentSendDirectlyToApp(content, conversationId: msg.conversationId, inGroup: isGroupMessage) {
+                    msg.category = MessageCategory.PLAIN_TEXT.rawValue
+                } else {
+                    msg.category = MessageCategory.SIGNAL_TEXT.rawValue
+                }
+            } else {
+                msg.category = MessageCategory.PLAIN_TEXT.rawValue
+            }
         } else if msg.category.hasSuffix("_IMAGE") {
             msg.category = isSignalMessage ? MessageCategory.SIGNAL_IMAGE.rawValue :  MessageCategory.PLAIN_IMAGE.rawValue
         } else if msg.category.hasSuffix("_VIDEO") {
@@ -48,28 +56,39 @@ extension SendMessageService {
                 msg.conversationId = conversationId
                 ConversationDAO.shared.createConversation(conversation: ConversationResponse(conversationId: conversationId, userId: user.userId, avatarUrl: user.avatarUrl), targetStatus: .START)
             }
-            if !message.category.hasPrefix("WEBRTC_") {
+            
+            if message.category.hasPrefix("WEBRTC_") {
+                guard let recipient = ownerUser else {
+                    Logger.write(log: "[Call] recipient user id is empty!")
+                    return
+                }
+                SendMessageService.shared.sendWebRTCMessage(message: message, recipientId: recipient.userId)
+            } else {
                 if let content = msg.content, ["_TEXT", "_POST"].contains(where: msg.category.hasSuffix), content.utf8.count > maxTextMessageContentLength {
                     msg.content = String(content.prefix(maxTextMessageContentLength))
                 }
-                MessageDAO.shared.insertMessage(message: msg, messageSource: "")
-            }
-            if ["_TEXT", "_POST", "_STICKER", "_CONTACT", "_LIVE", "_LOCATION"].contains(where: msg.category.hasSuffix) || msg.category == MessageCategory.APP_CARD.rawValue {
-                SendMessageService.shared.sendMessage(message: msg, data: msg.content)
-            } else if msg.category.hasSuffix("_IMAGE") {
-                let jobId = SendMessageService.shared.saveUploadJob(message: msg)
-                UploaderQueue.shared.addJob(job: ImageUploadJob(message: msg, jobId: jobId))
-            } else if msg.category.hasSuffix("_VIDEO") {
-                let jobId = SendMessageService.shared.saveUploadJob(message: msg)
-                UploaderQueue.shared.addJob(job: VideoUploadJob(message: msg, jobId: jobId))
-            } else if msg.category.hasSuffix("_DATA") {
-                let jobId = SendMessageService.shared.saveUploadJob(message: msg)
-                UploaderQueue.shared.addJob(job: FileUploadJob(message: msg, jobId: jobId))
-            } else if msg.category.hasSuffix("_AUDIO") {
-                let jobId = SendMessageService.shared.saveUploadJob(message: msg)
-                UploaderQueue.shared.addJob(job: AudioUploadJob(message: msg, jobId: jobId))
-            } else if message.category.hasPrefix("WEBRTC_"), let recipient = ownerUser {
-                SendMessageService.shared.sendWebRTCMessage(message: message, recipientId: recipient.userId)
+                MessageDAO.shared.insertMessage(message: msg, children: children, messageSource: "") {
+                    if ["_TEXT", "_POST", "_STICKER", "_CONTACT", "_LIVE", "_LOCATION"].contains(where: msg.category.hasSuffix) || msg.category == MessageCategory.APP_CARD.rawValue {
+                        SendMessageService.shared.sendMessage(message: msg, data: msg.content)
+                    } else if msg.category.hasSuffix("_IMAGE") {
+                        let jobId = SendMessageService.shared.saveUploadJob(message: msg)
+                        UploaderQueue.shared.addJob(job: ImageUploadJob(message: msg, jobId: jobId))
+                    } else if msg.category.hasSuffix("_VIDEO") {
+                        let jobId = SendMessageService.shared.saveUploadJob(message: msg)
+                        UploaderQueue.shared.addJob(job: VideoUploadJob(message: msg, jobId: jobId))
+                    } else if msg.category.hasSuffix("_DATA") {
+                        let jobId = SendMessageService.shared.saveUploadJob(message: msg)
+                        UploaderQueue.shared.addJob(job: FileUploadJob(message: msg, jobId: jobId))
+                    } else if msg.category.hasSuffix("_AUDIO") {
+                        let jobId = SendMessageService.shared.saveUploadJob(message: msg)
+                        UploaderQueue.shared.addJob(job: AudioUploadJob(message: msg, jobId: jobId))
+                    } else if msg.category == MessageCategory.SIGNAL_TRANSCRIPT.rawValue {
+                        let jobId = SendMessageService.shared.saveUploadJob(message: msg)
+                        let job = TranscriptAttachmentUploadJob(message: msg,
+                                                                jobIdToRemoveAfterFinished: jobId)
+                        UploaderQueue.shared.addJob(job: job)
+                    }
+                }
             }
         }
     }

@@ -265,6 +265,8 @@
 "chat_message_sent" = "Message sent.";
 "chat_cell_title_encryption" = "Messages to this conversation are encrypted end-to-end, click for more information";
 "chat_cell_title_unknown_category" = "This type of message is not supported, please upgrade 一心 to the latest version.";
+"chat_forward_one_by_one" = "One-by-One Forward";
+"chat_forward_combined" = "Combine and Forward";
 "chat_forward_title" = "Forward";
 "chat_forward_chats" = "CHATS";
 "chat_forward_contacts" = "CONTACTS";
@@ -340,6 +342,10 @@
 "chat_external_sharing_category_contact" = "contact";
 "chat_external_sharing_category_post" = "post";
 "chat_external_sharing_category_app_card" = "card";
+"chat_transcript" = "Transcript";
+"chat_transcript_forward_invalid_media_status" = "Forwarding transcript requires all attachments are downloaded";
+"chat_transcript_forward_invalid_app_card_not_shareable" = "The card has been set to not allow sharing";
+"chat_transcript_forward_invalid_link_not_shareable" = "The link has been set to not allow sharing";
 
 // Web
 "web_suspicious_link" = "Suspicious Link";
@@ -355,6 +361,8 @@
 "call_encryption_title" = "This call is secured with end-to-end encryption";
 "call_encryption_description" = "No one outside of this call can view or listen to it. Not even 一心.";
 "call_hint_on_another_call" = "You are already on another call. Try after it was ended.";
+"call_p2p_title_with_status" = "Call (%@)";
+"call_group_title_with_status" = "Group Call (%@)";
 "call_status_outgoing" = "Calling...";
 "call_status_incoming" = "Incoming voice call";
 "call_status_connecting" = "Connecting";
@@ -380,7 +388,7 @@
 "group_call" = "Group Call";
 "group_call_tap_to_join" = "Tap to join";
 "group_call_selections_reach_limit" = "Group calling allows up to %@ participants to call each other";
-"group_call_bad_network" = "Connection is unstable";
+"group_call_bad_network" = "Connection unstable";
 
 // Sticker
 "sticker_manager_title" = "My Stickers";
@@ -584,6 +592,7 @@
 
 "asset_not_found" = "Asset not found.";
 "snapshot_not_found" = "Snapshot not found.";
+"conversation_not_found" = "Conversation not found.";
 
 // Transfer
 "transfer_title" = "Transfer";
@@ -830,7 +839,22 @@
 "setting_pin" = "PIN";
 "setting_feedback" = "Feedback";
 "setting_share_this_app" = "Share This App";
-"setting_share_this_app_content" = "Let's chat on Mixin Messenger! Simple, safe and easy to use. It also supports cryptocurrencies such as Bitcoin and Ethereum. Download https://一心.one/messenger and search for %@ to add me.";
+
+"setting_share_this_app_content" = "Let's chat on 一心! Simple, safe and easy to use. It also supports cryptocurrencies such as Bitcoin and Ethereum. Download https://一心.one/messenger and search for %@ to add me.";
+"setting_screen_lock_title" = "Screen Lock";
+"setting_screen_lock_enable_biometric_title" = "Lock with %@";
+"setting_screen_lock_enable_biometric_timeout" = "Auto-Lock";
+"setting_screen_lock_enable_biometric_tip" = "You’ll need to user %@ to unlock 一心. you can still reply to messages from notifications and anwser calls if 一心 is locked.";
+"setting_screen_lock_timeout_immediately" = "Immediately";
+"setting_screen_lock_timeout_one_minute" = "1 Minute";
+"setting_screen_lock_timeout_minutes" = "%@ Minutes";
+"setting_screen_lock_timeout_hour" = "1 Hour";
+"setting_screen_lock_timeout_off" = "Off";
+
+// ScreenLock
+"screen_lock_locked" = "一心 Locked";
+"screen_lock_unlock_tip" = "Use %@ to unlock 一心";
+"screen_lock_unlock_button_title" = "Use %@";
 
 // About
 "about_twitter" = "Follow us on Twitter";
@@ -875,6 +899,8 @@
 "notification_content_audio" = "[Audio]";
 "notification_content_voice_call" = "[Voice Call]";
 "notification_content_location" = "[Location]";
+"notification_content_transcript" = "[Transcript]";
+"notification_content_unknown" = "[Unknown]";
 
 "alert_key_contact_message" = "send you a message";
 "alert_key_contact_text_message" = "send you a message";
@@ -890,6 +916,7 @@
 "alert_key_contact_audio_call_cancelled_message" = "voice call cancelled";
 "alert_key_contact_post_message" = "send you a post";
 "alert_key_contact_location_message" = "send you a location";
+"alert_key_contact_transcript_message" = "send you a transcript";
 
 "alert_key_group_message" = "%@ send a message";
 "alert_key_group_text_message" = "%@ send a message";
@@ -902,6 +929,7 @@
 "alert_key_group_audio_message" = "%@ send an audio";
 "alert_key_group_post_message" = "%@ send a post";
 "alert_key_group_location_message" = "%@ send a location";
+"alert_key_group_transcript_message" = "%@ send a transcript";
 "alert_key_group_audio_invite_message" = "%@ invites you to a voice call";
 
 // Error

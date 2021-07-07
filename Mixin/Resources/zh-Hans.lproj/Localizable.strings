@@ -265,6 +265,8 @@
 "chat_message_sent" = "消息已发送";
 "chat_cell_title_encryption" = "此对话中的消息使用端对端加密。点击了解更多。";
 "chat_cell_title_unknown_category" = "不支持此类型消息。请升级 一心 查看。";
+"chat_forward_one_by_one" = "逐条转发";
+"chat_forward_combined" = "合并转发";
 "chat_forward_title" = "转发";
 "chat_forward_chats" = "最近聊天";
 "chat_forward_contacts" = "联系人";
@@ -340,6 +342,10 @@
 "chat_external_sharing_category_contact" = "联系人";
 "chat_external_sharing_category_post" = "文章";
 "chat_external_sharing_category_app_card" = "卡片";
+"chat_transcript" = "聊天记录";
+"chat_transcript_forward_invalid_media_status" = "请下载全部附件后转发";
+"chat_transcript_forward_invalid_app_card_not_shareable" = "该卡片已被设置为不允许转发";
+"chat_transcript_forward_invalid_link_not_shareable" = "该链接已被设置为不允许分享";
 
 // Web
 "web_suspicious_link" = "可疑链接";
@@ -355,6 +361,8 @@
 "call_encryption_title" = "此通话使用端对端加密进行保护";
 "call_encryption_description" = "除了参与通话的人，其他人包含一心在内都无法听取或查看。";
 "call_hint_on_another_call" = "正在通话中，请挂断当前电话后重试";
+"call_p2p_title_with_status" = "语音通话（%@）";
+"call_group_title_with_status" = "群组语音（%@）";
 "call_status_outgoing" = "正在呼叫...";
 "call_status_incoming" = "语音通话来电";
 "call_status_connecting" = "正在连接";
@@ -380,7 +388,7 @@
 "group_call" = "群通话";
 "group_call_tap_to_join" = "点击加入";
 "group_call_selections_reach_limit" = "支持最多%@人同时通话";
-"group_call_bad_network" = "当前通话网络状态不佳";
+"group_call_bad_network" = "网络状态不佳";
 
 // Sticker
 "sticker_manager_title" = "我收藏的贴纸";
@@ -589,6 +597,7 @@
 
 "asset_not_found" = "找不到该资产.";
 "snapshot_not_found" = "找不到该转账记录.";
+"conversation_not_found" = "找不到该会话.";
 
 // Transfer
 "transfer_title" = "转账";
@@ -837,6 +846,20 @@
 "setting_feedback" = "反馈";
 "setting_share_this_app" = "分享此 App";
 "setting_share_this_app_content" = "快来 一心 与我聊天！简单、安全好用还支持比特币、以太坊等加密货币，下载 https://mixin.one/messenger 后搜索 %@ 加我好友。";
+"setting_screen_lock_title" = "锁定屏幕";
+"setting_screen_lock_enable_biometric_title" = "%@锁定";
+"setting_screen_lock_enable_biometric_timeout" = "自动锁定";
+"setting_screen_lock_enable_biometric_tip" = "您需要使用%@来解锁 一心。当 一心 锁定时，您仍可以接听通话或在通知中回复消息。";
+"setting_screen_lock_timeout_immediately" = "立即";
+"setting_screen_lock_timeout_one_minute" = "1 分钟";
+"setting_screen_lock_timeout_minutes" = "%@ 分钟";
+"setting_screen_lock_timeout_hour" = "1 小时";
+"setting_screen_lock_timeout_off" = "关闭";
+
+// ScreenLock
+"screen_lock_locked" = "一心 已锁定";
+"screen_lock_unlock_tip" = "通过%@解锁 一心";
+"screen_lock_unlock_button_title" = "使用%@";
 
 // About
 "about_twitter" = "关注我们的 Twitter";
@@ -881,6 +904,8 @@
 "notification_content_live" = "[直播]";
 "notification_content_voice_call" = "[语音通话]";
 "notification_content_location" = "[位置]";
+"notification_content_transcript" = "[聊天记录]";
+"notification_content_unknown" = "[未知消息]";
 
 "alert_key_contact_message" = "发来一条信息";
 "alert_key_contact_text_message" = "发来一条信息";
@@ -896,6 +921,7 @@
 "alert_key_contact_audio_call_cancelled_message" = "对方已取消语音通话";
 "alert_key_contact_post_message" = "发来一篇文章";
 "alert_key_contact_location_message" = "发来一处位置";
+"alert_key_contact_transcript_message" = "发来一个聊天记录";
 
 "alert_key_group_message" = "%@发来一条信息";
 "alert_key_group_text_message" = "%@发来一条信息";
@@ -908,6 +934,7 @@
 "alert_key_group_audio_message" = "%@发来了一个语音";
 "alert_key_group_post_message" = "%@发来了一篇文章";
 "alert_key_group_location_message" = "%@发来一处位置";
+"alert_key_group_transcript_message" = "%@发来一个聊天记录";
 "alert_key_group_audio_invite_message" = "%@邀请你进行语音通话";
 
 // Error

@@ -15,6 +15,8 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
         return .chatText
     }
     
+    private static let appIdentityNumberRegex = try? NSRegularExpression(pattern: #"7000\d{6}"#, options: [])
+    
     var content: CoreTextLabel.Content?
     var contentLabelFrame = CGRect.zero
     var highlightPaths = [UIBezierPath]()
@@ -221,7 +223,7 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
             return CGSize(width: width, height: 16)
         }()
         
-        var contentSize = textSize
+        contentSize = textSize
         let lastLineWithTrailingWidth = lastLineWidth + additionalTrailingSize.width
         if lastLineWithTrailingWidth > maxContentWidth {
             contentSize.height += additionalTrailingSize.height
@@ -239,7 +241,8 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
                 contentSize.width = min(maxContentWidth, max(contentSize.width, fullnameFrame.size.width))
             }
         }
-        self.contentSize = contentSize
+        contentSize = adjustedContentSize(contentSize)
+        
         let bubbleMargin = DetailInfoMessageViewModel.bubbleMargin
         if style.contains(.received) {
             backgroundImageFrame = CGRect(x: bubbleMargin.leading,
@@ -267,6 +270,10 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
             backgroundImageFrame.size.height -= fullnameFrame.height
         }
         layoutQuotedMessageIfPresent()
+    }
+    
+    func adjustedContentSize(_ raw: CGSize) -> CGSize {
+        raw
     }
     
     func highlight(keyword: String) {
@@ -314,12 +321,13 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
             ranges.append(range)
         })
         
-        let str = string as NSString
+        let nsString = string as NSString
+        let fullRange = NSRange(location: 0, length: nsString.length)
         for mention in message.sortedMentions {
-            var searchingRange = NSRange(location: 0, length: str.length)
+            var searchingRange = fullRange
             var range: NSRange
-            while searchingRange.location < str.length {
-                range = str.range(of: "\(Mention.prefix)\(mention.value)", range: searchingRange)
+            while searchingRange.location < nsString.length {
+                range = nsString.range(of: "\(Mention.prefix)\(mention.value)", range: searchingRange)
                 guard range.location != NSNotFound else {
                     break
                 }
@@ -335,6 +343,24 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
                 let linkRange = Link.Range(range: range, url: url)
                 ranges.append(linkRange)
             }
+        }
+        
+        Self.appIdentityNumberRegex?.enumerateMatches(in: string, options: [], range: fullRange) { result, _, _ in
+            guard let range = result?.range else {
+                return
+            }
+            guard range.location != NSNotFound else {
+                return
+            }
+            guard !ranges.contains(where: { $0.range.intersection(range) != nil }) else {
+                return
+            }
+            let identityNumber = nsString.substring(with: range)
+            guard let url = MixinInternalURL.identityNumber(identityNumber).url else {
+                return
+            }
+            let linkRange = Link.Range(range: range, url: url)
+            ranges.append(linkRange)
         }
         
         return ranges

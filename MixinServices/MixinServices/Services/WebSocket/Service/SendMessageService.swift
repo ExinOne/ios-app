@@ -5,7 +5,11 @@ public class SendMessageService: MixinService {
     
     public static let shared = SendMessageService()
     
-    internal static let recallableSuffices = ["_TEXT", "_STICKER", "_CONTACT", "_IMAGE", "_DATA", "_AUDIO", "_VIDEO", "_LIVE", "_POST", "_LOCATION"]
+    internal static let recallableSuffices = [
+        "_TEXT", "_STICKER", "_CONTACT", "_IMAGE", "_DATA",
+        "_AUDIO", "_VIDEO", "_LIVE", "_POST", "_LOCATION",
+        MessageCategory.SIGNAL_TRANSCRIPT.rawValue
+    ]
     
     public let jobCreationQueue = DispatchQueue(label: "one.mixin.services.queue.send.message.job.creation")
     
@@ -16,7 +20,10 @@ public class SendMessageService: MixinService {
     private let httpDispatchQueue = DispatchQueue(label: "one.mixin.services.queue.send.http.messages")
     private var httpProcessing = false
     
-    public func recallMessage(messageId: String, category: String, mediaUrl: String?, conversationId: String, status: String) {
+    public func recallMessage(item: MessageItem) {
+        let category = item.category
+        let conversationId = item.conversationId
+        let messageId = item.messageId
         guard category == MessageCategory.APP_CARD.rawValue || SendMessageService.recallableSuffices.contains(where: category.hasSuffix) else {
             return
         }
@@ -24,7 +31,7 @@ public class SendMessageService: MixinService {
         let blazeMessage = BlazeMessage(recallMessageId: messageId, conversationId: conversationId)
         let job = Job(jobId: UUID().uuidString.lowercased(), action: JobAction.SEND_MESSAGE, conversationId: conversationId, blazeMessage: blazeMessage)
         
-        ReceiveMessageService.shared.stopRecallMessage(messageId: messageId, category: category, conversationId: conversationId, mediaUrl: mediaUrl)
+        ReceiveMessageService.shared.stopRecallMessage(item: item)
         
         let database: Database = UserDatabase.current
         let quoteCondition: SQLSpecificExpressible = Message.column(of: .conversationId) == conversationId
@@ -34,7 +41,12 @@ public class SendMessageService: MixinService {
                                                         where: quoteCondition)
         database.write { (db) in
             try job.save(db)
-            try MessageDAO.shared.recallMessage(database: db, messageId: messageId, conversationId: conversationId, category: category, status: status, quoteMessageIds: quoteMessageIds)
+            try MessageDAO.shared.recallMessage(database: db,
+                                                messageId: messageId,
+                                                conversationId: conversationId,
+                                                category: category,
+                                                status: item.status,
+                                                quoteMessageIds: quoteMessageIds)
         }
         SendMessageService.shared.processMessages()
     }
@@ -53,7 +65,12 @@ public class SendMessageService: MixinService {
     
     @discardableResult
     public func saveUploadJob(message: Message) -> String {
-        let job = Job(attachmentMessage: message.messageId, action: .UPLOAD_ATTACHMENT)
+        let job: Job
+        if message.category == MessageCategory.SIGNAL_TRANSCRIPT.rawValue {
+            job = Job(attachmentMessage: message.messageId, action: .UPLOAD_TRANSCRIPT_ATTACHMENT)
+        } else {
+            job = Job(attachmentMessage: message.messageId, action: .UPLOAD_ATTACHMENT)
+        }
         UserDatabase.current.save(job)
         return job.jobId
     }
@@ -474,6 +491,27 @@ public class SendMessageService: MixinService {
 
 extension SendMessageService {
     
+    // When a text message is sent to group with format "^@700\d* ", it will be send directly to the app if the app is in the group
+    public func willTextMessageWithContentSendDirectlyToApp(_ content: String, conversationId: String, inGroup: Bool) -> Bool {
+        guard inGroup else {
+            return false
+        }
+        guard let identityNumber = prefixMentionedAppIdentityNumberFromMessage(with: content) else {
+            return false
+        }
+        if let recipientId = ParticipantDAO.shared.getParticipantId(conversationId: conversationId, identityNumber: identityNumber) {
+            return !recipientId.isEmpty
+        } else {
+            return false
+        }
+    }
+    
+    private func prefixMentionedAppIdentityNumberFromMessage(with content: String) -> String? {
+        guard content.hasPrefix("@700"), let botNumberRange = content.range(of: #"^@700\d* "#, options: .regularExpression) else {
+            return nil
+        }
+        return content[botNumberRange].dropFirstAndLast()
+    }
     
     private func resendMessage(job: Job) throws {
         var blazeMessage = job.toBlazeMessage()
@@ -512,12 +550,12 @@ extension SendMessageService {
         }
         
         if message.category.hasSuffix("_TEXT"), let text = message.content {
-            if conversation.category == ConversationCategory.GROUP.rawValue, text.hasPrefix("@700"), let botNumberRange = text.range(of: #"^@700\d* "#, options: .regularExpression) {
-                let identityNumber = text[botNumberRange].dropFirstAndLast()
+            if conversation.category == ConversationCategory.GROUP.rawValue, let identityNumber = prefixMentionedAppIdentityNumberFromMessage(with: text) {
                 if let recipientId = ParticipantDAO.shared.getParticipantId(conversationId: conversation.conversationId, identityNumber: identityNumber), !recipientId.isEmpty {
-                    message.category = MessageCategory.PLAIN_TEXT.rawValue
                     blazeMessage.params?.recipientId = recipientId
                     blazeMessage.params?.data = nil
+                } else {
+                    message.category = MessageCategory.SIGNAL_TEXT.rawValue
                 }
             } else {
                 let numbers = MessageMentionDetector.identityNumbers(from: text).filter { $0 != myIdentityNumber }

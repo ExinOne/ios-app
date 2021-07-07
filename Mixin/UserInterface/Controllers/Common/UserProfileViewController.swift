@@ -36,6 +36,7 @@ final class UserProfileViewController: ProfileViewController {
     private var relationship = Relationship.ME
     private var developer: UserItem?
     private var avatarPreviewImageView: UIImageView?
+    private var avatarPreviewBackgroundView: UIVisualEffectView?
     private var favoriteAppMenuItemViewIfLoaded: MyFavoriteAppProfileMenuItemView?
     private var favoriteAppViewIfLoaded: ProfileFavoriteAppsView?
     private var sharedAppUsers: [User]?
@@ -85,11 +86,15 @@ final class UserProfileViewController: ProfileViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        if let coordinator = transitionCoordinator, let imageView = avatarPreviewImageView {
+        if let coordinator = transitionCoordinator, let imageView = avatarPreviewImageView, let backgroundView = avatarPreviewBackgroundView {
             coordinator.animate(alongsideTransition: { (context) in
                 imageView.frame.origin.y = AppDelegate.current.mainWindow.bounds.height
+                backgroundView.effect = nil
+                for view in backgroundView.contentView.subviews {
+                    view.alpha = 0
+                }
             }) { (_) in
-                imageView.removeFromSuperview()
+                backgroundView.removeFromSuperview()
             }
         }
     }
@@ -108,22 +113,46 @@ final class UserProfileViewController: ProfileViewController {
         }
         let window = AppDelegate.current.mainWindow
         let initialFrame = avatarImageView.convert(avatarImageView.bounds, to: window)
+    
+        let backgroundView = UIVisualEffectView(effect: nil)
+        backgroundView.frame = window.bounds
+        backgroundView.isUserInteractionEnabled = false
+        window.addSubview(backgroundView)
+        avatarPreviewBackgroundView = backgroundView
+             
+        let dismissButton = UIButton()
+        dismissButton.tintColor = R.color.icon_tint()
+        dismissButton.setImage(R.image.ic_title_close(), for: .normal)
+        dismissButton.isUserInteractionEnabled = false
+        dismissButton.alpha = 0
+        backgroundView.contentView.addSubview(dismissButton)
+        dismissButton.snp.makeConstraints { (make) in
+            make.width.height.equalTo(24)
+            make.top.equalTo(window.safeAreaInsets.top + 10)
+            make.left.equalTo(20)
+        }
+        
         let imageView = UIImageView(frame: initialFrame)
         imageView.layer.cornerRadius = initialFrame.height / 2
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
         imageView.isUserInteractionEnabled = false
         imageView.image = image
-        window.addSubview(imageView)
+        imageView.alpha = 0
+        backgroundView.contentView.addSubview(imageView)
         avatarPreviewImageView = imageView
         view.isUserInteractionEnabled = false
         hideContentConstraint.priority = .defaultHigh
         UIView.animate(withDuration: 0.5, animations: {
             UIView.setAnimationCurve(.overdamped)
             self.view.layoutIfNeeded()
-            imageView.bounds = CGRect(x: 0, y: 0, width: window.bounds.width, height: window.bounds.width)
+            let width = window.bounds.width - 28 * 2
+            imageView.bounds = CGRect(x: 0, y: 0, width: width, height: width)
             imageView.center = CGPoint(x: window.bounds.midX, y: window.bounds.midY)
-            imageView.layer.cornerRadius = 0
+            imageView.layer.cornerRadius = width / 2
+            backgroundView.effect = .regularBlur
+            dismissButton.alpha = 1
+            imageView.alpha = 1
         })
     }
     

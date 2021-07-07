@@ -46,6 +46,7 @@ struct GalleryItem: Equatable {
         MessageCategory.PLAIN_LIVE.rawValue
     ]
     
+    let transcriptId: String?
     let category: Category
     let conversationId: String
     let messageId: String
@@ -58,19 +59,42 @@ struct GalleryItem: Equatable {
     let shouldLayoutAsArticle: Bool
     var mediaStatus: MediaStatus?
     
-    init?(conversationId: String, messageId: String, category: String, mediaUrl: String?, mediaMimeType: String?, mediaWidth: Int?, mediaHeight: Int?, mediaStatus: String?, mediaDuration: Int64?, thumbImage: String?, thumbUrl: String?, createdAt: String) {
+    init?(
+        transcriptId: String?,
+        conversationId: String,
+        messageId: String,
+        category: String,
+        mediaUrl: String?,
+        mediaMimeType: String?,
+        mediaWidth: Int?,
+        mediaHeight: Int?,
+        mediaStatus: String?,
+        mediaDuration: Int64?,
+        thumbImage: String?,
+        thumbUrl: String?,
+        createdAt: String
+    ) {
+        self.transcriptId = transcriptId
         self.conversationId = conversationId
         if GalleryItem.imageCategories.contains(category) {
             self.category = .image
             if let mediaUrl = mediaUrl {
-                self.url = AttachmentContainer.url(for: .photos, filename: mediaUrl)
+                if let tid = transcriptId {
+                    self.url = AttachmentContainer.url(transcriptId: tid, filename: mediaUrl)
+                } else {
+                    self.url = AttachmentContainer.url(for: .photos, filename: mediaUrl)
+                }
             } else {
                 self.url = nil
             }
         } else if GalleryItem.videoCategories.contains(category) {
             self.category = .video
             if let mediaUrl = mediaUrl {
-                self.url = AttachmentContainer.url(for: .videos, filename: mediaUrl)
+                if let tid = transcriptId {
+                    self.url = AttachmentContainer.url(transcriptId: tid, filename: mediaUrl)
+                } else {
+                    self.url = AttachmentContainer.url(for: .videos, filename: mediaUrl)
+                }
             } else {
                 self.url = nil
             }
@@ -91,9 +115,15 @@ struct GalleryItem: Equatable {
         self.size = CGSize(width: width, height: height)
         if let thumbUrl = thumbUrl, let url = URL(string: thumbUrl) {
             self.thumbnail = .url(url)
-        } else if self.category == .video, let url = url, let coverUrl = GalleryItem.videoCoverUrl(mediaUrl: url) {
+        } else if self.category == .video, let videoFilename = mediaUrl {
+            let coverUrl: URL
+            if let tid = transcriptId {
+                coverUrl = AttachmentContainer.videoThumbnailURL(transcriptId: tid, videoFilename: videoFilename)
+            } else {
+                coverUrl = AttachmentContainer.videoThumbnailURL(videoFilename: videoFilename)
+            }
             self.thumbnail = .url(coverUrl)
-        } else if let image = UIImage.createImageFromString(thumbImage: thumbImage, width: mediaWidth, height: mediaHeight) {
+        } else if let image = UIImage(thumbnailString: thumbImage) {
             self.thumbnail = .image(image)
         } else {
             self.thumbnail = .none
@@ -104,8 +134,9 @@ struct GalleryItem: Equatable {
         self.mediaDuration = mediaDuration ?? 0
     }
     
-    init?(message m: GalleryItemRepresentable) {
-        self.init(conversationId: m.conversationId,
+    init?(transcriptId: String? = nil, message m: GalleryItemRepresentable) {
+        self.init(transcriptId: transcriptId,
+                  conversationId: m.conversationId,
                   messageId: m.messageId,
                   category: m.category,
                   mediaUrl: m.mediaUrl,
@@ -119,12 +150,20 @@ struct GalleryItem: Equatable {
                   createdAt: m.createdAt)
     }
     
-    static func videoCoverUrl(mediaUrl: URL) -> URL? {
-        guard let filename = mediaUrl.path.components(separatedBy: ".").first else {
-            return nil
-        }
-        let path = filename + ExtensionName.jpeg.withDot
-        return URL(fileURLWithPath: path)
+    init?(viewModel v: MessageViewModel) {
+        self.init(transcriptId: (v as? AttachmentLoadingViewModel)?.transcriptId,
+                  conversationId: v.message.conversationId,
+                  messageId: v.message.messageId,
+                  category: v.message.category,
+                  mediaUrl: v.message.mediaUrl,
+                  mediaMimeType: v.message.mediaMimeType,
+                  mediaWidth: v.message.mediaWidth,
+                  mediaHeight: v.message.mediaHeight,
+                  mediaStatus: v.message.mediaStatus,
+                  mediaDuration: v.message.mediaDuration,
+                  thumbImage: v.message.thumbImage,
+                  thumbUrl: v.message.thumbUrl,
+                  createdAt: v.message.createdAt)
     }
     
     static func ==(lhs: GalleryItem, rhs: GalleryItem) -> Bool {

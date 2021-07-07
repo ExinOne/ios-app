@@ -233,14 +233,14 @@ class TranscriptPreviewViewController: FullscreenPopupViewController {
                                 app = response.app
                             }
                         }
-                        guard let self = self, let app = app else {
+                        guard let self = self, let app1 = app else {
                             return
                         }
                         DispatchQueue.main.async {
                             guard !UrlWindow.checkUrl(url: appCard.action) else {
                                 return
                             }
-                            let context = MixinWebViewController.Context(conversationId: "", url: appCard.action, app: app)
+                            let context = MixinWebViewController.Context(conversationId: "", url: appCard.action, app: app1)
                             MixinWebViewController.presentInstance(with: context, asChildOf: self)
                         }
                     }
