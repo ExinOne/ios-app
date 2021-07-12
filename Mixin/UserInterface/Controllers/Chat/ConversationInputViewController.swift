@@ -816,9 +816,17 @@ extension ConversationInputViewController {
     
     private func reloadFixedExtensions() {
         if !composer.isGroup, let ownerUser = composer.ownerUser, !ownerUser.isBot {
-            extensionViewController.fixedExtensions = [.transfer, .call, .camera, .file, .contact, .location]
+            if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+                extensionViewController.fixedExtensions = [.transfer, .call, .camera, .file, .contact, .location]
+            }else{
+                extensionViewController.fixedExtensions = [ .call, .camera, .file, .contact, .location]
+            }
         } else if let app = opponentApp, app.creatorId == myUserId {
-            extensionViewController.fixedExtensions = [.transfer, .camera, .file, .contact, .location]
+            if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+                extensionViewController.fixedExtensions = [.transfer, .camera, .file, .contact, .location]
+            }else{
+                extensionViewController.fixedExtensions = [ .camera, .file, .contact, .location]
+            }
         } else if composer.isGroup {
             extensionViewController.fixedExtensions = [.camera, .groupCall, .file, .contact, .location]
         } else {
