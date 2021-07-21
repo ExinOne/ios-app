@@ -6,7 +6,7 @@ final class PrivacyViewController: SettingsTableViewController {
     private let dataSource = SettingsDataSource(sections: [
         SettingsSection(rows: [
             SettingsRow(title: R.string.localizable.setting_pin(), accessory: .disclosure),
-            SettingsRow(title: R.string.localizable.setting_emergency_contact(), accessory: .disclosure)
+//            SettingsRow(title: R.string.localizable.setting_emergency_contact(), accessory: .disclosure)
         ]),
         SettingsSection(footer: R.string.localizable.setting_privacy_and_security_summary(), rows: [
             SettingsRow(title: R.string.localizable.setting_blocked(), accessory: .disclosure),
@@ -103,9 +103,11 @@ extension PrivacyViewController: UITableViewDelegate {
             if LoginManager.shared.account?.has_pin ?? false {
                 if indexPath.row == 0 {
                     vc = PinSettingsViewController.instance()
-                } else if indexPath.row == 1 {
-                    vc = EmergencyContactViewController.instance()
-                } else {
+                }
+//                else if indexPath.row == 1 {
+//                    vc = EmergencyContactViewController.instance()
+//                }
+            else {
                     vc = ScreenLockSettingViewController.instance()
                 }
             } else {
