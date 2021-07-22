@@ -1,4 +1,4 @@
-"app_name" = "一心";
+"app_name" = "JustChat";
 
 // Common
 "dialog_button_ok" = "OK";
@@ -68,24 +68,24 @@
 "date_format_week_date" = "E, d MMM yyyy";
 
 // Search
-"search_placeholder_number" = "Search 一心 ID or phone number: ";
+"search_placeholder_number" = "Search JustChat ID or phone number: ";
 "search_placeholder_address" = "Label";
 "search_placeholder_asset" = "Name, Symbol";
 "search_placeholder_currency" = "Code";
 "search_placeholder_home" = "Contacts, Assets, Chats";
-"search_placeholder_contact" = "一心 ID, Name, Phone number";
-"search_placeholder_authorization" = "一心 ID, Name";
+"search_placeholder_contact" = "JustChat ID, Name, Phone number";
+"search_placeholder_authorization" = "JustChat ID, Name";
 "search_related_messages_count" = " related messages";
 "search_section_title_asset" = "Assets";
 "search_section_title_user" = "Contacts";
 "search_section_title_conversation_by_name" = "Conversations";
 "search_section_title_conversation_by_message" = "Messages";
-"search_result_prefix_id" = "一心 ID: ";
+"search_result_prefix_id" = "JustChat ID: ";
 "search_result_prefix_phone" = "Phone Number: ";
 
 // Toast
-"permission_denied_camera" = "一心 doesn't have permission to use your camera. Please tap Setting to open system settings.";
-"permission_denied_microphone" = "一心 doesn't have permission to use your microphone. Please tap Setting to open system settings.";
+"permission_denied_camera" = "JustChat doesn't have permission to use your camera. Please tap Setting to open system settings.";
+"permission_denied_microphone" = "JustChat doesn't have permission to use your microphone. Please tap Setting to open system settings.";
 "toast_copied" = "Copied";
 "toast_added" = "Added";
 "toast_saved" = "Saved";
@@ -94,8 +94,8 @@
 "toast_authorized" = "Authorized";
 "toast_changed" = "Changed";
 "toast_blocked" = "Blocked";
-"permission_denied_photo_library" = "一心 doesn't have permission to use your photo library. Please tap Setting to open system settings.";
-"permission_denied_network" = "一心 doesn't have permission to use wireless data. Please tap Setting to open system settings.";
+"permission_denied_photo_library" = "JustChat doesn't have permission to use your photo library. Please tap Setting to open system settings.";
+"permission_denied_network" = "JustChat doesn't have permission to use wireless data. Please tap Setting to open system settings.";
 "biometry_suggestion" = " %@ is suggested.";
 "clock_skew_title" = "System time is unusual";
 "clock_skew_tips" = "Please continue to use again after correction. Settings > General > Date & Time > Turn on Set Automatically.";
@@ -107,7 +107,7 @@
 "log_category_pin_change" = "PIN change";
 "log_category_phone_change" = "Phone number change";
 "log_pin_verification" = "Verify";
-"log_pin_raw_transfer" = "Transfer to 一心 address";
+"log_pin_raw_transfer" = "Transfer to JustChat address";
 "log_pin_user_transfer" = "Transfer to user or bot";
 "log_pin_withdrawal" = "Withdraw";
 "log_pin_add_address" = "Add address";
@@ -131,9 +131,9 @@
 "navigation_title_enter_mobile_number" = "Enter your phone number";
 "navigation_title_enter_verification_code" = "Enter the 4-digit code sent to you at %@";
 "navigation_title_enter_name" = "What's your name?";
-"navigation_title_enter_emergency_contact_id" = "Enter your emergency contact's 一心 ID";
-"navigation_title_enter_emergency_contact_verification_code" = "Enter the 4-digit code sent to 一心 ID %@";
-"landing_welcome_title" = "Welcome to 一心";
+"navigation_title_enter_emergency_contact_id" = "Enter your emergency contact's JustChat ID";
+"navigation_title_enter_emergency_contact_verification_code" = "Enter the 4-digit code sent to JustChat ID %@";
+"landing_welcome_title" = "Welcome to JustChat";
 "text_intro" = "By proceeding, you agree to the %@ and %@.";
 "text_mobile_number_privacy" = "We will never display your phone number publicly";
 "text_confirm_send_code" = "Please confirm the phone number %@";
@@ -155,10 +155,10 @@
 "init_signal" = "Initializing";
 "init_explain" = "Messages between users are protected with an end-to-end encryption";
 "toast_captcha_timeout" = "Validation timed out";
-//"desktop_login_confim" = "Confirm login to 一心 Messenger Desktop";
-//"desktop_upgrade" = "Please upgrade 一心 Messenger Desktop to the latest version.";
-"desktop_login_confim" = "Confirm login to 一心 Desktop";
-"desktop_upgrade" = "Please upgrade 一心 Desktop to the latest version.";
+//"desktop_login_confim" = "Confirm login to JustChat Messenger Desktop";
+//"desktop_upgrade" = "Please upgrade JustChat Messenger Desktop to the latest version.";
+"desktop_login_confim" = "Confirm login to JustChat Desktop";
+"desktop_upgrade" = "Please upgrade JustChat Desktop to the latest version.";
 
 // Contacts
 "contact_title" = "Contacts";
@@ -166,20 +166,20 @@
 "contact_new_group_title" = "New Group Chat";
 "contact_new_group_summary" = "Create a group chat up to 256 people";
 "contact_add_title" = "Add Contact";
-"contact_add_summary" = "Add people by 一心 ID or phone number";
-"contact_qr_code_title" = "一心 QR Code";
-"contact_qr_code_summary" = "Scan a friend's 一心 QR Code";
+"contact_add_summary" = "Add people by JustChat ID or phone number";
+"contact_qr_code_title" = "JustChat QR Code";
+"contact_qr_code_summary" = "Scan a friend's JustChat QR Code";
 "contact_invite_title" = "Invite People";
 "contact_invite_summary" = "My invitation code %@";
-"contact_invite" = "Hey, I'm using 一心 Messenger to chat. Download it here: https://一心.one/messenger";
+"contact_invite" = "Hey, I'm using JustChat Messenger to chat. Download it here: https://JustChat.one/messenger";
 "contact_profile_title" = "My Profile";
 "contact_phone_contacts" = "Mobile Contacts";
 "contact_upload_mobile_contacts" = "Upload Mobile Contacts";
-"contact_phone_contact_summary" = "Upload mobile contacts to find other 一心 friends.";
-"contact_my_identity_number" = "My 一心 ID: %@";
+"contact_phone_contact_summary" = "Upload mobile contacts to find other JustChat friends.";
+"contact_my_identity_number" = "My JustChat ID: %@";
 "contact_error_compose_avatar" = "Failed to compose avatar. Try another picture instead.";
 "contact_phone_contact_invite" = "Invite";
-"contact_identity_number" = "一心 ID: %@";
+"contact_identity_number" = "JustChat ID: %@";
 "contact_mobile" = "Mobile: %@";
 "contact_avatar_picking_fail" = "Failed to change your profile photo";
 "contact_change_name_fail" = "Failed to change your name";
@@ -188,7 +188,7 @@
 "contact_qr_code_save" = "Save Image";
 
 "button_title_search" = "Search";
-"placeholder_一心_id_or_phone" = "一心 ID, Phone number";
+"placeholder_JustChat_id_or_phone" = "JustChat ID, Phone number";
 "placeholder_new_name" = "new name";
 "navigation_title_add_people" = "Add people";
 "user_not_found" = "User not found";
@@ -197,7 +197,7 @@
 "app_not_found" = "App not found.";
 
 // Home
-"home_start_messaging_guide" = "You can chat with contacts who have 一心 installed on their phone.";
+"home_start_messaging_guide" = "You can chat with contacts who have JustChat installed on their phone.";
 "home_start_messaging" = "Start Messaging";
 "home_cell_action_pin" = "Pin";
 "home_cell_action_unpin" = "Unpin";
@@ -216,7 +216,7 @@
 
 // Circle
 "circle_title" = "Circle";
-"circle_default_all" = "一心";
+"circle_default_all" = "JustChat";
 "circle_default_strangers" = "Strangers";
 "circle_default_bots" = "Bots";
 "circle_default_contacts" = "Contacts";
@@ -264,7 +264,7 @@
 "chat_message_not_found" = "Message not found";
 "chat_message_sent" = "Message sent.";
 "chat_cell_title_encryption" = "Messages to this conversation are encrypted end-to-end, click for more information";
-"chat_cell_title_unknown_category" = "This type of message is not supported, please upgrade 一心 to the latest version.";
+"chat_cell_title_unknown_category" = "This type of message is not supported, please upgrade JustChat to the latest version.";
 "chat_forward_one_by_one" = "One-by-One Forward";
 "chat_forward_combined" = "Combine and Forward";
 "chat_forward_title" = "Forward";
@@ -306,8 +306,8 @@
 "chat_restore_title" = "Restore your\nchat history from iCloud";
 "chat_restore_subtitle" = "You will not be able to restore later if you decline to restore now. Media files will continue restore in background after messages is restored.";
 "chat_stranger_tip" = "This sender is not in your contacts";
-//"chat_delete_tip" = "The message will be deleted for everyone on the latest version of 一心 Messenger in this chat.";
-"chat_delete_tip" = "The message will be deleted for everyone on the latest version of 一心 in this chat.";
+//"chat_delete_tip" = "The message will be deleted for everyone on the latest version of JustChat Messenger in this chat.";
+"chat_delete_tip" = "The message will be deleted for everyone on the latest version of JustChat in this chat.";
 "chat_badge_live" = "LIVE";
 "chat_shared_media" = "Shared Media";
 "chat_media_category_media" = "Media";
@@ -359,7 +359,7 @@
 // Call
 "call_encryption" = "End-to-end Encrypted";
 "call_encryption_title" = "This call is secured with end-to-end encryption";
-"call_encryption_description" = "No one outside of this call can view or listen to it. Not even 一心.";
+"call_encryption_description" = "No one outside of this call can view or listen to it. Not even JustChat.";
 "call_hint_on_another_call" = "You are already on another call. Try after it was ended.";
 "call_p2p_title_with_status" = "Call (%@)";
 "call_group_title_with_status" = "Group Call (%@)";
@@ -372,7 +372,7 @@
 "call_func_accept" = "Accept";
 "call_func_mute" = "Mute";
 "call_func_speaker" = "Speaker";
-"call_no_microphone_permission" = "To make voice calls, 一心 needs access to your microphone. Please tap Setting to open system settings.";
+"call_no_microphone_permission" = "To make voice calls, JustChat needs access to your microphone. Please tap Setting to open system settings.";
 "call_no_network" = "Call service unavailable. Make sure your phone has an internet connection and try again.";
 "call_user_not_found" = "User not found";
 "call_declined_lack_microphone_permission" = "Voice call has been declined";
@@ -405,7 +405,7 @@
 "camera_save_video_success" = "Video saved.";
 "camera_save_video_failed" = "Unable to save video.";
 "image_picker_title_albums" = "Albums";
-"camera_qrcode_codes" = "Detected a 一心 QR code, tap to recognize";
+"camera_qrcode_codes" = "Detected a JustChat QR code, tap to recognize";
 
 // Group
 "group_navigation_title_add_member" = "Add Participants";
@@ -437,9 +437,9 @@
 "group_participant_menu_admin" = "Make Group Admin";
 "group_participant_menu_dismiss_admin" = "Dismiss as Admin";
 "group_participant_menu_remove" = "Remove from Group";
-"group_invite_hint" = "Anyone with 一心 can follow this link to join this group. Only share it with people you trust.";
+"group_invite_hint" = "Anyone with JustChat can follow this link to join this group. Only share it with people you trust.";
 "group_join_fail_title" = "Couldn't Join Group";
-"group_join_fail_summary" = "This invite link doesn't match any 一心 groups.";
+"group_join_fail_summary" = "This invite link doesn't match any JustChat groups.";
 "group_link_checking" = "Checking invite link";
 "group_remove_title" = "You have left the group";
 "group_menu_announcement" = "Edit Group Description";
@@ -450,7 +450,7 @@
 "group_title_members" = "%@ Participants";
 
 "code_recognition_fail_title" = "Unrecognized codes";
-"code_recognition_fail_summary" = "This codes doesn't match any 一心 groups or users.";
+"code_recognition_fail_summary" = "This codes doesn't match any JustChat groups or users.";
 
 // Wallet
 "wallet_title" = "";
@@ -483,8 +483,8 @@
 "wallet_address_memo" = "Memo";
 "wallet_deposit_attention" = "Please try a small amount for the first deposit.";
 "wallet_deposit_attention_minimum" = "Please try a small amount for the first deposit. Deposit at least %@ %@ for the first time.";
-//"wallet_deposit_account_attention" = "Attention: Please try a small amount for the first deposit. Both a Memo and an Address are required to successfully deposit your %@ to 一心 Messenger";
-"wallet_deposit_account_attention" = "Attention: Please try a small amount for the first deposit. Both a Memo and an Address are required to successfully deposit your %@ to 一心";
+//"wallet_deposit_account_attention" = "Attention: Please try a small amount for the first deposit. Both a Memo and an Address are required to successfully deposit your %@ to JustChat Messenger";
+"wallet_deposit_account_attention" = "Attention: Please try a small amount for the first deposit. Both a Memo and an Address are required to successfully deposit your %@ to JustChat";
 "wallet_menu_show_hidden_assets" = "Hidden assets";
 "wallet_menu_show_asset" = "Show asset";
 "wallet_menu_hide_asset" = "Hide asset";
@@ -634,9 +634,9 @@
 // QRCode
 "qr_code_not_found" = "QR Code not found";
 "myqrcode_title" = "My QR Code";
-"myqrcode_prompt" = "Scan the QR Code to add me on 一心";
-"transfer_qrcode_prompt" = "Scan the QR Code to transfer me on 一心";
-"not_一心_qr_code" = "Not 一心 QR Code";
+"myqrcode_prompt" = "Scan the QR Code to add me on JustChat";
+"transfer_qrcode_prompt" = "Scan the QR Code to transfer me on JustChat";
+"not_JustChat_qr_code" = "Not JustChat QR Code";
 "group_qr_code" = "Group QR Code";
 "group_qr_code_prompt" = "Scan the QR Code to join this group";
 "auth_permission_profile" = "Public profile (required)";
@@ -686,7 +686,7 @@
 "profile_change_number_succeeded" = "Successfully changed phone number";
 "profile_change_number_verify_pin" = "Verify PIN";
 "profile_change_number_new_number" = "Enter your new phone number";
-"profile_一心_id" = "一心 ID: %@";
+"profile_JustChat_id" = "JustChat ID: %@";
 "profile_reputation_score" = "Reputation Score: %@";
 "profile_edit_name" = "Edit Name";
 "profile_edit_biography" = "Edit Biography";
@@ -718,7 +718,7 @@
 "profile_shared_app_of_user" = "%@'s Shared Apps";
 "profile_shared_app_empty" = "NO APPS";
 "profile_shared_app_reach_limit" = "The number has reached the limit";
-"profile_call_with_mixin" = "Call with 一心";
+"profile_call_with_mixin" = "Call with JustChat";
 "profile_call_phone" = "Call Phone";
 
 // Emergency
@@ -727,13 +727,13 @@
 "emergency_remove" = "Remove emergency contact";
 "emergency_tip_remove" = "Remove emergency contact for sure?";
 "emergency_tip_before" = "The emergency contact is designed to help you log in to your account if you are lost and cannot retrieve your mobile number.";
-"emergency_tip_after" = "When you lose your mobile number, please contact your emergency contact by phone or other means to get the 一心 ID and verification code. Read our Emergency Contact to learn more.";
+"emergency_tip_after" = "When you lose your mobile number, please contact your emergency contact by phone or other means to get the JustChat ID and verification code. Read our Emergency Contact to learn more.";
 "emergency_tip_link" = "Emergency Contact";
 "emergency_tip_pin" = "Attention: the Emergency Contact cannot help you to recover PIN";
 "emergency_pin_protection_hint" = "Your emergency contact is protected by PIN";
 "emergency_change_number_tip" = "Do you want to change your mobile number now?";
 "enable_emergency_contact" = "Enable Emergency Contact";
-"emergency_confirm" = "Confirm to set 一心 ID %@ as your emergency contact? Please note that the other party must add you as a contact to set up successfully.";
+"emergency_confirm" = "Confirm to set JustChat ID %@ as your emergency contact? Please note that the other party must add you as a contact to set up successfully.";
 
 // Database
 "database_upgrade" = "Upgrade Database";
@@ -742,8 +742,8 @@
 
 // App
 "app_update_button" = "Update";
-"app_update_title" = "Update 一心";
-"app_update_short_tips" = "Please update 一心 from App Store to continue use the service.";
+"app_update_title" = "Update JustChat";
+"app_update_short_tips" = "Please update JustChat from App Store to continue use the service.";
 "app_update_tips" = "The current version (%@) is no longer available! Please click \"Update\" below to update to the latest version from the App Store.";
 
 // Setting
@@ -768,8 +768,8 @@
 "setting_blocked_empty" = "No blocked users";
 "setting_blocked_summary" = "Blocked users can't send you messages or add you to groups.";
 "setting_conversation" = "Conversation";
-//"setting_desktop" = "一心 Messenger Desktop";
-"setting_desktop" = "一心 Desktop";
+//"setting_desktop" = "JustChat Messenger Desktop";
+"setting_desktop" = "JustChat Desktop";
 "setting_desktop_last_active" = "Last active %@";
 "setting_desktop_desktop_on" = "You have your desktop logged in";
 "setting_desktop_log_out" = "Log out from desktop";
@@ -814,8 +814,8 @@
 "setting_backup_monthly" = "Monthly";
 "setting_backup_off" = "Off";
 "setting_backup_disable_tips" = "Sign in to iCloud to back up your history. Settings > iCloud > Turn on iCloud Drive.";
-//"setting_backup_tips" = "Back up your chat history to iCloud. if you lose your iPhone or switch to a new one, you can restore your chat history when you reinstall 一心 Messenger. Messages you back up are not protected by 一心 Messenger end-to-end encryption while in iCloud.";
-"setting_backup_tips" = "Back up your chat history to iCloud. if you lose your iPhone or switch to a new one, you can restore your chat history when you reinstall 一心. Messages you back up are not protected by 一心 Messenger end-to-end encryption while in iCloud.";
+//"setting_backup_tips" = "Back up your chat history to iCloud. if you lose your iPhone or switch to a new one, you can restore your chat history when you reinstall JustChat Messenger. Messages you back up are not protected by JustChat Messenger end-to-end encryption while in iCloud.";
+"setting_backup_tips" = "Back up your chat history to iCloud. if you lose your iPhone or switch to a new one, you can restore your chat history when you reinstall JustChat. Messages you back up are not protected by JustChat Messenger end-to-end encryption while in iCloud.";
 "setting_backup_auto_tips" = "Automatically back up to iCloud only over Wi-Fi.";
 "setting_backup_last" = "Last backup on %@, total size %@.";
 "setting_backup_preparing" = "Preparing...";
@@ -830,8 +830,8 @@
 "setting_phone_number_title" = "Phone Number";
 "setting_contacts_title" = "Phone Contacts";
 "setting_contacts_delete" = "Delete Synced Contacts";
-"setting_contacts_delete_confirm" = "This will remove your contacts from the 一心 servers.";
-"setting_contacts_tips" = "一心 syncs your address book to 一心 servers to help you connect with other 一心 users.";
+"setting_contacts_delete_confirm" = "This will remove your contacts from the JustChat servers.";
+"setting_contacts_tips" = "JustChat syncs your address book to JustChat servers to help you connect with other JustChat users.";
 "setting_contacts_upload" = "Upload Mobile Contacts";
 "setting_permissions" = "Permissions";
 "setting_permissions_date" = "Approved: %@, Last Accessed: %@";
@@ -840,11 +840,11 @@
 "setting_feedback" = "Feedback";
 "setting_share_this_app" = "Share This App";
 
-"setting_share_this_app_content" = "Let's chat on 一心! Simple, safe and easy to use. It also supports cryptocurrencies such as Bitcoin and Ethereum. Download https://一心.one/messenger and search for %@ to add me.";
+"setting_share_this_app_content" = "Let's chat on JustChat! Simple, safe and easy to use. It also supports cryptocurrencies such as Bitcoin and Ethereum. Download https://JustChat.one/messenger and search for %@ to add me.";
 "setting_screen_lock_title" = "Screen Lock";
 "setting_screen_lock_enable_biometric_title" = "Lock with %@";
 "setting_screen_lock_enable_biometric_timeout" = "Auto-Lock";
-"setting_screen_lock_enable_biometric_tip" = "You’ll need to user %@ to unlock 一心. you can still reply to messages from notifications and anwser calls if 一心 is locked.";
+"setting_screen_lock_enable_biometric_tip" = "You’ll need to user %@ to unlock JustChat. you can still reply to messages from notifications and anwser calls if JustChat is locked.";
 "setting_screen_lock_timeout_immediately" = "Immediately";
 "setting_screen_lock_timeout_one_minute" = "1 Minute";
 "setting_screen_lock_timeout_minutes" = "%@ Minutes";
@@ -852,8 +852,8 @@
 "setting_screen_lock_timeout_off" = "Off";
 
 // ScreenLock
-"screen_lock_locked" = "一心 Locked";
-"screen_lock_unlock_tip" = "Use %@ to unlock 一心";
+"screen_lock_locked" = "JustChat Locked";
+"screen_lock_unlock_tip" = "Use %@ to unlock JustChat";
 "screen_lock_unlock_button_title" = "Use %@";
 
 // About
@@ -936,7 +936,7 @@
 "error_forbidden" = "Access denied";
 "error_no_connection" = "No network connection";
 "error_network_connection_lost" = "The network connection was lost, please check your network and try again later";
-"error_server_5xx" = "一心 server encounters errors";
+"error_server_5xx" = "JustChat server encounters errors";
 "error_server_data_error" = "Data parsing error";
 "error_not_found" = "Not found";
 "error_too_many_requests" = "Rate limit exceeded";
@@ -974,6 +974,6 @@
 "error_withdrawal_amount_too_small" = "Withdraw amount too small";
 "error_blockchian_not_in_sync" = "Blockchain not in sync, please try again later.";
 "error_malformed_address" = "Invalid address format.";
-"error_malformed_address_eos" = "Invalid address format. 一心 does not support withdrawal to the EOS contract address!";
+"error_malformed_address_eos" = "Invalid address format. JustChat does not support withdrawal to the EOS contract address!";
 
 "error_network_task_failed" = "Network connection failed. Check or switch your network and try again";

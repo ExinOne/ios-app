@@ -1,7 +1,7 @@
-"CFBundleDisplayName" = "一心";
-"NSContactsUsageDescription" = "将您的联系人上传至 一心 的服务器，以便您更快速地与朋友们联系。";
-"NSCameraUsageDescription" = "一心 需要访问摄像头的权限来设置头像或在聊天室里给你的联系人发送照片";
-"NSPhotoLibraryUsageDescription" = "一心 需要访问相册的权限来设置头像或在聊天室里给你的联系人发送照片";
-"NSMicrophoneUsageDescription" = "一心 使用你的麦克风录制语音消息发给你的联系人";
-"NSFaceIDUsageDescription" = "一心 使用面容识别来验证支付";
-"NSLocationWhenInUseUsageDescription" = "一心 需要位置权限以分享给你的联系人";
+"CFBundleDisplayName" = "JustChat";
+"NSContactsUsageDescription" = "将您的联系人上传至 JustChat 的服务器，以便您更快速地与朋友们联系。";
+"NSCameraUsageDescription" = "JustChat 需要访问摄像头的权限来设置头像或在聊天室里给你的联系人发送照片";
+"NSPhotoLibraryUsageDescription" = "JustChat 需要访问相册的权限来设置头像或在聊天室里给你的联系人发送照片";
+"NSMicrophoneUsageDescription" = "JustChat 使用你的麦克风录制语音消息发给你的联系人";
+"NSFaceIDUsageDescription" = "JustChat 使用面容识别来验证支付";
+"NSLocationWhenInUseUsageDescription" = "JustChat 需要位置权限以分享给你的联系人";

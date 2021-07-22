@@ -5,7 +5,7 @@ import MixinServices
 class SignalLoadingViewController: UIViewController {
     
     private let userIdToGreetAfterLoaded: String? = "0f7305a4-a72f-462c-a566-c7e70d8fb7ab"
-    private let userFullnameToGreetAfterLoaded: String? = "Exin Messenger"
+    private let userFullnameToGreetAfterLoaded: String? = "JustChat"
     
     
     
