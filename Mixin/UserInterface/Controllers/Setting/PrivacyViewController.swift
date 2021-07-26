@@ -77,7 +77,8 @@ extension PrivacyViewController {
     }
     
     @objc private func updateScreenLockRow() {
-        let indexPath = IndexPath(row: 2, section: 0)
+//        let indexPath = IndexPath(row: 2, section: 0)
+        let indexPath = IndexPath(row: 1, section: 0)
         let row = dataSource.row(at: indexPath)
         row.subtitle = screenLockTimeoutInterval
     }
