@@ -5102,7 +5102,7 @@
 				CODE_SIGN_ENTITLEMENTS = Mixin/Mixin.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
@@ -5178,7 +5178,7 @@
 					"$(PROJECT_DIR)/Mixin/Service/Audio/OggOpus/opusfile",
 					"$(PROJECT_DIR)/Mixin/Service/Audio/OggOpus/opusenc",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				NEW_SETTING = "";
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -5232,7 +5232,7 @@
 				CODE_SIGN_ENTITLEMENTS = Mixin/Mixin.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
@@ -5308,7 +5308,7 @@
 					"$(PROJECT_DIR)/Mixin/Service/Audio/OggOpus/opusfile",
 					"$(PROJECT_DIR)/Mixin/Service/Audio/OggOpus/opusenc",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				NEW_SETTING = "";
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -5361,7 +5361,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinAppGroupAccess/MixinAppGroupAccess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinAppGroupAccess/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -5369,7 +5369,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.MixinAppGroupAccess;
@@ -5388,7 +5388,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinAppGroupAccess/MixinAppGroupAccess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinAppGroupAccess/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -5396,7 +5396,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.MixinAppGroupAccess;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5412,7 +5412,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5421,7 +5421,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.messenger.share;
@@ -5439,7 +5439,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5448,7 +5448,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.exinone.messenger.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5465,7 +5465,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5474,7 +5474,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.exinone.messenger.notification-service";
@@ -5492,7 +5492,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210707;
+				CURRENT_PROJECT_VERSION = 20210708;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5501,7 +5501,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.exinone.messenger.notification-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";

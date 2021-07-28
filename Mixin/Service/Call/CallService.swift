@@ -63,7 +63,7 @@ class CallService: NSObject {
     
     private let listPendingCallDelay = DispatchTimeInterval.seconds(2)
     private let retryInterval = DispatchTimeInterval.seconds(3)
-    private let isMainlandChina = false
+    private let isMainlandChina = true
     
     private lazy var rtcClient = WebRTCClient(delegateQueue: queue.dispatchQueue)
     private lazy var nativeCallInterface = NativeCallInterface(service: self)
