@@ -33,7 +33,7 @@ final class EmbeddedApp {
     let name: String
     let action: () -> Void
     
-    init(id: String, icon: UIImage, categoryIcon: UIImage, name: String, action: @escaping () -> Void) {
+    private init(id: String, icon: UIImage, categoryIcon: UIImage, name: String, action: @escaping () -> Void) {
         self.id = id
         self.icon = icon
         self.categoryIcon = categoryIcon

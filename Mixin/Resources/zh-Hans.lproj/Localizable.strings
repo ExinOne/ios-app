@@ -51,6 +51,8 @@
 "action_cancel_float" = "关闭浮窗";
 "action_remove_all" = "全部删除";
 "action_close" = "关闭";
+"action_change_settings" = "更改设置";
+"action_open" = "打开";
 "menu_delete" = "删除";
 "menu_edit" = "编辑";
 "menu_report" = "上报";
@@ -96,6 +98,7 @@
 "toast_blocked" = "已屏蔽";
 "permission_denied_photo_library" = "JustChat 需要相册权限，请点击'设置'打开系统授权。";
 "permission_denied_network" = "JustChat 需要无线数据权限，请点击'设置'打开系统授权。";
+"toast_unable_to_share" = "无法分享此内容";
 "biometry_suggestion" = "建议使用%@支付";
 "clock_skew_title" = "系统时间异常";
 "clock_skew_tips" = "请校正后再继续使用，设置 > 通用 > 日期与时间 > 自动设置。";
@@ -195,6 +198,22 @@
 
 // Apps
 "app_not_found" = "找不到这个机器人";
+"app_category_wallet" = "钱包";
+"app_category_trading" = "交易";
+"app_category_business" = "商业";
+"app_category_social" = "社交";
+"app_category_shopping" = "购物";
+"app_category_education" = "教育";
+"app_category_news" = "新闻";
+"app_category_tools" = "工具";
+"app_category_games" = "游戏";
+"app_category_books" = "书籍";
+"app_category_music" = "应用";
+"app_category_photo" = "照相";
+"app_category_video" = "视频";
+"app_category_camera" = "摄影";
+"app_category_other" = "其他";
+"app_pin_tips" = "可将常用机器人长按拖至此处，可显示于首页";
 
 // Home
 "home_start_messaging_guide" = "你可以与你的 JustChat 好友一起聊天。";
@@ -208,7 +227,6 @@
 "home_bulletin_button_notification" = "设置";
 "home_title_apps" = "机器人";
 "home_apps_candidate_empty" = "可以添加你喜欢的机器人";
-"home_apps_pin_empty" = "长按并拖拽机器人置顶";
 
 // Clip
 "clip_remove_all" = "确定要删除全部浮窗？";
@@ -271,6 +289,9 @@
 "chat_forward_chats" = "最近聊天";
 "chat_forward_contacts" = "联系人";
 "chat_forward_apps" = "机器人";
+"chat_forward_invalid_app_card_not_shareable" = "该卡片已被设置为不允许转发";
+"chat_forward_invalid_link_not_shareable" = "该链接已被设置为不允许分享";
+"chat_forward_invalid_live_not_shareable" = "该直播已被设置为不允许转发";
 "chat_decryption_failed_hint" = "等待%@上线后建立加密会话。";
 "chat_sentence_learn_more" = "了解更多。";
 "chat_send_photo_failed" = "发送图片失败，请稍后重试";
@@ -344,8 +365,9 @@
 "chat_external_sharing_category_app_card" = "卡片";
 "chat_transcript" = "聊天记录";
 "chat_transcript_forward_invalid_media_status" = "请下载全部附件后转发";
-"chat_transcript_forward_invalid_app_card_not_shareable" = "该卡片已被设置为不允许转发";
-"chat_transcript_forward_invalid_link_not_shareable" = "该链接已被设置为不允许分享";
+"chat_pick_from_library" = "打开相册";
+"chat_manage_photo_auth" = "更改设置";
+"chat_photo_select_more" = "选择更多照片";
 
 // Web
 "web_suspicious_link" = "可疑链接";
@@ -361,8 +383,6 @@
 "call_encryption_title" = "此通话使用端对端加密进行保护";
 "call_encryption_description" = "除了参与通话的人，其他人包含JustChat在内都无法听取或查看。";
 "call_hint_on_another_call" = "正在通话中，请挂断当前电话后重试";
-"call_p2p_title_with_status" = "语音通话（%@）";
-"call_group_title_with_status" = "群组语音（%@）";
 "call_status_outgoing" = "正在呼叫...";
 "call_status_incoming" = "语音通话来电";
 "call_status_connecting" = "正在连接";
@@ -389,6 +409,7 @@
 "group_call_tap_to_join" = "点击加入";
 "group_call_selections_reach_limit" = "支持最多%@人同时通话";
 "group_call_bad_network" = "网络状态不佳";
+"group_call_participants_count" = "%d 位成员";
 
 // Sticker
 "sticker_manager_title" = "我收藏的贴纸";
@@ -869,6 +890,11 @@
 "about_privacy_policy" = "服务条款";
 "about_acknowledgements" = "许可证";
 "about_app_upgrade" = "版本更新";
+"about_diagnose" = "诊断";
+
+// Diagnose
+"diagnose_warning" = "⚠️请在Mixin团队指导下使用";
+"diagnose_database_access" = "数据库访问";
 
 "report_title"="给开发人员发送聊天日志?";
 "report_button"="把日志发给开发者";

@@ -45,6 +45,28 @@ extension SendMessageService {
             msg.category = isSignalMessage ? MessageCategory.SIGNAL_POST.rawValue :  MessageCategory.PLAIN_POST.rawValue
         } else if msg.category.hasSuffix("_LOCATION") {
             msg.category = isSignalMessage ? MessageCategory.SIGNAL_LOCATION.rawValue :  MessageCategory.PLAIN_LOCATION.rawValue
+        } else if msg.category.hasSuffix("_TRANSCRIPT") {
+            msg.category = isSignalMessage ? MessageCategory.SIGNAL_TRANSCRIPT.rawValue :  MessageCategory.PLAIN_TRANSCRIPT.rawValue
+            for child in children ?? [] {
+                let category = child.category
+                if isSignalMessage, category.hasPrefix("PLAIN_") {
+                    let range = category.startIndex...category.index(category.startIndex, offsetBy: 5)
+                    child.category.replaceSubrange(range, with: "SIGNAL_")
+                    if MessageCategory.allMediaCategoriesString.contains(child.category) {
+                        // Force the attachment to re-upload
+                        child.mediaCreatedAt = nil
+                        child.content = nil
+                    }
+                } else if !isSignalMessage, category.hasPrefix("SIGNAL_") {
+                    let range = category.startIndex...category.index(category.startIndex, offsetBy: 6)
+                    child.category.replaceSubrange(range, with: "PLAIN_")
+                    if MessageCategory.allMediaCategoriesString.contains(child.category) {
+                        // Force the attachment to re-upload
+                        child.mediaCreatedAt = nil
+                        child.content = nil
+                    }
+                }
+            }
         }
 
         jobCreationQueue.async {
@@ -68,7 +90,7 @@ extension SendMessageService {
                     msg.content = String(content.prefix(maxTextMessageContentLength))
                 }
                 MessageDAO.shared.insertMessage(message: msg, children: children, messageSource: "") {
-                    if ["_TEXT", "_POST", "_STICKER", "_CONTACT", "_LIVE", "_LOCATION"].contains(where: msg.category.hasSuffix) || msg.category == MessageCategory.APP_CARD.rawValue {
+                    if ["_TEXT", "_POST", "_STICKER", "_CONTACT", "_LOCATION"].contains(where: msg.category.hasSuffix) || msg.category == MessageCategory.APP_CARD.rawValue {
                         SendMessageService.shared.sendMessage(message: msg, data: msg.content)
                     } else if msg.category.hasSuffix("_IMAGE") {
                         let jobId = SendMessageService.shared.saveUploadJob(message: msg)
@@ -82,11 +104,14 @@ extension SendMessageService {
                     } else if msg.category.hasSuffix("_AUDIO") {
                         let jobId = SendMessageService.shared.saveUploadJob(message: msg)
                         UploaderQueue.shared.addJob(job: AudioUploadJob(message: msg, jobId: jobId))
-                    } else if msg.category == MessageCategory.SIGNAL_TRANSCRIPT.rawValue {
+                    } else if msg.category.hasSuffix("_TRANSCRIPT") {
                         let jobId = SendMessageService.shared.saveUploadJob(message: msg)
                         let job = TranscriptAttachmentUploadJob(message: msg,
                                                                 jobIdToRemoveAfterFinished: jobId)
                         UploaderQueue.shared.addJob(job: job)
+                    } else if msg.category.hasSuffix("_LIVE") {
+                        let data = msg.content?.base64Encoded()
+                        SendMessageService.shared.sendMessage(message: msg, data: data)
                     }
                 }
             }

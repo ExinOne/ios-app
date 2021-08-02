@@ -51,6 +51,8 @@
 "action_cancel_float" = "Cancel Floating";
 "action_remove_all" = "Remove All";
 "action_close" = "Close";
+"action_change_settings" = "Change Settings";
+"action_open" = "Open";
 "menu_delete" = "Delete";
 "menu_edit" = "Edit";
 "menu_report" = "Report";
@@ -96,6 +98,7 @@
 "toast_blocked" = "Blocked";
 "permission_denied_photo_library" = "JustChat doesn't have permission to use your photo library. Please tap Setting to open system settings.";
 "permission_denied_network" = "JustChat doesn't have permission to use wireless data. Please tap Setting to open system settings.";
+"toast_unable_to_share" = "Unable to share this content";
 "biometry_suggestion" = " %@ is suggested.";
 "clock_skew_title" = "System time is unusual";
 "clock_skew_tips" = "Please continue to use again after correction. Settings > General > Date & Time > Turn on Set Automatically.";
@@ -195,6 +198,22 @@
 
 // Apps
 "app_not_found" = "App not found.";
+"app_category_wallet" = "Wallet";
+"app_category_trading" = "Trading";
+"app_category_business" = "Business";
+"app_category_social" = "Social";
+"app_category_shopping" = "Shopping";
+"app_category_education" = "Education";
+"app_category_news" = "News";
+"app_category_tools" = "Tools";
+"app_category_games" = "Games";
+"app_category_books" = "Books";
+"app_category_music" = "Music";
+"app_category_photo" = "Photo";
+"app_category_video" = "Video";
+"app_category_camera" = "Camera";
+"app_category_other" = "Other";
+"app_pin_tips" = "You can long press and drag the frequently used robots here to display them on the home";
 
 // Home
 "home_start_messaging_guide" = "You can chat with contacts who have JustChat installed on their phone.";
@@ -208,7 +227,6 @@
 "home_bulletin_button_notification" = "Settings";
 "home_title_apps" = "Bots";
 "home_apps_candidate_empty" = "Please add your favorite bot first.";
-"home_apps_pin_empty" = "Long press and drag a bot to pin";
 
 // Clip
 "clip_remove_all" = "Remove all floats?";
@@ -271,6 +289,9 @@
 "chat_forward_chats" = "CHATS";
 "chat_forward_contacts" = "CONTACTS";
 "chat_forward_apps" = "BOTS";
+"chat_forward_invalid_app_card_not_shareable" = "The card has been set to not allow sharing";
+"chat_forward_invalid_link_not_shareable" = "The link has been set to not allow sharing";
+"chat_forward_invalid_live_not_shareable" = "The live has been set to not allow sharing";
 "chat_decryption_failed_hint" = "Waiting for %@ to get online and establish an encrypted session. ";
 "chat_sentence_learn_more" = "Learn more.";
 "chat_send_photo_failed" = "Failed to send photo";
@@ -344,8 +365,9 @@
 "chat_external_sharing_category_app_card" = "card";
 "chat_transcript" = "Transcript";
 "chat_transcript_forward_invalid_media_status" = "Forwarding transcript requires all attachments are downloaded";
-"chat_transcript_forward_invalid_app_card_not_shareable" = "The card has been set to not allow sharing";
-"chat_transcript_forward_invalid_link_not_shareable" = "The link has been set to not allow sharing";
+"chat_pick_from_library" = "Pick from Library";
+"chat_manage_photo_auth" = "Manage";
+"chat_photo_select_more" = "Select More Photos";
 
 // Web
 "web_suspicious_link" = "Suspicious Link";
@@ -361,8 +383,6 @@
 "call_encryption_title" = "This call is secured with end-to-end encryption";
 "call_encryption_description" = "No one outside of this call can view or listen to it. Not even JustChat.";
 "call_hint_on_another_call" = "You are already on another call. Try after it was ended.";
-"call_p2p_title_with_status" = "Call (%@)";
-"call_group_title_with_status" = "Group Call (%@)";
 "call_status_outgoing" = "Calling...";
 "call_status_incoming" = "Incoming voice call";
 "call_status_connecting" = "Connecting";
@@ -389,6 +409,7 @@
 "group_call_tap_to_join" = "Tap to join";
 "group_call_selections_reach_limit" = "Group calling allows up to %@ participants to call each other";
 "group_call_bad_network" = "Connection unstable";
+"group_call_participants_count" = "%d Participants";
 
 // Sticker
 "sticker_manager_title" = "My Stickers";
@@ -864,6 +885,11 @@
 "about_privacy_policy" = "Privacy Policy";
 "about_acknowledgements" = "Acknowledgements";
 "about_app_upgrade" = "Version Update";
+"about_diagnose" = "Diagnose";
+
+// Diagnose
+"diagnose_warning" = "⚠️Use these functions under instructions from the Mixin team only";
+"diagnose_database_access" = "Database access";
 
 "report_title"="Send the conversation log to developers?";
 "report_button"="Send to Developer";
@@ -880,6 +906,10 @@
 "playlist_not_playing" = "Not playing";
 "playlist_stop_confirmation" = "Stop playing this list？";
 "playlist_stop" = "Stop Playing";
+
+// Diagnose
+"diagnose_database" = "Database Diagnostics";
+"diagnose_database_description" = "Database Diagnostics";
 
 // Notifications
 "notification_reply" = "Reply";

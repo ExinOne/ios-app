@@ -18,11 +18,15 @@
             <rect key="frame" x="0.0" y="0.0" width="375" height="223"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <subviews>
-                <imageView userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="750" image="Setting/ic_about_app" translatesAutoresizingMaskIntoConstraints="NO" id="zij-hH-E3Y">
+                <imageView contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="750" image="Setting/ic_about_app" translatesAutoresizingMaskIntoConstraints="NO" id="zij-hH-E3Y">
                     <rect key="frame" x="147.5" y="60" width="80" height="60"/>
+                    <gestureRecognizers/>
                     <constraints>
                         <constraint firstAttribute="height" constant="60" id="yAv-8U-5hq"/>
                     </constraints>
+                    <connections>
+                        <outletCollection property="gestureRecognizers" destination="Dgj-pt-pUx" appends="YES" id="2DC-vq-FGE"/>
+                    </connections>
                 </imageView>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="t5G-pK-Sf3">
                     <rect key="frame" x="0.0" y="144" width="375" height="45.5"/>
@@ -56,6 +60,11 @@
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <point key="canvasLocation" x="31" y="33"/>
         </view>
+        <tapGestureRecognizer numberOfTapsRequired="5" id="Dgj-pt-pUx">
+            <connections>
+                <action selector="showDiagnoseRow:" destination="-1" id="ebV-e0-PvO"/>
+            </connections>
+        </tapGestureRecognizer>
     </objects>
     <resources>
         <image name="Setting/ic_about_app" width="80" height="80"/>

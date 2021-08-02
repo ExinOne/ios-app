@@ -105,7 +105,7 @@ public final class MessageDAO: UserDatabaseDAO {
     
     public func getTranscriptMessageIds(conversationId: String, database: GRDB.Database) throws -> [String] {
         let condition: SQLSpecificExpressible = Message.column(of: .conversationId) == conversationId
-            && Message.column(of: .category) == MessageCategory.SIGNAL_TRANSCRIPT.rawValue
+            && [MessageCategory.SIGNAL_TRANSCRIPT.rawValue, MessageCategory.PLAIN_TRANSCRIPT.rawValue].contains(Message.column(of: .category))
         return try Message
             .select(Message.column(of: .messageId))
             .filter(condition)
@@ -640,14 +640,15 @@ public final class MessageDAO: UserDatabaseDAO {
         try MessageMention
             .filter(MessageMention.column(of: .messageId) == messageId)
             .deleteAll(database)
+        
+        if category.hasSuffix("_TRANSCRIPT") {
+            try TranscriptMessage
+                .filter(TranscriptMessage.column(of: .transcriptId) == messageId)
+                .deleteAll(database)
+        }
         if let category = MessageCategory(rawValue: category) {
             if MessageCategory.ftsAvailable.contains(category) {
                 try deleteFTSContent(database, messageId: messageId)
-            }
-            if category == .SIGNAL_TRANSCRIPT {
-                try TranscriptMessage
-                    .filter(TranscriptMessage.column(of: .transcriptId) == messageId)
-                    .deleteAll(database)
             }
         }
         
@@ -798,8 +799,9 @@ extension MessageDAO {
                                messageSource: messageSource)
     }
     
-    public func updateLiveMessage(liveData: TransferLiveData, status: String, messageId: String, category: String, conversationId: String, messageSource: String) {
+    public func updateLiveMessage(liveData: TransferLiveData, content: String?, status: String, messageId: String, category: String, conversationId: String, messageSource: String) {
         let assignments = [
+            Message.column(of: .content).set(to: content),
             Message.column(of: .mediaWidth).set(to: liveData.width),
             Message.column(of: .mediaHeight).set(to: liveData.height),
             Message.column(of: .mediaUrl).set(to: liveData.url),
