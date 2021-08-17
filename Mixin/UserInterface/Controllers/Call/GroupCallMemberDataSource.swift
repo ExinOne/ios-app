@@ -8,6 +8,8 @@ class GroupCallMemberDataSource: NSObject {
     // That is to say, a member which is invited but not yet connected, needs to be shown in the grid, but
     // he's not in the call, therefore you won't find him in GroupCallMembersManager
     
+    static let visibleMembersDidChangeNotification = Notification.Name("one.mixin.messenger.GroupCall.VisibleMembersDidChange")
+    
     weak var collectionView: UICollectionView? {
         didSet {
             oldValue?.dataSource = nil
@@ -26,6 +28,8 @@ class GroupCallMemberDataSource: NSObject {
     private(set) var members: [UserItem]
     private(set) var invitingMemberUserIds: Set<String>
     
+    private var audioLevels: [String: Double] = [:] // key is user id
+    
     private weak var participantsCountLabel: UILabel?
     
     init(conversationId: String, members: [UserItem], invitingMemberUserIds: Set<String>) {
@@ -35,10 +39,15 @@ class GroupCallMemberDataSource: NSObject {
         self.conversationId = conversationId
         self.memberUserIds = Set(members.map(\.userId))
         super.init()
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(updateWithPolledPeers(_:)),
-                                               name: GroupCallMembersManager.membersDidChangeNotification,
-                                               object: nil)
+        let center = NotificationCenter.default
+        center.addObserver(self,
+                           selector: #selector(callServiceMutenessDidChange),
+                           name: CallService.mutenessDidChangeNotification,
+                           object: nil)
+        center.addObserver(self,
+                           selector: #selector(updateWithPolledPeers(_:)),
+                           name: GroupCallMembersManager.membersDidChangeNotification,
+                           object: nil)
     }
     
     deinit {
@@ -60,6 +69,7 @@ class GroupCallMemberDataSource: NSObject {
             self.members.append(contentsOf: filtered)
             collectionView?.insertItems(at: indexPaths)
             participantsCountLabel?.text = R.string.localizable.group_call_participants_count(self.members.count)
+            NotificationCenter.default.post(name: Self.visibleMembersDidChangeNotification, object: self)
         }
     }
     
@@ -79,6 +89,7 @@ class GroupCallMemberDataSource: NSObject {
             collectionView?.insertItems(at: [indexPath])
             participantsCountLabel?.text = R.string.localizable.group_call_participants_count(self.members.count)
         }
+        NotificationCenter.default.post(name: Self.visibleMembersDidChangeNotification, object: self)
     }
     
     func reportMemberWithIdDidDisconnected(_ id: String) {
@@ -90,14 +101,28 @@ class GroupCallMemberDataSource: NSObject {
             members.remove(at: index)
             collectionView?.deleteItems(at: [indexPath])
             participantsCountLabel?.text = R.string.localizable.group_call_participants_count(self.members.count)
+            NotificationCenter.default.post(name: Self.visibleMembersDidChangeNotification, object: self)
         }
     }
     
-    func indexPath(forMemberAt index: Int) -> IndexPath {
-        IndexPath(item: index + 1, section: 0) // +1 for the add button
+    func report(audioLevels: [String: Double]) {
+        self.audioLevels = audioLevels
+        for indexPath in collectionView?.indexPathsForVisibleItems ?? [] {
+            guard let member = member(at: indexPath) else {
+                continue
+            }
+            guard let cell = collectionView?.cellForItem(at: indexPath) as? CallMemberCell else {
+                continue
+            }
+            cell.isSpeaking = isMemberSpeaking(userId: member.userId)
+        }
     }
     
     func member(at indexPath: IndexPath) -> UserItem? {
+        guard indexPath.item > 0 else {
+            // Add member button
+            return nil
+        }
         let index: Int
         if debugWithNumerousMembers {
             index = (indexPath.item - 1) % members.count
@@ -126,6 +151,7 @@ class GroupCallMemberDataSource: NSObject {
         }
         let remoteIds = Set(remoteUserIds)
         DispatchQueue.main.async {
+            var indexPathsToRemove: [IndexPath] = []
             for (index, member) in self.members.enumerated().reversed() {
                 guard !remoteIds.contains(member.userId) && member.userId != myUserId else {
                     continue
@@ -135,10 +161,31 @@ class GroupCallMemberDataSource: NSObject {
                 self.memberUserIds.remove(member.userId)
                 self.members.remove(at: index)
                 let indexPath = self.indexPath(forMemberAt: index)
-                self.collectionView?.deleteItems(at: [indexPath])
-                self.participantsCountLabel?.text = R.string.localizable.group_call_participants_count(self.members.count)
+                indexPathsToRemove.append(indexPath)
             }
+            self.collectionView?.deleteItems(at: indexPathsToRemove)
+            self.participantsCountLabel?.text = R.string.localizable.group_call_participants_count(self.members.count)
+            NotificationCenter.default.post(name: Self.visibleMembersDidChangeNotification, object: self)
         }
+    }
+    
+    @objc private func callServiceMutenessDidChange() {
+        guard CallService.shared.isMuted, let index = members.firstIndex(where: { $0.userId == myUserId }) else {
+            return
+        }
+        let indexPath = self.indexPath(forMemberAt: index)
+        guard let cell = collectionView?.cellForItem(at: indexPath) as? CallMemberCell else {
+            return
+        }
+        cell.isSpeaking = false
+    }
+    
+    private func indexPath(forMemberAt index: Int) -> IndexPath {
+        IndexPath(item: index + 1, section: 0) // +1 for the add button
+    }
+    
+    private func isMemberSpeaking(userId: String) -> Bool {
+        (audioLevels[userId] ?? 0) > 0.01
     }
     
 }
@@ -168,6 +215,7 @@ extension GroupCallMemberDataSource: UICollectionViewDataSource {
                 cell.avatarImageView.setImage(with: member)
                 cell.connectingView.isHidden = !invitingMemberUserIds.contains(member.userId)
                 cell.label.text = member.fullName
+                cell.isSpeaking = isMemberSpeaking(userId: member.userId)
             }
         }
         cell.hasBiggerLayout = false
@@ -176,13 +224,6 @@ extension GroupCallMemberDataSource: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         1
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CallViewController.footerReuseId, for: indexPath) as! CallFooterView
-        view.label.text = R.string.localizable.group_call_participants_count(members.count)
-        participantsCountLabel = view.label
-        return view
     }
     
 }

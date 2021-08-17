@@ -11,6 +11,8 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="HomeAppsPinTipsViewController" customModule="Mixin" customModuleProvider="target">
             <connections>
+                <outlet property="appIconViewTopConstraint" destination="7BM-C6-xwt" id="BM8-CX-gzT"/>
+                <outlet property="arrowLineHeightConstraint" destination="nK0-J1-jlP" id="T5t-EI-AsT"/>
                 <outlet property="candidateAppLeadingConstraint" destination="O3w-Fs-t3V" id="ESS-7s-QeJ"/>
                 <outlet property="pinnedAppViewTopConstraint" destination="Mdt-fd-aqn" id="M6q-4X-h31"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>

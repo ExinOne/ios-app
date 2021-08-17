@@ -17,6 +17,8 @@ class GroupCall: Call {
     // invite after group call is connected
     private var pendingInvitingMembers: [UserItem]?
     
+    private weak var speakingTimer: Timer?
+    
     private var hasBegunConnecting: Bool {
         status != .incoming && status != .outgoing
     }
@@ -43,6 +45,10 @@ class GroupCall: Call {
         self.pendingInvitingMembers = invitingMembers
         super.init(uuid: uuid, conversationId: conversationId, isOutgoing: isOutgoing, rtcClient: rtcClient)
         CallService.shared.membersManager.beginPolling(forConversationWith: conversationId)
+    }
+    
+    deinit {
+        speakingTimer?.invalidate()
     }
     
     func invite(members: [UserItem]) {
@@ -86,6 +92,25 @@ class GroupCall: Call {
         DispatchQueue.main.async {
             self.membersDataSource.reportMemberWithIdDidDisconnected(id)
         }
+    }
+    
+    func beginSpeakingStatusPolling() {
+        guard speakingTimer == nil else {
+            return
+        }
+        let timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] _ in
+            self?.rtcClient.audioLevels(completion: { levels in
+                self?.membersDataSource.report(audioLevels: levels)
+            })
+        })
+        timer.fire()
+        speakingTimer = timer
+    }
+    
+    func endSpeakingStatusPolling() {
+        speakingTimer?.invalidate()
+        speakingTimer = nil
+        membersDataSource.report(audioLevels: [:])
     }
     
 }

@@ -441,7 +441,6 @@
 		7BC98FA721EF5B8C004A5D79 /* AudioMessagePlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC98FA621EF5B8C004A5D79 /* AudioMessagePlayingManager.swift */; };
 		7BCA2E302452CBF6005BD2E4 /* AboutTableHeaderView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7BCA2E2F2452CBF6005BD2E4 /* AboutTableHeaderView.xib */; };
 		7BCA3A572057F08E007617C1 /* CATransactionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCA3A562057F08E007617C1 /* CATransactionExtension.swift */; };
-		7BCA81C02501633F0019351F /* MXMAgreementCalculator.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BCA81BF2501633F0019351F /* MXMAgreementCalculator.m */; };
 		7BCAF54A216B0C3700D6564A /* GiphyCollectionViewFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCAF549216B0C3700D6564A /* GiphyCollectionViewFlowLayout.swift */; };
 		7BCB8C8422BB56B8002A13CC /* DataAndStorageSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCB8C8322BB56B8002A13CC /* DataAndStorageSettingsViewController.swift */; };
 		7BCE296621AC132E00B1A507 /* SnapshotCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7BCE296521AC132E00B1A507 /* SnapshotCell.xib */; };
@@ -473,7 +472,6 @@
 		7BD7534E2182CDCE00BAC172 /* IconPrefixedTextMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD7534D2182CDCE00BAC172 /* IconPrefixedTextMessageCell.swift */; };
 		7BD89DBE1FB2D59000665635 /* PlaceholderTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD89DBD1FB2D59000665635 /* PlaceholderTextView.swift */; };
 		7BD97DD52179DD3400FAE490 /* WebRTCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD97DD42179DD3400FAE490 /* WebRTCClient.swift */; };
-		7BD97DD72179DDD600FAE490 /* IceServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BD97DD62179DDD600FAE490 /* IceServer.swift */; };
 		7BDB4725215A666B008B21F9 /* SignalLoadingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDB4724215A666B008B21F9 /* SignalLoadingViewController.swift */; };
 		7BDB4727215A6932008B21F9 /* InitialViewControllerFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDB4726215A6932008B21F9 /* InitialViewControllerFactory.swift */; };
 		7BDBDE5F22327698006220DF /* TransferTypeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BDBDE5E22327698006220DF /* TransferTypeViewController.swift */; };
@@ -575,6 +573,7 @@
 		7C66F1C1268C0250006D8462 /* HomeAppsFolderInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C66F1C0268C0250006D8462 /* HomeAppsFolderInteraction.swift */; };
 		7C7635B826A13461006101DB /* HomeAppsConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C7635B726A13461006101DB /* HomeAppsConstants.swift */; };
 		7CBD2EFA268FF6BB00AA0847 /* HomeAppsStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CBD2EF9268FF6BB00AA0847 /* HomeAppsStorage.swift */; };
+		7CC3B1A026C21F7E0018B0D1 /* ScriptMessageProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC3B19F26C21F7E0018B0D1 /* ScriptMessageProxy.swift */; };
 		7CE5E7A8269BDA29000B7904 /* HomeAppsPinTipsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE5E7A6269BDA29000B7904 /* HomeAppsPinTipsViewController.swift */; };
 		7CE5E7A9269BDA29000B7904 /* HomeAppsPinTipsView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7CE5E7A7269BDA29000B7904 /* HomeAppsPinTipsView.xib */; };
 		811C8154F03C8CBB72DBA1F4 /* Pods_MixinShare.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67A8E0E9B65F16ADB27E6F25 /* Pods_MixinShare.framework */; };
@@ -627,9 +626,9 @@
 		949569A8263B13BF00E043FE /* TranscriptMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949569A7263B13BF00E043FE /* TranscriptMessageViewModel.swift */; };
 		949A3686261D9C5C004251B2 /* post.css in Resources */ = {isa = PBXBuildFile; fileRef = 949A3685261D9C5C004251B2 /* post.css */; };
 		94A1B1DF25BFD7CB0098586D /* LinkLocatingTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A1B1DE25BFD7CB0098586D /* LinkLocatingTextView.swift */; };
-		94A1B95026A5DB6900C5D3FA /* CallFooterView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 94A1B94F26A5DB6800C5D3FA /* CallFooterView.xib */; };
-		94A1B95226A5DDB800C5D3FA /* CallFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A1B95126A5DDB800C5D3FA /* CallFooterView.swift */; };
 		94B7643525EA8E9B00EDF9C6 /* CacheableAssetFileDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B7643425EA8E9B00EDF9C6 /* CacheableAssetFileDescription.swift */; };
+		94B7B6DC26B43562000B0AC5 /* SilentNotificationMessagePreviewView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 94B7B6DB26B43562000B0AC5 /* SilentNotificationMessagePreviewView.xib */; };
+		94B7B6DE26B43581000B0AC5 /* SilentNotificationMessagePreviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B7B6DD26B43580000B0AC5 /* SilentNotificationMessagePreviewViewController.swift */; };
 		94B8D185266E37ED00F43CBB /* DiagnoseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B8D184266E37ED00F43CBB /* DiagnoseViewController.swift */; };
 		94B8D189266E41D300F43CBB /* DatabaseDiagnosticViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B8D187266E41D300F43CBB /* DatabaseDiagnosticViewController.swift */; };
 		94B8D18A266E41D300F43CBB /* DatabaseDiagnosticView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 94B8D188266E41D300F43CBB /* DatabaseDiagnosticView.xib */; };
@@ -1400,8 +1399,6 @@
 		7BC98FA621EF5B8C004A5D79 /* AudioMessagePlayingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMessagePlayingManager.swift; sourceTree = "<group>"; };
 		7BCA2E2F2452CBF6005BD2E4 /* AboutTableHeaderView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AboutTableHeaderView.xib; sourceTree = "<group>"; };
 		7BCA3A562057F08E007617C1 /* CATransactionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CATransactionExtension.swift; sourceTree = "<group>"; };
-		7BCA81BE2501633F0019351F /* MXMAgreementCalculator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MXMAgreementCalculator.h; sourceTree = "<group>"; };
-		7BCA81BF2501633F0019351F /* MXMAgreementCalculator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MXMAgreementCalculator.m; sourceTree = "<group>"; };
 		7BCAF549216B0C3700D6564A /* GiphyCollectionViewFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiphyCollectionViewFlowLayout.swift; sourceTree = "<group>"; };
 		7BCB8C8322BB56B8002A13CC /* DataAndStorageSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataAndStorageSettingsViewController.swift; sourceTree = "<group>"; };
 		7BCE296521AC132E00B1A507 /* SnapshotCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SnapshotCell.xib; sourceTree = "<group>"; };
@@ -1431,7 +1428,6 @@
 		7BD7534D2182CDCE00BAC172 /* IconPrefixedTextMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPrefixedTextMessageCell.swift; sourceTree = "<group>"; };
 		7BD89DBD1FB2D59000665635 /* PlaceholderTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTextView.swift; sourceTree = "<group>"; };
 		7BD97DD42179DD3400FAE490 /* WebRTCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCClient.swift; sourceTree = "<group>"; };
-		7BD97DD62179DDD600FAE490 /* IceServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IceServer.swift; sourceTree = "<group>"; };
 		7BDB4724215A666B008B21F9 /* SignalLoadingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalLoadingViewController.swift; sourceTree = "<group>"; };
 		7BDB4726215A6932008B21F9 /* InitialViewControllerFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialViewControllerFactory.swift; sourceTree = "<group>"; };
 		7BDBDE5E22327698006220DF /* TransferTypeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferTypeViewController.swift; sourceTree = "<group>"; };
@@ -1542,6 +1538,7 @@
 		7C66F1C0268C0250006D8462 /* HomeAppsFolderInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppsFolderInteraction.swift; sourceTree = "<group>"; };
 		7C7635B726A13461006101DB /* HomeAppsConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppsConstants.swift; sourceTree = "<group>"; };
 		7CBD2EF9268FF6BB00AA0847 /* HomeAppsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppsStorage.swift; sourceTree = "<group>"; };
+		7CC3B19F26C21F7E0018B0D1 /* ScriptMessageProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptMessageProxy.swift; sourceTree = "<group>"; };
 		7CE5E7A6269BDA29000B7904 /* HomeAppsPinTipsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeAppsPinTipsViewController.swift; sourceTree = "<group>"; };
 		7CE5E7A7269BDA29000B7904 /* HomeAppsPinTipsView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = HomeAppsPinTipsView.xib; sourceTree = "<group>"; };
 		842347ED2695BA6400009A39 /* InitializeBotJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitializeBotJob.swift; sourceTree = "<group>"; };
@@ -1594,9 +1591,9 @@
 		949569A7263B13BF00E043FE /* TranscriptMessageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptMessageViewModel.swift; sourceTree = "<group>"; };
 		949A3685261D9C5C004251B2 /* post.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = post.css; sourceTree = "<group>"; };
 		94A1B1DE25BFD7CB0098586D /* LinkLocatingTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkLocatingTextView.swift; sourceTree = "<group>"; };
-		94A1B94F26A5DB6800C5D3FA /* CallFooterView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = CallFooterView.xib; sourceTree = "<group>"; };
-		94A1B95126A5DDB800C5D3FA /* CallFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallFooterView.swift; sourceTree = "<group>"; };
 		94B7643425EA8E9B00EDF9C6 /* CacheableAssetFileDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheableAssetFileDescription.swift; sourceTree = "<group>"; };
+		94B7B6DB26B43562000B0AC5 /* SilentNotificationMessagePreviewView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SilentNotificationMessagePreviewView.xib; sourceTree = "<group>"; };
+		94B7B6DD26B43580000B0AC5 /* SilentNotificationMessagePreviewViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilentNotificationMessagePreviewViewController.swift; sourceTree = "<group>"; };
 		94B8D184266E37ED00F43CBB /* DiagnoseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnoseViewController.swift; sourceTree = "<group>"; };
 		94B8D187266E41D300F43CBB /* DatabaseDiagnosticViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseDiagnosticViewController.swift; sourceTree = "<group>"; };
 		94B8D188266E41D300F43CBB /* DatabaseDiagnosticView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DatabaseDiagnosticView.xib; sourceTree = "<group>"; };
@@ -2259,8 +2256,6 @@
 				7B7E7143217D87860052C7DD /* CallView.xib */,
 				7B7E7145217D89790052C7DD /* CallViewController.swift */,
 				7BA8CC3924A9C4D300455902 /* GroupCallConfirmationViewController.swift */,
-				94A1B94F26A5DB6800C5D3FA /* CallFooterView.xib */,
-				94A1B95126A5DDB800C5D3FA /* CallFooterView.swift */,
 			);
 			path = Call;
 			sourceTree = "<group>";
@@ -2287,8 +2282,6 @@
 			children = (
 				DF6175BB2223985B00624609 /* MXMProvisionCryptor.h */,
 				DF6175BC2223985B00624609 /* MXMProvisionCryptor.m */,
-				7BCA81BE2501633F0019351F /* MXMAgreementCalculator.h */,
-				7BCA81BF2501633F0019351F /* MXMAgreementCalculator.m */,
 				7B88719F25061577001FB418 /* PINEncryptor.swift */,
 			);
 			path = Crypto;
@@ -2417,7 +2410,6 @@
 			children = (
 				7BAD3338216E1DF9006C0309 /* RTCIceCandidate+JSON.swift */,
 				7BAD3337216E1DF9006C0309 /* RTCSessionDescription+JSON.swift */,
-				7BD97DD62179DDD600FAE490 /* IceServer.swift */,
 				7BE0E6562475062D00DCC0D3 /* Vibrator.swift */,
 				7B97124B247EBF9800F5CBE6 /* RingtonePlayer.swift */,
 				7B441ADB24CAE1B80067231A /* StreamId.swift */,
@@ -2649,6 +2641,7 @@
 				7BBCEC1725232A9800F270DF /* WebMoreMenuViewController.swift */,
 				E041064F23C6079400A6F08E /* MixinWebViewController.swift */,
 				7B66AC062428D72000869DBD /* PostWebViewController.swift */,
+				7CC3B19F26C21F7E0018B0D1 /* ScriptMessageProxy.swift */,
 			);
 			path = Web;
 			sourceTree = "<group>";
@@ -2735,6 +2728,7 @@
 				7BC3EBF62497507900E81FD8 /* GroupCallMemberPickerContentViewController.swift */,
 				7B1D61122512773F00BD6B15 /* ExternalSharingConfirmationViewController.swift */,
 				94FCB5FE264673C400CCC8FD /* TranscriptPreviewViewController.swift */,
+				94B7B6DD26B43580000B0AC5 /* SilentNotificationMessagePreviewViewController.swift */,
 			);
 			path = Chat;
 			sourceTree = "<group>";
@@ -3222,6 +3216,7 @@
 				7B1C8B982513265200F7A817 /* ExternalSharingPreviewWrapperView.swift */,
 				94095BB625BE8BC100F44832 /* TextPreviewView.xib */,
 				94095BBB25BE8DCF00F44832 /* TextPreviewView.swift */,
+				94B7B6DB26B43562000B0AC5 /* SilentNotificationMessagePreviewView.xib */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -3780,7 +3775,6 @@
 				7BDFAE942559165800296F8B /* CompactAssetCell.xib in Resources */,
 				7BBB6F532451C9E7002798F2 /* BackupTableHeaderView.xib in Resources */,
 				94739A5426258F8300E8914D /* Custom-acknowledgements.plist in Resources */,
-				94A1B95026A5DB6900C5D3FA /* CallFooterView.xib in Resources */,
 				7B54F95022B22E2900908A9D /* VerifyPinView.xib in Resources */,
 				7B51DDB9223A50D5008ACDBB /* VerificationCodeView.xib in Resources */,
 				DF44B0CE20C6897D00A099B6 /* EmptyView.xib in Resources */,
@@ -3792,6 +3786,7 @@
 				DFD294491FA7145F00FADAAD /* Contact.storyboard in Resources */,
 				94E8913925C019F000F1E5D4 /* Pods-Mixin-acknowledgements.plist in Resources */,
 				7BD3880024DC66F900A3035C /* Localizable.strings in Resources */,
+				94B7B6DC26B43562000B0AC5 /* SilentNotificationMessagePreviewView.xib in Resources */,
 				7BE73BFD230A8D0300B97FC6 /* group_separator_4.png in Resources */,
 				E05D992923911D55009F9E8D /* ProfileFavoriteAppsView.xib in Resources */,
 				7B869C6E202D7D90009930BA /* NumberPadView.xib in Resources */,
@@ -4300,7 +4295,6 @@
 				7BC96DE5241779F70047471D /* ExternalApiError.swift in Sources */,
 				DFE48ADE20EBADEE003E0BF8 /* ClearStorageViewController.swift in Sources */,
 				7B3FD4EC241965AB00B58006 /* LocationViewController.swift in Sources */,
-				7BD97DD72179DDD600FAE490 /* IceServer.swift in Sources */,
 				7BB0F9152434B03300BEDA97 /* SelectedPeerCell.swift in Sources */,
 				7B1C8B992513265200F7A817 /* ExternalSharingPreviewWrapperView.swift in Sources */,
 				E081796A23C32ACA005FEEAC /* PostMessageCell.swift in Sources */,
@@ -4394,7 +4388,6 @@
 				DFB190002330F6A40021CAF3 /* BiographyViewController.swift in Sources */,
 				7B7F7E391FD43F2500A1C91F /* DetailInfoMessageCell.swift in Sources */,
 				7B8BFC8A1FDD77F9004E19DB /* UnknownMessageViewModel.swift in Sources */,
-				7BCA81C02501633F0019351F /* MXMAgreementCalculator.m in Sources */,
 				7B35AF7C228AA6CD00E8101D /* MessagesWithinConversationSearchResult.swift in Sources */,
 				7BAD50811FA0C8C1009B59FB /* VerificationCodeField.swift in Sources */,
 				7B54F95222B22EA600908A9D /* ChangeNumberVerifyPinViewController.swift in Sources */,
@@ -4492,6 +4485,7 @@
 				DF08F0A623828B8F005CFD34 /* PHAssetExtension.swift in Sources */,
 				7BD639CA2282B17B00B7B3A6 /* PeerViewController.swift in Sources */,
 				7C66F1C1268C0250006D8462 /* HomeAppsFolderInteraction.swift in Sources */,
+				7CC3B1A026C21F7E0018B0D1 /* ScriptMessageProxy.swift in Sources */,
 				842347EE2695BA6400009A39 /* InitializeBotJob.swift in Sources */,
 				DF886D452440B2F800F44BCC /* ConversationCircleRequest.swift in Sources */,
 				7BEBCE2D228185130037BF18 /* MediaPreviewViewController.swift in Sources */,
@@ -4869,7 +4863,6 @@
 				DFB2062A21AC1771006E4341 /* RestoreJob.swift in Sources */,
 				7B9EDF101FB588D700D26989 /* UIImageExtension.swift in Sources */,
 				7B2636D5224E2A7E0057116D /* InfiniteTopView.swift in Sources */,
-				94A1B95226A5DDB800C5D3FA /* CallFooterView.swift in Sources */,
 				7B66AC072428D72000869DBD /* PostWebViewController.swift in Sources */,
 				9492285F25DFB7D60000A19F /* MinimizedPlaylistViewController.swift in Sources */,
 				7C66F1AD268ABE1F006D8462 /* HomeAppFolder.swift in Sources */,
@@ -4945,6 +4938,7 @@
 				ABE865C223F260FE00C0167D /* PermissionsActionCell.swift in Sources */,
 				7B9A090525481ADB00E8568D /* MinimizedClipIconView.swift in Sources */,
 				7B23FEA52229538B00F912EC /* PhotoInputAlbumCell.swift in Sources */,
+				94B7B6DE26B43581000B0AC5 /* SilentNotificationMessagePreviewViewController.swift in Sources */,
 				7B37B16323ED483D00590215 /* GalleryTransitionFromNonQuotingMessageCellView.swift in Sources */,
 				7B40207E215B7046008FF42E /* AttachmentExpirationHintingMessageCell.swift in Sources */,
 				7B78B2461FF2170400371632 /* InviteLinkViewController.swift in Sources */,
@@ -5219,7 +5213,7 @@
 				CODE_SIGN_ENTITLEMENTS = Mixin/Mixin.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
@@ -5349,7 +5343,7 @@
 				CODE_SIGN_ENTITLEMENTS = Mixin/Mixin.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
@@ -5478,7 +5472,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinAppGroupAccess/MixinAppGroupAccess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinAppGroupAccess/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -5505,7 +5499,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinAppGroupAccess/MixinAppGroupAccess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinAppGroupAccess/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
@@ -5529,7 +5523,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5556,7 +5550,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5583,7 +5577,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationServiceDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -5612,7 +5606,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20210803;
+				CURRENT_PROJECT_VERSION = 20210804;
 				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;

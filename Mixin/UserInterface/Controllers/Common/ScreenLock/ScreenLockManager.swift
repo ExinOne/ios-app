@@ -17,10 +17,13 @@ final class ScreenLockManager {
     static let shared = ScreenLockManager()
     
     var hasOtherBiometricAuthInProgress = false
+    var screenLockViewDidHide: (() -> Void)?
     
+    private(set) var isLocked = false
     private(set) var isLastAuthenticationStillValid = false
     private(set) var window: UIWindow?
     
+    private var context: LAContext!
     private var viewController: ScreenLockViewController?
     private var hasLastBiometricAuthenticationFailed = false
     private var state: State = .none {
@@ -67,8 +70,13 @@ extension ScreenLockManager {
     }
     
     func performBiometricAuthentication(completion: ((Bool) -> Void)? = nil) {
-        let context = LAContext()
-        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: R.string.localizable.screen_lock_unlock_tip(biometryType.localizedName)) { success, error in
+        context = LAContext()
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil) else {
+            self.state = .authenticationFailed
+            return
+        }
+        let reason = R.string.localizable.screen_lock_unlock_tip(biometryType.localizedName)
+        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, error in
             DispatchQueue.main.async {
                 self.state = success ? .authenticationSucceed : .authenticationFailed
                 completion?(success)
@@ -84,6 +92,7 @@ extension ScreenLockManager {
         guard window == nil else {
             return
         }
+        isLocked = true
         AppDelegate.current.mainWindow.endEditing(true)
         viewController = ScreenLockViewController()
         viewController!.tapUnlockAction = { [weak self] in
@@ -98,6 +107,7 @@ extension ScreenLockManager {
         AppDelegate.current.mainWindow.makeKeyAndVisible()
         viewController = nil
         window = nil
+        isLocked = false
     }
     
 }
@@ -151,6 +161,7 @@ extension ScreenLockManager {
                     }
                 } else {
                     hideScreenLockView()
+                    screenLockViewDidHide?()
                 }
             } else if from == .willResignActive {
                 if !hasLastBiometricAuthenticationFailed {
@@ -168,6 +179,7 @@ extension ScreenLockManager {
             hasLastBiometricAuthenticationFailed = false
             hideScreenLockView()
             AppGroupUserDefaults.User.lastLockScreenBiometricVerifiedDate = Date()
+            screenLockViewDidHide?()
         case .authenticationFailed:
             hasLastBiometricAuthenticationFailed = true
             viewController?.showUnlockOption(true)
@@ -177,5 +189,3 @@ extension ScreenLockManager {
     }
     
 }
-
-
