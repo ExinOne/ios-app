@@ -74,6 +74,8 @@ class ConversationViewController: UIViewController {
         .delete: UIMenuItem(title: R.string.localizable.menu_delete(), action: #selector(deleteMessage(_:))),
         .addToStickers: UIMenuItem(title: R.string.localizable.chat_message_sticker(), action: #selector(addToStickers(_:))),
         .report: UIMenuItem(title: R.string.localizable.menu_report(), action: #selector(reportMessage(_:))),
+        .pin: UIMenuItem(title: R.string.localizable.menu_pin(), action: #selector(pinMessage(_:))),
+        .unpin: UIMenuItem(title: R.string.localizable.menu_unpin(), action: #selector(unpinMessage(_:)))
     ]
     
     private let showScrollToBottomButtonThreshold: CGFloat = 150
@@ -104,6 +106,10 @@ class ConversationViewController: UIViewController {
     private var isShowingKeyboard = false
     private var groupCallIndicatorCenterYConstraint: NSLayoutConstraint!
     private var makeInputTextViewFirstResponderOnAppear = false
+    private var canPinMessages = false
+    private var pinnedMessageIds = Set<String>()
+    
+    private weak var pinMessageBannerViewIfLoaded: PinMessageBannerView?
     
     private(set) lazy var imagePickerController = ImagePickerController(initialCameraPosition: .rear, cropImageAfterPicked: false, parent: self, delegate: self)
     
@@ -163,6 +169,20 @@ class ConversationViewController: UIViewController {
         let view = R.nib.textPreviewView(owner: nil)!
         view.delegate = self
         return view
+    }()
+    
+    private lazy var pinMessageBannerView: PinMessageBannerView = {
+        let banner = R.nib.pinMessageBannerView(owner: nil)!
+        banner.isHidden = true
+        banner.delegate = self
+        view.addSubview(banner)
+        banner.snp.makeConstraints { make in
+            make.top.equalTo(navigationBarView.snp.bottom)
+            make.left.right.equalTo(0)
+            make.height.equalTo(60)
+        }
+        pinMessageBannerViewIfLoaded = banner
+        return banner
     }()
     
     private var unreadBadgeValue: Int = 0 {
@@ -354,6 +374,10 @@ class ConversationViewController: UIViewController {
         center.addObserver(self, selector: #selector(willRecallMessage(_:)), name: SendMessageService.willRecallMessageNotification, object: nil)
         center.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         center.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        center.addObserver(self, selector: #selector(pinMessageDidSave(_:)), name: PinMessageDAO.didSaveNotification, object: nil)
+        center.addObserver(self, selector: #selector(pinMessageDidDelete(_:)), name: PinMessageDAO.didDeleteNotification, object: nil)
+        center.addObserver(self, selector: #selector(pinMessageBannerDidChange), name: AppGroupUserDefaults.User.pinMessageBannerDidChangeNotification, object: nil)
+        
         if dataSource.category == .group {
             CallService.shared.membersManager.loadMembersAsynchornouslyIfNeverLoaded(forConversationWith: conversationId)
             updateGroupCallIndicatorViewHidden()
@@ -681,15 +705,15 @@ class ConversationViewController: UIViewController {
         guard let inviterId = myInvitation?.userId else {
             return
         }
-
+        
         let conversationId = self.conversationId
-
+        
         func work(_: UIAlertAction) {
             let hud = Hud()
             if let view = navigationController?.view {
                 hud.show(style: .busy, text: "", on: view)
             }
-
+            
             DispatchQueue.global().async {
                 switch UserAPI.reportUser(userId: inviterId) {
                 case let .success(user):
@@ -841,7 +865,7 @@ class ConversationViewController: UIViewController {
                 navigationController?.pushViewController(container, animated: true)
             } else if message.category.hasSuffix("_TRANSCRIPT") {
                 let vc = TranscriptPreviewViewController(transcriptMessage: message)
-                vc.presentAsChild(of: self, completion: nil)
+                vc.presentAsChild(of: self)
             } else {
                 conversationInputViewController.dismiss()
             }
@@ -904,6 +928,10 @@ class ConversationViewController: UIViewController {
         guard cell.contentFrame.contains(recognizer.location(in: cell)) else {
             return
         }
+        guard !(tableView.isDragging && tableView.isDecelerating) else {
+            return
+        }
+        
         textPreviewView.alpha = 0
         textPreviewView.frame = view.bounds
         view.addSubview(textPreviewView)
@@ -932,7 +960,7 @@ class ConversationViewController: UIViewController {
                 Self.allowReportSingleMessage = true
             }))
         }
-
+        
         if myIdentityNumber == "762532" || myIdentityNumber == "26596" {
             if let userId = ownerUser?.userId, dataSource.category == .contact {
                 alc.addAction(UIAlertAction(title: R.string.localizable.report_copy_user_id(), style: .default, handler: {(_) in
@@ -943,7 +971,7 @@ class ConversationViewController: UIViewController {
                 UIPasteboard.general.string = self.conversationId
             }))
         }
-
+        
         alc.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
         self.present(alc, animated: true, completion: nil)
     }
@@ -1036,6 +1064,7 @@ class ConversationViewController: UIViewController {
             DispatchQueue.main.sync {
                 self?.userHandleViewController.users = users
             }
+            self?.updateMessagePinningAvailability()
         }
     }
     
@@ -1140,6 +1169,63 @@ class ConversationViewController: UIViewController {
                 return
             }
             self.updateGroupCallIndicatorViewHidden()
+        }
+    }
+    
+    @objc private func pinMessageDidSave(_ notification: Notification) {
+        guard let conversationId = notification.userInfo?[PinMessageDAO.UserInfoKey.conversationId] as? String else {
+            return
+        }
+        guard conversationId == self.conversationId else {
+            return
+        }
+        dataSource.queue.async { [weak self] in
+            guard
+                let messageId = notification.userInfo?[PinMessageDAO.UserInfoKey.messageId] as? String,
+                let message = MessageDAO.shared.getFullMessage(messageId: messageId),
+                let referencedMessageId = notification.userInfo?[PinMessageDAO.UserInfoKey.referencedMessageId] as? String
+            else {
+                return
+            }
+            DispatchQueue.main.async {
+                guard let self = self else {
+                    return
+                }
+                self.pinnedMessageIds.insert(referencedMessageId)
+                self.pinMessageBannerView.isHidden = false
+                self.updatePinMessagePreview(item: message)
+            }
+        }
+    }
+    
+    @objc private func pinMessageDidDelete(_ notification: Notification) {
+        guard let conversationId = notification.userInfo?[PinMessageDAO.UserInfoKey.conversationId] as? String else {
+            return
+        }
+        guard conversationId == self.conversationId else {
+            return
+        }
+        dataSource.queue.async { [weak self] in
+            let hasMessage = PinMessageDAO.shared.hasMessage(conversationId: conversationId)
+            DispatchQueue.main.async {
+                guard let self = self else {
+                    return
+                }
+                if let referencedMessageIds = notification.userInfo?[PinMessageDAO.UserInfoKey.referencedMessageIds] as? [String] {
+                    self.pinnedMessageIds.subtract(referencedMessageIds)
+                } else {
+                    self.pinnedMessageIds = []
+                }
+                if !hasMessage {
+                    self.pinMessageBannerViewIfLoaded?.isHidden = true
+                }
+            }
+        }
+    }
+    
+    @objc private func pinMessageBannerDidChange() {
+        if AppGroupUserDefaults.User.pinMessageBanners[conversationId] == nil {
+            hidePinMessagePreview()
         }
     }
     
@@ -1441,7 +1527,7 @@ extension ConversationViewController: UITableViewDelegate {
         if let lastIndexPath = dataSource.lastIndexPath, indexPath.section == lastIndexPath.section, indexPath.row >= lastIndexPath.row - loadMoreMessageThreshold {
             dataSource.loadMoreBelowIfNeeded()
         }
-
+        
         let message = dataSource.viewModel(for: indexPath)?.message
         let messageId = message?.messageId
         if messageId == dataSource.firstUnreadMessageId || cell is UnreadHintMessageCell {
@@ -1479,7 +1565,7 @@ extension ConversationViewController: UITableViewDelegate {
             quotingMessageId = nil
         }
     }
-
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         guard let viewModel = dataSource?.viewModel(for: indexPath) else {
             return 44
@@ -1699,7 +1785,7 @@ extension ConversationViewController: GalleryViewControllerDelegate {
 
 // MARK: - PhotoAssetPickerDelegate
 extension ConversationViewController: PhotoAssetPickerDelegate {
-
+    
     func pickerController(_ picker: PickerViewController, contentOffset: CGPoint, didFinishPickingMediaWithAsset asset: PHAsset) {
         navigationController?.pushViewController(AssetSendViewController.instance(asset: asset, composer: composer), animated: true)
     }
@@ -1723,6 +1809,40 @@ extension ConversationViewController: TextPreviewViewDelegate {
         } completion: { (_) in
             self.textPreviewView.attributedText = nil
             self.textPreviewView.removeFromSuperview()
+        }
+    }
+    
+}
+
+// MARK: - PinMessageBannerViewDelegate
+extension ConversationViewController: PinMessageBannerViewDelegate {
+    
+    func pinMessageBannerViewDidTapPin(_ view: PinMessageBannerView) {
+        let vc = PinMessagesPreviewViewController(conversationId: conversationId, isGroup: dataSource.category == .group)
+        vc.delegate = self
+        vc.presentAsChild(of: self)
+    }
+    
+    func pinMessageBannerViewDidTapClose(_ view: PinMessageBannerView) {
+        AppGroupUserDefaults.User.pinMessageBanners[conversationId] = nil
+    }
+    
+    func pinMessageBannerViewDidTapPreview(_ view: PinMessageBannerView) {
+        guard let id = AppGroupUserDefaults.User.pinMessageBanners[conversationId],
+              let quoteMessageId = MessageDAO.shared.quoteMessageId(messageId: id) else {
+            return
+        }
+        scrollToPinnedMessage(messageId: quoteMessageId)
+    }
+    
+}
+
+// MARK: - PinMessagesPreviewViewControllerDelegate
+extension ConversationViewController: PinMessagesPreviewViewControllerDelegate {
+    
+    func pinMessagesPreviewViewController(_ controller: PinMessagesPreviewViewController, needsShowMessage messageId: String) {
+        controller.dismissAsChild {
+            self.scrollToPinnedMessage(messageId: messageId)
         }
     }
     
@@ -1778,7 +1898,20 @@ extension ConversationViewController {
         if ConversationViewController.allowReportSingleMessage {
             actions.append(.report)
         }
-        
+        if canPinMessages, status != MessageStatus.SENDING.rawValue {
+            let index: Int?
+            if let replyIndex = actions.firstIndex(of: .reply) {
+                index = replyIndex + 1
+            } else if category == MessageCategory.APP_BUTTON_GROUP.rawValue {
+                index = 0
+            } else {
+                index = nil
+            }
+            if let index = index {
+                let action: MessageAction = pinnedMessageIds.contains(message.messageId) ? .unpin : .pin
+                actions.insert(action, at: index)
+            }
+        }
         return actions
     }
     
@@ -1824,6 +1957,10 @@ extension ConversationViewController {
             }
         case .report:
             report(conversationId: conversationId, message: message)
+        case .pin:
+            SendMessageService.shared.sendPinMessages(items: [message], conversationId: conversationId, action: .pin)
+        case .unpin:
+            SendMessageService.shared.sendPinMessages(items: [message], conversationId: conversationId, action: .unpin)
         }
     }
     
@@ -1879,6 +2016,14 @@ extension ConversationViewController {
     
     @objc private func reportMessage(_ sender: Any?) {
         performActionOnSelectedRow(.report)
+    }
+    
+    @objc private func pinMessage(_ sender: Any?) {
+        performActionOnSelectedRow(.pin)
+    }
+    
+    @objc private func unpinMessage(_ sender: Any?) {
+        performActionOnSelectedRow(.unpin)
     }
     
     @objc private func menuControllerDidShowMenu(_ notification: Notification) {
@@ -1950,7 +2095,7 @@ extension ConversationViewController {
             }
         }
     }
-
+    
     private func updateNavigationBarPositionWithInputWrapperViewHeight(oldHeight: CGFloat, newHeight: CGFloat) {
         let diff = newHeight - oldHeight
         if conversationInputViewController.isMaximizable && newHeight > conversationInputViewController.regularHeight {
@@ -2324,6 +2469,21 @@ extension ConversationViewController {
         }
     }
     
+    private func updatePinMessagePreview(item: MessageItem) {
+        let preview = TransferPinAction.pinMessage(item: item)
+        pinMessageBannerView.update(preview: preview)
+        pinMessageBannerView.snp.updateConstraints { make in
+            make.left.equalTo(0)
+        }
+    }
+    
+    private func hidePinMessagePreview() {
+        pinMessageBannerView.hideMessagePreview()
+        pinMessageBannerView.snp.updateConstraints { make in
+            make.left.equalTo(AppDelegate.current.mainWindow.bounds.width - 60)
+        }
+    }
+    
 }
 
 // MARK: - Helpers
@@ -2348,10 +2508,19 @@ extension ConversationViewController {
         dataSource.queue.async { [weak self] in
             let users = ParticipantDAO.shared.getParticipants(conversationId: conversationId)
             var ids = MessageMentionDAO.shared.unreadMessageIds(conversationId: conversationId)
+            let hasPinMessage = PinMessageDAO.shared.hasMessage(conversationId: conversationId)
+            let visiblePinMessage: MessageItem?
+            if let id = AppGroupUserDefaults.User.pinMessageBanners[conversationId] {
+                visiblePinMessage = MessageDAO.shared.getFullMessage(messageId: id)
+            } else {
+                visiblePinMessage = nil
+            }
+            let pinnedMessageIds = Set(PinMessageDAO.shared.messageItems(conversationId: conversationId).map(\.messageId))
             DispatchQueue.main.async {
                 guard let self = self else {
                     return
                 }
+                self.pinnedMessageIds = pinnedMessageIds
                 UIView.performWithoutAnimation {
                     self.userHandleViewController.users = users
                     if isGroup {
@@ -2362,8 +2531,17 @@ extension ConversationViewController {
                     }
                     ids.removeAll(where: self.dataSource.visibleMessageIds.contains)
                     self.mentionScrollingDestinations = ids
+                    if hasPinMessage {
+                        self.pinMessageBannerView.isHidden = false
+                        if let item = visiblePinMessage {
+                            self.updatePinMessagePreview(item: item)
+                        } else {
+                            self.hidePinMessagePreview()
+                        }
+                    }
                 }
             }
+            self?.updateMessagePinningAvailability()
         }
     }
     
@@ -2392,7 +2570,7 @@ extension ConversationViewController {
         loadingView.stopAnimating()
         titleStackView.isHidden = false
     }
-
+    
     private func openAppCard(appCard: AppCardData, sendUserId: String) {
         let action = appCard.action.absoluteString
         let isShareable = appCard.isShareable
@@ -2405,7 +2583,7 @@ extension ConversationViewController {
                         app = response.app
                     }
                 }
-
+                
                 DispatchQueue.main.async {
                     self?.open(url: appCard.action, app: app, shareable: isShareable)
                 }
@@ -2414,7 +2592,7 @@ extension ConversationViewController {
             openAction(action: action, sendUserId: sendUserId, shareable: isShareable)
         }
     }
-
+    
     private func openAction(action: String, sendUserId: String, shareable: Bool? = nil) {
         guard !openInputAction(action: action) else {
             return
@@ -2422,7 +2600,7 @@ extension ConversationViewController {
         guard let url = URL(string: action) else {
             return
         }
-
+        
         if let app = conversationInputViewController?.opponentApp, app.appId == sendUserId {
             open(url: url, app: app, shareable: shareable)
         } else {
@@ -2440,7 +2618,7 @@ extension ConversationViewController {
             }
         }
     }
-
+    
     private func openInputAction(action: String) -> Bool {
         guard action.hasPrefix("input:"), action.count > 6 else {
             return false
@@ -2453,7 +2631,7 @@ extension ConversationViewController {
         }
         return true
     }
-
+    
     private func open(url: URL, app: App? = nil, shareable: Bool? = nil) {
         guard !UrlWindow.checkUrl(url: url) else {
             return
@@ -2472,8 +2650,12 @@ extension ConversationViewController {
     
     private func reportAirDop(conversationId: String) {
         DispatchQueue.global().async {
-            Logger.write(conversationId: conversationId, log: "[Report][Websocket]...isReachable:\(ReachabilityManger.shared.isReachable)...isConnected:\(WebSocketService.shared.isConnected)...isRealConnected:\(WebSocketService.shared.isRealConnected)")
-
+            let info: Logger.UserInfo = [
+                "isReachable": ReachabilityManger.shared.isReachable,
+                "isConnected": WebSocketService.shared.isConnected,
+                "isRealConnected": WebSocketService.shared.isRealConnected
+            ]
+            Logger.conversation(id: conversationId).info(category: "Report", message: "Exported logs", userInfo: info)
             guard let targetUrl = Logger.export(conversationId: conversationId), FileManager.default.fileSize(targetUrl.path) > 0 else {
                 return
             }
@@ -2484,7 +2666,7 @@ extension ConversationViewController {
             }
         }
     }
-
+    
     private func report(conversationId: String, message: MessageItem? = nil) {
         DispatchQueue.global().async { [weak self] in
             let developID = myIdentityNumber == "762532" ? "31911" : "762532"
@@ -2498,11 +2680,10 @@ extension ConversationViewController {
                     return
                 }
             }
-
-            Logger.write(conversationId: conversationId, log: "[Report][Websocket]...isReachable:\(ReachabilityManger.shared.isReachable)...isConnected:\(WebSocketService.shared.isConnected)...isRealConnected:\(WebSocketService.shared.isRealConnected)")
-
+            Logger.conversation(id: conversationId).info(category: "Report", message: "isReachable:\(ReachabilityManger.shared.isReachable), isConnected:\(WebSocketService.shared.isConnected), isRealConnected:\(WebSocketService.shared.isRealConnected)")
+            
             if let message = message {
-                var log = "[Report][Message][\(message.messageId)][\(message.category)][\(message.status)]...userId:\(message.userId)"
+                var log = "[Message][\(message.messageId)][\(message.category)][\(message.status)]...userId:\(message.userId)"
                 if ["_IMAGE", "_VIDEO", "_AUDIO", "_LIVE"].contains(where: message.category.hasSuffix) {
                     log += """
                             ...mediaStatus:\(message.mediaStatus ?? "")
@@ -2514,7 +2695,7 @@ extension ConversationViewController {
                             ...mediaWidth:\(message.mediaWidth ?? 0)
                             ...mediaHeight:\(message.mediaHeight ?? 0)\n
                            """
-
+                    
                     if let mediaUrl = message.mediaUrl, !mediaUrl.isEmpty, !mediaUrl.hasPrefix("http") {
                         if message.category.hasSuffix("_IMAGE") {
                             let url = AttachmentContainer.url(for: .photos, filename: mediaUrl)
@@ -2526,9 +2707,9 @@ extension ConversationViewController {
                     }
                 }
                 
-                Logger.write(conversationId: conversationId, log: log, newSection: true)
+                Logger.conversation(id: conversationId).info(category: "Report", message: log)
             }
-
+            
             guard let developUser = user, let url = Logger.export(conversationId: conversationId) else {
                 return
             }
@@ -2542,7 +2723,7 @@ extension ConversationViewController {
             guard FileManager.default.fileSize(targetUrl.path) > 0 else {
                 return
             }
-
+            
             let developConversationId = ConversationDAO.shared.makeConversationId(userId: myUserId, ownerUserId: developUser.userId)
             var message = Message.createMessage(category: MessageCategory.PLAIN_DATA.rawValue, conversationId: developConversationId, userId: myUserId)
             message.name = url.lastPathComponent
@@ -2550,7 +2731,7 @@ extension ConversationViewController {
             message.mediaMimeType = FileManager.default.mimeType(ext: url.pathExtension)
             message.mediaUrl = url.lastPathComponent
             message.mediaStatus = MediaStatus.PENDING.rawValue
-
+            
             self?.dataSource?.queue.async {
                 SendMessageService.shared.sendMessage(message: message, ownerUser: developUser, isGroupMessage: false)
                 DispatchQueue.main.async {
@@ -2684,6 +2865,24 @@ extension ConversationViewController {
             }
         case .delete:
             return actions.contains(.delete) ? .available : .invisible
+        }
+    }
+    
+    private func scrollToPinnedMessage(messageId: String) {
+        if let indexPath = dataSource.indexPath(where: { $0.messageId == messageId }) {
+            scheduleCellBackgroundFlash(messageId: messageId)
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        } else if MessageDAO.shared.hasMessage(id: messageId) {
+            messageIdToFlashAfterAnimationFinished = messageId
+            reloadWithMessageId(messageId, scrollUpwards: true)
+        }
+    }
+    
+    private func updateMessagePinningAvailability() {
+        let isAvailable = dataSource.category != .group
+            || ParticipantDAO.shared.isAdmin(conversationId: conversationId, userId: myUserId)
+        DispatchQueue.main.sync {
+            self.canPinMessages = isAvailable
         }
     }
     

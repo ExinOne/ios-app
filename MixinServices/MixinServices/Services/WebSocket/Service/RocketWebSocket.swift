@@ -26,7 +26,7 @@ class RocketWebSocket: NSObject, WebSocketProvider {
 
     func connect(request: URLRequest) {
         socket = SRWebSocket(urlRequest: request)
-        socket?.setDelegateDispatchQueue(queue)
+        socket?.delegateDispatchQueue = queue
         socket?.delegate = self
         socket?.open()
     }
@@ -38,7 +38,7 @@ class RocketWebSocket: NSObject, WebSocketProvider {
     }
 
     func sendPing() {
-        socket?.sendPing(Data())
+        try? socket?.sendPing(Data())
     }
 
     func send(data: Data) {
@@ -57,7 +57,9 @@ extension RocketWebSocket: SRWebSocketDelegate {
     }
 
     func webSocketDidOpen(_ webSocket: SRWebSocket!) {
-        serverTime = CFHTTPMessageCopyHeaderFieldValue(webSocket.receivedHTTPHeaders, "x-server-time" as CFString)?.takeRetainedValue() as String?
+        if let headers = webSocket.receivedHTTPHeaders {
+            serverTime = CFHTTPMessageCopyHeaderFieldValue(headers, "x-server-time" as CFString)?.takeRetainedValue() as String?
+        }
         delegate?.websocketDidConnect(socket: self)
     }
 
@@ -66,7 +68,7 @@ extension RocketWebSocket: SRWebSocketDelegate {
             return
         }
         let nsError = error as NSError
-        Logger.write(error: err, extra: "[RocketWebSocket][DidFailWithError]...\(MixinHost.webSocket)")
+        Logger.general.error(category: "RocketWebSocket", message: "Websocket failed with: \(err), host: \(MixinHost.webSocket)")
 
         if (nsError.domain == "com.squareup.SocketRocket" && nsError.code == 504)
             || (nsError.domain == NSPOSIXErrorDomain && nsError.code == 61) || nsError.domain == SRWebSocketErrorDomain {
@@ -83,44 +85,40 @@ extension RocketWebSocket: SRWebSocketDelegate {
     }
 
     func webSocket(_ webSocket: SRWebSocket!, didCloseWithCode code: Int, reason: String!, wasClean: Bool) {
-        var errType = "\(code)"
+        let errType: String
         var errMessage = reason ?? ""
-        switch code {
-        case SRStatusCodeNormal.rawValue, SRStatusCodeGoingAway.rawValue:
+        switch SRStatusCode(rawValue: code) {
+        case .codeNormal, .codeGoingAway:
             return
-        case SRStatusCodeProtocolError.rawValue:
+        case .codeProtocolError:
             errType = "protocolError"
-        case SRStatusCodeUnhandledType.rawValue:
+        case .codeUnhandledType:
             errType = "unhandledType"
-        case SRStatusNoStatusReceived.rawValue:
+        case .noStatusReceived:
             errType = "noStatusReceived"
-        case SRStatusCodeAbnormal.rawValue:
+        case .codeAbnormal:
             errType = "abnormal"
-        case SRStatusCodeInvalidUTF8.rawValue:
+        case .codeInvalidUTF8:
             errType = "invalidUTF8"
-        case SRStatusCodePolicyViolated.rawValue:
+        case .codePolicyViolated:
             errType = "policyViolated"
-        case SRStatusCodeMessageTooBig.rawValue:
+        case .codeMessageTooBig:
             errType = "messageTooBig"
-        case SRStatusCodeMissingExtension.rawValue:
+        case .codeMissingExtension:
             errType = "missingExtension"
-        case SRStatusCodeInternalError.rawValue:
+        case .codeInternalError:
             errType = "internalError"
-        case SRStatusCodeServiceRestart.rawValue:
+        case .codeServiceRestart:
             errType = "serviceRestart"
-        case SRStatusCodeTryAgainLater.rawValue:
+        case .codeTryAgainLater:
             errType = "tryAgainLater"
-        case SRStatusCodeTLSHandshake.rawValue:
+        case .codeTLSHandshake:
             errType = "TLSHandshake"
         default:
-            break
+            errType = "\(code)"
         }
 
-        let log = "[RocketWebSocket][\(errType)][\(code)]...wasClean:\(wasClean)...\(reason ?? "")"
-        #if DEBUG
-        NSLog(log)
-        #endif
-        Logger.write(log: log)
+        Logger.general.error(category: "RocketWebSocket", message: "Websocket closed with: \(errType), code: \(code), wasClean:\(wasClean), reaseon: \(reason)")
         
         reporter.report(error: MixinServicesError.websocketError(errType: errType, errMessage: errMessage, errCode: code))
         delegate?.websocketDidDisconnect(socket: self, isSwitchNetwork: false)

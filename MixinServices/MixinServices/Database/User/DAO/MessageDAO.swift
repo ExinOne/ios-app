@@ -34,7 +34,8 @@ public final class MessageDAO: UserDatabaseDAO {
                s.amount as snapshotAmount, s.asset_id as snapshotAssetId, s.type as snapshotType, a.symbol as assetSymbol, a.icon_url as assetIcon,
                st.asset_width as assetWidth, st.asset_height as assetHeight, st.asset_url as assetUrl, st.asset_type as assetType, alb.category as assetCategory,
                m.action as actionName, m.shared_user_id as sharedUserId, su.full_name as sharedUserFullName, su.identity_number as sharedUserIdentityNumber, su.avatar_url as sharedUserAvatarUrl, su.app_id as sharedUserAppId, su.is_verified as sharedUserIsVerified, m.quote_message_id, m.quote_content,
-        mm.mentions, mm.has_read as hasMentionRead
+        mm.mentions, mm.has_read as hasMentionRead,
+        CASE WHEN (SELECT 1 FROM pin_messages WHERE message_id = m.id) IS NULL THEN 0 ELSE 1 END AS pinned
     FROM messages m
     LEFT JOIN users u ON m.user_id = u.user_id
     LEFT JOIN users u1 ON m.participant_id = u1.user_id
@@ -129,7 +130,15 @@ public final class MessageDAO: UserDatabaseDAO {
     public func deleteMediaMessages(conversationId: String, categories: [MessageCategory]) {
         let condition: SQLSpecificExpressible = Message.column(of: .conversationId) == conversationId
             && categories.map(\.rawValue).contains(Message.column(of: .category))
-        db.delete(Message.self, where: condition)
+        db.write { db in
+            let messageIds: [String] = try Message
+                .select(Message.column(of: .messageId))
+                .filter(condition)
+                .fetchAll(db)
+            try Message.filter(condition).deleteAll(db)
+            try PinMessageDAO.shared.delete(messageIds: messageIds, conversationId: conversationId, from: db)
+            try clearPinMessageContent(quoteMessageIds: messageIds, conversationId: conversationId, from: db)
+        }
     }
     
     public func findFailedMessages(conversationId: String, userId: String) -> [String] {
@@ -651,6 +660,8 @@ public final class MessageDAO: UserDatabaseDAO {
         try MessageMention
             .filter(MessageMention.column(of: .messageId) == messageId)
             .deleteAll(database)
+        try PinMessageDAO.shared.delete(messageIds: [messageId], conversationId: conversationId, from: database)
+        try clearPinMessageContent(quoteMessageIds: [messageId], conversationId: conversationId, from: database)
         
         if category.hasSuffix("_TRANSCRIPT") {
             try TranscriptMessage
@@ -692,6 +703,10 @@ public final class MessageDAO: UserDatabaseDAO {
         var deleteCount = 0
         var childMessageIds: [String] = []
         db.write { (db) in
+            let conversationId: String? = try Message
+                .select(Message.column(of: .conversationId))
+                .filter(Message.column(of: .messageId) == id)
+                .fetchOne(db)
             deleteCount = try Message
                 .filter(Message.column(of: .messageId) == id)
                 .deleteAll(db)
@@ -706,6 +721,10 @@ public final class MessageDAO: UserDatabaseDAO {
             try TranscriptMessage
                 .filter(TranscriptMessage.column(of: .transcriptId) == id)
                 .deleteAll(db)
+            if let conversationId = conversationId {
+                try PinMessageDAO.shared.delete(messageIds: [id], conversationId: conversationId, from: db)
+                try clearPinMessageContent(quoteMessageIds: [id], conversationId: conversationId, from: db)
+            }
         }
         return (deleteCount > 0, childMessageIds)
     }
@@ -726,6 +745,12 @@ public final class MessageDAO: UserDatabaseDAO {
     public func hasMessage(id: String) -> Bool {
         db.recordExists(in: Message.self,
                         where: Message.column(of: .messageId) == id)
+    }
+    
+    public func quoteMessageId(messageId: String) -> String? {
+        db.select(column: Message.column(of: .quoteMessageId),
+                  from: Message.self,
+                  where: Message.column(of: .messageId) == messageId)
     }
     
 }
@@ -878,6 +903,30 @@ extension MessageDAO {
                                messageSource: messageSource,
                                children: children,
                                silentNotification: silentNotification)
+    }
+    
+    private func clearPinMessageContent(quoteMessageIds: [String], conversationId: String, from database: GRDB.Database) throws {
+        let ids: [String] = try quoteMessageIds.flatMap { (quoteMessageId) -> [String] in
+            let condition: SQLSpecificExpressible = Message.column(of: .conversationId) == conversationId
+                && Message.column(of: .quoteMessageId) == quoteMessageId
+                && Message.column(of: .category) == MessageCategory.MESSAGE_PIN.rawValue
+            let pinMessageIds: [String] = try Message
+                .select(Message.column(of: .messageId))
+                .filter(condition)
+                .fetchAll(database)
+            for id in pinMessageIds {
+                try Message
+                    .filter(Message.column(of: .messageId) == id)
+                    .updateAll(database, [Message.column(of: .content).set(to: nil)])
+            }
+            return pinMessageIds
+        }
+        database.afterNextTransactionCommit { db in
+            for id in ids {
+                let updateChange = ConversationChange(conversationId: conversationId, action: .updateMessage(messageId: id))
+                NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: updateChange)
+            }
+        }
     }
     
 }

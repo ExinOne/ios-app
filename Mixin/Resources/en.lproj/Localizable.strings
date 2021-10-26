@@ -1,4 +1,5 @@
 "app_name" = "JustChat";
+"strings_language" = "English";
 
 // Common
 "dialog_button_ok" = "OK";
@@ -56,6 +57,8 @@
 "menu_delete" = "Delete";
 "menu_edit" = "Edit";
 "menu_report" = "Report";
+"menu_pin" = "Pin";
+"menu_unpin" = "Unpin";
 "no_result" = "No result";
 "title_loading" = "Loading...";
 "all_photos" = "All Photos";
@@ -70,19 +73,19 @@
 "date_format_week_date" = "E, d MMM yyyy";
 
 // Search
-"search_placeholder_number" = "Search JustChat ID or phone number: ";
+"search_placeholder_number" = "Search ID or phone number: ";
 "search_placeholder_address" = "Label";
 "search_placeholder_asset" = "Name, Symbol";
 "search_placeholder_currency" = "Code";
 "search_placeholder_home" = "Contacts, Assets, Chats";
-"search_placeholder_contact" = "JustChat ID, Name, Phone number";
-"search_placeholder_authorization" = "JustChat ID, Name";
+"search_placeholder_contact" = "ID, Name, Phone number";
+"search_placeholder_authorization" = "ID, Name";
 "search_related_messages_count" = " related messages";
 "search_section_title_asset" = "Assets";
 "search_section_title_user" = "Contacts";
 "search_section_title_conversation_by_name" = "Conversations";
 "search_section_title_conversation_by_message" = "Messages";
-"search_result_prefix_id" = "JustChat ID: ";
+"search_result_prefix_id" = "ID: ";
 "search_result_prefix_phone" = "Phone Number: ";
 
 // Toast
@@ -134,8 +137,8 @@
 "navigation_title_enter_mobile_number" = "Enter your phone number";
 "navigation_title_enter_verification_code" = "Enter the 4-digit code sent to you at %@";
 "navigation_title_enter_name" = "What's your name?";
-"navigation_title_enter_emergency_contact_id" = "Enter your emergency contact's JustChat ID";
-"navigation_title_enter_emergency_contact_verification_code" = "Enter the 4-digit code sent to JustChat ID %@";
+"navigation_title_enter_emergency_contact_id" = "Enter your emergency contact's ID";
+"navigation_title_enter_emergency_contact_verification_code" = "Enter the 4-digit code sent to ID %@";
 "landing_welcome_title" = "Welcome to JustChat";
 "text_intro" = "By proceeding, you agree to the %@ and %@.";
 "text_mobile_number_privacy" = "We will never display your phone number publicly";
@@ -169,7 +172,7 @@
 "contact_new_group_title" = "New Group Chat";
 "contact_new_group_summary" = "Create a group chat up to 256 people";
 "contact_add_title" = "Add Contact";
-"contact_add_summary" = "Add people by JustChat ID or phone number";
+"contact_add_summary" = "Add people by ID or phone number";
 "contact_qr_code_title" = "JustChat QR Code";
 "contact_qr_code_summary" = "Scan a friend's JustChat QR Code";
 "contact_invite_title" = "Invite People";
@@ -179,10 +182,10 @@
 "contact_phone_contacts" = "Mobile Contacts";
 "contact_upload_mobile_contacts" = "Upload Mobile Contacts";
 "contact_phone_contact_summary" = "Upload mobile contacts to find other JustChat friends.";
-"contact_my_identity_number" = "My JustChat ID: %@";
+"contact_my_identity_number" = "My ID: %@";
 "contact_error_compose_avatar" = "Failed to compose avatar. Try another picture instead.";
 "contact_phone_contact_invite" = "Invite";
-"contact_identity_number" = "JustChat ID: %@";
+"contact_identity_number" = "ID: %@";
 "contact_mobile" = "Mobile: %@";
 "contact_avatar_picking_fail" = "Failed to change your profile photo";
 "contact_change_name_fail" = "Failed to change your name";
@@ -191,7 +194,7 @@
 "contact_qr_code_save" = "Save Image";
 
 "button_title_search" = "Search";
-"placeholder_JustChat_id_or_phone" = "JustChat ID, Phone number";
+"placeholder_JustChat_id_or_phone" = "ID, Phone number";
 "placeholder_new_name" = "new name";
 "navigation_title_add_people" = "Add people";
 "user_not_found" = "User not found";
@@ -370,6 +373,24 @@
 "chat_manage_photo_auth" = "Manage";
 "chat_photo_select_more" = "Select More Photos";
 
+// Pin
+"chat_pinned_general_message" = "%@ pinned a message";
+"chat_pinned_text_message" = "%@ pinned \"%@\"";
+"chat_pinned_image_message" = "%@ pinned a photo";
+"chat_pinned_video_message" = "%@ pinned a video";
+"chat_pinned_live_message" = "%@ pinned a live stream";
+"chat_pinned_data_message" = "%@ pinned a file";
+"chat_pinned_sticker_message" = "%@ pinned a sticker";
+"chat_pinned_contact_message" = "%@ pinned a contact";
+"chat_pinned_audio_message" = "%@ pinned an audio";
+"chat_pinned_post_message" = "%@ pinned a post";
+"chat_pinned_location_message" = "%@ pinned a location";
+"chat_pinned_transcript_message" = "%@ pinned a transcript";
+"chat_pinned_app_card_message" = "%@ pinned a card";
+"chat_pinned_messages_count" = "%d Pinned Messages";
+"chat_unpin_all_messages" = "Unpin All Messages";
+"chat_alert_unpin_all_messages" = "Are you sure you want to unpin all messages?";
+
 // Web
 "web_suspicious_link" = "Suspicious Link";
 "web_suspicious_link_tips" = "The link is not in the corresponding resource patterns.";
@@ -378,6 +399,8 @@
 "web_cannot_reached_title" = "This webpage can't be reached";
 "web_cannot_reached_desc" = "%@ took too long to respond. Please check your network and try to switch 4G, Wi-Fi or VPN to reload the page.";
 "web_contact_developer" = "Contact Developer";
+"web_export_as_pdf" = "Export";
+"web_export_failed" = "Export failed";
 
 // Call
 "call_encryption" = "End-to-end Encrypted";
@@ -494,7 +517,7 @@
 "wallet_deposit" = "Deposit";
 "wallet_deposit_eos" = "This address supports all base on EOS tokens, such as EOS, IQ, BLACK, OCT, KARMA, etc. ";
 "wallet_deposit_eth" = "This address supports all ERC 20 tokens, such as ETH, XIN, TUSD, HT, LOOM, LEO, etc. ";
-"wallet_deposit_btc" = "This address only supports BTC and Omni USDT.";
+"wallet_deposit_btc" = "This address only supports BTC. ";
 "wallet_deposit_trx" = "This address supports all TRC 10 and TRC 20 tokens, such as TRX, BTT, USDT-TRON, etc.";
 "wallet_deposit_other" = "This address only support %@.";
 "wallet_deposit_confirmations" = "Deposit will arrive after at least %@ block confirmations.";
@@ -653,6 +676,9 @@
 "multisig_state_signed" = "This multisig link has already been signed by yourself, you can not make a duplicate operation.";
 "multisig_state_unlocked" = "This multisig link has already been revoked by someone, you can not make a duplicate operation.";
 
+// NFT
+"collectible_token_id" = "#%@";
+
 // QRCode
 "qr_code_not_found" = "QR Code not found";
 "myqrcode_title" = "My QR Code";
@@ -678,6 +704,8 @@
 "auth_permission_circles_read_description" = "access your circle list";
 "auth_permission_circles_write" = "Write Circles";
 "auth_permission_circles_write_description" = "manage all your circles";
+"auth_permission_collectibles_read" = "Read Collectibles";
+"auth_permission_collectibles_read_description" = "access your collectibles";
 "auth_assets_more" = " and more";
 "auth_profile_description" = "%@, %@, profile photo";
 "auth_success" = "Successfully log in to %@";
@@ -708,7 +736,7 @@
 "profile_change_number_succeeded" = "Successfully changed phone number";
 "profile_change_number_verify_pin" = "Verify PIN";
 "profile_change_number_new_number" = "Enter your new phone number";
-"profile_JustChat_id" = "JustChat ID: %@";
+"profile_JustChat_id" = "ID: %@";
 "profile_reputation_score" = "Reputation Score: %@";
 "profile_edit_name" = "Edit Name";
 "profile_edit_biography" = "Edit Biography";
@@ -749,13 +777,13 @@
 "emergency_remove" = "Remove emergency contact";
 "emergency_tip_remove" = "Remove emergency contact for sure?";
 "emergency_tip_before" = "The emergency contact is designed to help you log in to your account if you are lost and cannot retrieve your mobile number.";
-"emergency_tip_after" = "When you lose your mobile number, please contact your emergency contact by phone or other means to get the JustChat ID and verification code. Read our Emergency Contact to learn more.";
+"emergency_tip_after" = "When you lose your mobile number, please contact your emergency contact by phone or other means to get the ID and verification code. Read our Emergency Contact to learn more.";
 "emergency_tip_link" = "Emergency Contact";
 "emergency_tip_pin" = "Attention: the Emergency Contact cannot help you to recover PIN";
 "emergency_pin_protection_hint" = "Your emergency contact is protected by PIN";
 "emergency_change_number_tip" = "Do you want to change your mobile number now?";
 "enable_emergency_contact" = "Enable Emergency Contact";
-"emergency_confirm" = "Confirm to set JustChat ID %@ as your emergency contact? Please note that the other party must add you as a contact to set up successfully.";
+"emergency_confirm" = "Confirm to set ID %@ as your emergency contact? Please note that the other party must add you as a contact to set up successfully.";
 
 // Database
 "database_upgrade" = "Upgrade Database";
@@ -858,6 +886,13 @@
 "setting_permissions" = "Permissions";
 "setting_permissions_date" = "Approved: %@, Last Accessed: %@";
 "setting_appearance" = "Appearance";
+"setting_appearance_ui_style" = "Interface Style";
+"setting_appearance_ui_style_light" = "Light";
+"setting_appearance_ui_style_dark" = "Dark";
+"setting_appearance_ui_style_auto" = "Automatic";
+"setting_appearance_language" = "Language";
+"setting_appearance_language_alert_title" = "Change your app language";
+"setting_appearance_language_alert_description" = "You can pick a preferred language in settings";
 "setting_pin" = "PIN";
 "setting_feedback" = "Feedback";
 "setting_share_this_app" = "Share This App";
@@ -931,6 +966,7 @@
 "notification_content_voice_call" = "[Voice Call]";
 "notification_content_location" = "[Location]";
 "notification_content_transcript" = "[Transcript]";
+"notification_content_post" = "[Post]";
 "notification_content_unknown" = "[Unknown]";
 
 "alert_key_contact_message" = "send you a message";
@@ -1000,11 +1036,14 @@
 "error_insufficient_balance" = "Insufficient balance";
 "error_pin_incorrect" = "PIN incorrect";
 "error_fee_insufficient" = "Insufficient transaction fee";
+"error_fee_insufficient_detailed" = "Insufficient transaction fee. Please make sure your wallet has %@ as fee";
 "error_transfer_amount_too_small" = "Transfer amount too small";
 "error_too_many_stickers" = "Too many stickers.";
 "error_withdrawal_amount_too_small" = "Withdraw amount too small";
 "error_blockchian_not_in_sync" = "Blockchain not in sync, please try again later.";
 "error_malformed_address" = "Invalid address format.";
+
 "error_malformed_address_eos" = "Invalid address format. JustChat does not support withdrawal to the EOS contract address!";
+"error_malformed_address_detailed" = "Invalid address format. Try again with a valid address of %@";
 
 "error_network_task_failed" = "Network connection failed. Check or switch your network and try again";

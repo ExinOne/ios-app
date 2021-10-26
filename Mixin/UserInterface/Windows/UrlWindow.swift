@@ -409,12 +409,12 @@ class UrlWindow {
             return true
         }
         guard let recipientId = query["recipient"], let assetId = query["asset"], let amount = query["amount"] else {
-            Logger.write(errorMsg: "[UrlWindow][CheckPayUrl]\(url)")
+            Logger.general.error(category: "PayURL", message: "Invalid URL: \(url)")
             showAutoHiddenHud(style: .error, text: R.string.localizable.url_invalid_payment())
             return true
         }
         guard !recipientId.isEmpty && UUID(uuidString: recipientId) != nil && !assetId.isEmpty && UUID(uuidString: assetId) != nil && !amount.isEmpty && amount.isGenericNumber else {
-            Logger.write(errorMsg: "[UrlWindow][CheckPayUrl]\(url)")
+            Logger.general.error(category: "PayURL", message: "Invalid URL: \(url)")
             showAutoHiddenHud(style: .error, text: R.string.localizable.url_invalid_payment())
             return true
         }
@@ -644,6 +644,8 @@ extension UrlWindow {
                     presentConversation(conversation: conversation, codeId: codeId, hud: hud)
                 } else if let multisig = code.multisig {
                     presentMultisig(multisig: multisig, hud: hud)
+                } else if let collectible = code.collectible {
+                    presentCollectible(collectible: collectible, hud: hud)
                 } else if let payment = code.payment {
                     presentPayment(payment: payment, hud: hud)
                 } else {
@@ -762,7 +764,21 @@ extension UrlWindow {
         
         return users
     }
-
+    
+    private static func collectibleToken(tokenId: String, hud: Hud) -> CollectibleToken? {
+        switch CollectibleAPI.token(tokenId: tokenId) {
+        case let .success(token):
+            return token
+        case let .failure(error):
+            let text = error.localizedDescription(overridingNotFoundDescriptionWith: R.string.localizable.asset_not_found())
+            DispatchQueue.main.async {
+                hud.set(style: .error, text: text)
+                hud.scheduleAutoHidden()
+            }
+            return nil
+        }
+    }
+    
     private static func presentMultisig(multisig: MultisigResponse, hud: Hud) {
         guard LoginManager.shared.account?.has_pin ?? false else {
             UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
@@ -835,14 +851,44 @@ extension UrlWindow {
         }
     }
 
+    private static func presentCollectible(collectible: CollectibleResponse, hud: Hud) {
+        guard LoginManager.shared.account?.has_pin ?? false else {
+            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
+            DispatchQueue.main.async {
+                hud.hide()
+            }
+            return
+        }
+        DispatchQueue.global().async {
+            guard let token = collectibleToken(tokenId: collectible.tokenId, hud: hud) else {
+                return
+            }
+            guard let users = syncUsers(userIds: collectible.senders + collectible.receivers, hud: hud) else {
+                return
+            }
+            let senderUsers = users.filter { collectible.senders.contains($0.userId) }
+            let receiverUsers = users.filter { collectible.receivers.contains($0.userId) }
+            var error = ""
+            if collectible.action == CollectibleAction.sign.rawValue && collectible.state == CollectibleState.signed.rawValue {
+                error = R.string.localizable.multisig_state_signed()
+            } else if collectible.action == CollectibleAction.unlock.rawValue && collectible.state == CollectibleState.unlocked.rawValue {
+                error = R.string.localizable.multisig_state_unlocked()
+            }
+            DispatchQueue.main.async {
+                hud.hide()
+                PayWindow.instance().render(token: token, action: .collectible(collectible: collectible, senders: senderUsers, receivers: receiverUsers), amount: collectible.amount, memo: "", error: error).presentPopupControllerAnimated()
+            }
+        }
+    }
+    
     private static func presentAuthorization(authorization: AuthorizationResponse, webContext: MixinWebViewController.Context? = nil, hud: Hud) {
         if let context = webContext,  case let .app(app, _) = context.style {
             if let switcher = UIApplication.homeContainerViewController?.clipSwitcher, let clip = switcher.clips.first(where: { $0.app?.appId == app.appId }) {
-                Logger.write(log: "[Authorization][Clip][\(clip.title)]...url:\(clip.url.absoluteString)")
+                Logger.general.info(category: "Authorization", message: "Auth window presented from clip: \(clip.title), url: \(clip.url)")
             }
-            Logger.write(log: "[Authorization][WebContext][\(app.appNumber)][\(app.name)]...\(app.homeUri)")
+            Logger.general.info(category: "Authorization", message: "Auth window presented with web context. App number: \(app.appNumber), name: \(app.name), home: \(app.homeUri)")
         } else {
-            Logger.write(log: "[Authorization][\(authorization.app.appNumber)][\(authorization.app.name)]...\(authorization.app.homeUri)")
+            Logger.general.info(category: "Authorization", message: "Auth window presented with app number: \(authorization.app.appNumber), name: \(authorization.app.name), home: \(authorization.app.homeUri)")
         }
         
         if let window = UIApplication.shared.keyWindow?.subviews.compactMap({ $0 as? AuthorizationWindow }).first, window.isShowing {

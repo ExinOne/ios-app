@@ -1,4 +1,5 @@
 "app_name" = "JustChat";
+"strings_language" = "中文";
 
 // Common
 "dialog_button_ok" = "确定";
@@ -56,6 +57,8 @@
 "menu_delete" = "删除";
 "menu_edit" = "编辑";
 "menu_report" = "上报";
+"menu_pin" = "置顶";
+"menu_unpin" = "取消置顶";
 "no_result" = "未找到相关内容";
 "title_loading" = "正在加载...";
 "all_photos" = "所有照片";
@@ -70,19 +73,19 @@
 "date_format_week_date" = "yyyy 年 MM 月 d 日 E";
 
 // Search
-"search_placeholder_number" = "搜索 JustChat ID 或手机号码：";
+"search_placeholder_number" = "搜索 ID 或手机号码：";
 "search_placeholder_address" = "标签名";
 "search_placeholder_asset" = "名称, 符号";
 "search_placeholder_currency" = "货币代码";
 "search_placeholder_home" = "联系人, 资产, 聊天";
-"search_placeholder_contact" = "JustChat ID, 名称, 手机号码";
-"search_placeholder_authorization" = "JustChat ID, 名称";
+"search_placeholder_contact" = "ID, 名称, 手机号码";
+"search_placeholder_authorization" = "ID, 名称";
 "search_related_messages_count" = "条相关消息";
 "search_section_title_asset" = "资产";
 "search_section_title_user" = "联系人";
 "search_section_title_conversation_by_name" = "会话";
 "search_section_title_conversation_by_message" = "消息";
-"search_result_prefix_id" = "JustChat ID：";
+"search_result_prefix_id" = "ID：";
 "search_result_prefix_phone" = "手机号码：";
 
 // Toast
@@ -134,8 +137,8 @@
 "navigation_title_enter_mobile_number" = "输入你的手机号码";
 "navigation_title_enter_verification_code" = "请输入发送至以下号码的4位验证码： %@";
 "navigation_title_enter_name" = "名字";
-"navigation_title_enter_emergency_contact_id" = "输入紧急联系人的 JustChat ID";
-"navigation_title_enter_emergency_contact_verification_code" = "请输入发送至以下 JustChat ID 的 4 位验证码：%@";
+"navigation_title_enter_emergency_contact_id" = "输入紧急联系人的 ID";
+"navigation_title_enter_emergency_contact_verification_code" = "请输入发送至以下 ID 的 4 位验证码：%@";
 "landing_welcome_title" = "欢迎使用 JustChat";
 "text_intro" = "继续使用即表示你同意 %@ 和 %@";
 "text_mobile_number_privacy" = "我们不会公开你的手机号码";
@@ -169,7 +172,7 @@
 "contact_new_group_title" = "新群聊";
 "contact_new_group_summary" = "创建一个最多支持 256 人的群";
 "contact_add_title" = "添加联系人";
-"contact_add_summary" = "通过 JustChat ID 或手机号添加联系人";
+"contact_add_summary" = "通过 ID 或手机号添加联系人";
 "contact_qr_code_title" = "JustChat 二维码";
 "contact_qr_code_summary" = "扫描好友的二维码";
 "contact_invite_title" = "邀请好友";
@@ -179,10 +182,10 @@
 "contact_phone_contacts" = "通讯录";
 "contact_upload_mobile_contacts" = "上传通讯录找好友";
 "contact_phone_contact_summary" = "上传你的手机通讯录，如果你的通讯录中有朋友已经注册了 JustChat，系统会帮你自动添加为好友";
-"contact_my_identity_number" = "我的 JustChat ID: %@";
+"contact_my_identity_number" = "我的 ID: %@";
 "contact_error_compose_avatar" = "头像解析失败，请尝试使用其他图片。";
 "contact_phone_contact_invite" = "邀请";
-"contact_identity_number" = "JustChat ID: %@";
+"contact_identity_number" = "ID: %@";
 "contact_mobile" = "手机号: %@";
 "contact_avatar_picking_fail" = "上传头像失败，请稍后重试";
 "contact_change_name_fail" = "修改名称失败，请稍后重试";
@@ -192,7 +195,7 @@
 "user_not_found" = "找不到这个用户";
 
 "button_title_search" = "搜索";
-"placeholder_JustChat_id_or_phone" = "JustChat ID 或手机号";
+"placeholder_JustChat_id_or_phone" = "ID 或手机号";
 "placeholder_new_name" = "名称";
 "navigation_title_add_people" = "添加联系人";
 
@@ -370,6 +373,24 @@
 "chat_manage_photo_auth" = "更改设置";
 "chat_photo_select_more" = "选择更多照片";
 
+// Pin
+"chat_pinned_general_message" = "%@置顶了一条消息";
+"chat_pinned_text_message" = "%@置顶了\"%@\"";
+"chat_pinned_image_message" = "%@置顶了一张图片";
+"chat_pinned_video_message" = "%@置顶了一个视频";
+"chat_pinned_live_message" = "%@置顶了一个直播";
+"chat_pinned_data_message" = "%@置顶了一个文件";
+"chat_pinned_sticker_message" = "%@置顶了一个贴纸";
+"chat_pinned_contact_message" = "%@置顶了一个联系人";
+"chat_pinned_audio_message" = "%@置顶了一个语音";
+"chat_pinned_post_message" = "%@置顶了一篇文章";
+"chat_pinned_location_message" = "%@置顶了一处位置";
+"chat_pinned_transcript_message" = "%@置顶了一个聊天记录";
+"chat_pinned_app_card_message" = "%@置顶了一张卡片";
+"chat_pinned_messages_count" = "%d条置顶消息";
+"chat_unpin_all_messages" = "取消所有置顶消息";
+"chat_alert_unpin_all_messages" = "你确定要取消所有置顶消息吗";
+
 // Web
 "web_suspicious_link" = "可疑链接";
 "web_suspicious_link_tips" = "该链接不在对应的机器人域名白名单内。";
@@ -378,6 +399,8 @@
 "web_cannot_reached_title" = "无法访问此网页";
 "web_cannot_reached_desc" = "无法访问 %@，请检查你的网络并尝试切换 4G、Wi-Fi 或 VPN 后重新载入页面。";
 "web_contact_developer" = "联系开发者";
+"web_export_as_pdf" = "导出";
+"web_export_failed" = "导出失败";
 
 // Call
 "call_encryption" = "端对端加密";
@@ -494,7 +517,7 @@
 "wallet_deposit" = "充值";
 "wallet_deposit_eos" = "该充值地址支持所有基于 EOS 发的币，例如 EOS、IQ、BLACK、OCT、KARMA 等。 ";
 "wallet_deposit_eth" = "该充值地址支持所有符合 ERC-20 协议的币，例如 ETH、XIN、BOX、HT、LOOM、LEO、PRS 等。 ";
-"wallet_deposit_btc" = "该充值地址仅支持 BTC 和 Omni USDT。 ";
+"wallet_deposit_btc" = "该充值地址仅支持 BTC。 ";
 "wallet_deposit_trx" = "该充值地址支持所有符合 TRC-10 和 TRC-20 协议的币，例如 TRX、BTT、USDT-TRON 等。 ";
 "wallet_deposit_other" = "该充值地址仅支持 %@。";
 "wallet_deposit_confirmations" = "充值到账至少需要 %@ 个区块确认。";
@@ -514,7 +537,7 @@
 "wallet_send_amount" = "数量";
 "wallet_button_add_address" = "点击添加地址";
 "wallet_hint_transaction_fee" = "需要 %@ 作为 %@ 提现手续费。";
-"wallet_password_address_tips" = "通过密码修改";
+"wallet_password_address_tips" = "通过密码保存";
 "wallet_withdrawal_change_amount" = "修改金额";
 "wallet_withdrawal_change_amount_count" = "修改金额 (%@)";
 "wallet_withdrawal_address_tips" = "首次提现到新地址，建议小额尝试！如果您提现到错误的地址资产将无法找回！";
@@ -658,6 +681,9 @@
 "multisig_state_signed" = "您已经对这笔交易进行了签名，您无法再次签名。";
 "multisig_state_unlocked" = "这笔交易已经被其他人撤销了，您无法再次撤销。";
 
+// NFT
+"collectible_token_id" = "#%@";
+
 // QRCode
 "qr_code_not_found" = "未检测到二维码";
 "myqrcode_title" = "我的二维码";
@@ -683,6 +709,8 @@
 "auth_permission_circles_read_description" = "访问你的圈子列表";
 "auth_permission_circles_write" = "管理圈子";
 "auth_permission_circles_write_description" = "管理你所有的圈子";
+"auth_permission_collectibles_read" = "查看 NFT";
+"auth_permission_collectibles_read_description" = "访问你的 NFT 列表";
 "auth_assets_more" = "等";
 "auth_profile_description" = "%@, %@, 头像";
 "auth_success" = "成功登录 %@";
@@ -714,7 +742,7 @@
 //"profile_change_number_verify_pin" = "验证钱包密码";
 "profile_change_number_verify_pin" = "验证密码";
 "profile_change_number_new_number" = "请输入新号码";
-"profile_JustChat_id" = "JustChat ID: %@";
+"profile_JustChat_id" = "ID: %@";
 "profile_reputation_score" = "荣誉值: %@";
 "profile_edit_name" = "编辑名称";
 "profile_edit_biography" = "编辑个人简介";
@@ -755,13 +783,13 @@
 "emergency_remove" = "删除紧急联系人";
 "emergency_tip_remove" = "确定删除紧急联系人？";
 "emergency_tip_before" = "紧急联系人旨在帮助你在丢失且无法找回手机号的情况下登录你的账号。";
-"emergency_tip_after" = "当您的电话号码无法使用时，请向紧急联系人索取 JustChat ID 与验证码。阅读紧急联系人了解更多。";
+"emergency_tip_after" = "当您的电话号码无法使用时，请向紧急联系人索取 ID 与验证码。阅读紧急联系人了解更多。";
 "emergency_tip_link" = "紧急联系人";
 "emergency_pin_protection_hint" = "紧急联系人经密码加密保护";
 "emergency_change_number_tip" = "立即更换手机号？";
 "emergency_tip_pin" = "注意：紧急联系人无法帮助找回密码";
 "enable_emergency_contact" = "启用紧急联系人";
-"emergency_confirm" = "确认设置 JustChat ID %@ 为你的紧急联系人？注意双方必须互为联系人才能设置成功！";
+"emergency_confirm" = "确认设置 ID %@ 为你的紧急联系人？注意双方必须互为联系人才能设置成功！";
 
 // Database
 "database_upgrade" = "数据库升级";
@@ -864,6 +892,13 @@
 "setting_permissions" = "授权列表";
 "setting_permissions_date" = "授权时间: %@, 上次访问: %@";
 "setting_appearance" = "显示";
+"setting_appearance_ui_style" = "外观";
+"setting_appearance_ui_style_light" = "浅色";
+"setting_appearance_ui_style_dark" = "深色";
+"setting_appearance_ui_style_auto" = "自动";
+"setting_appearance_language" = "语言";
+"setting_appearance_language_alert_title" = "设置语言";
+"setting_appearance_language_alert_description" = "前往系统设置修改语言偏好";
 "setting_pin" = "密码";
 "setting_feedback" = "反馈";
 "setting_share_this_app" = "分享此 App";
@@ -932,6 +967,7 @@
 "notification_content_voice_call" = "[语音通话]";
 "notification_content_location" = "[位置]";
 "notification_content_transcript" = "[聊天记录]";
+"notification_content_post" = "[文章]";
 "notification_content_unknown" = "[未知消息]";
 
 "alert_key_contact_message" = "发来一条信息";
@@ -1001,11 +1037,13 @@
 "error_insufficient_balance" = "余额不足";
 "error_pin_incorrect" = "密码不正确";
 "error_fee_insufficient" = "手续费不足";
+"error_fee_insufficient_detailed" = "手续费不足。请确保钱包内有 %@ 作为手续费";
 "error_transfer_amount_too_small" = "转账金额太小";
 "error_too_many_stickers" = "贴纸数已达上限";
 "error_withdrawal_amount_too_small" = "提现金额太少了";
 "error_blockchian_not_in_sync" = "区块链同步异常，请稍后重试";
 "error_malformed_address" = "地址格式错误";
 "error_malformed_address_eos" = "地址格式错误。JustChat 不支持提现到 EOS 合约地址！";
+"error_malformed_address_detailed" = "地址格式错误。请输入正确的 %@ 地址";
 
 "error_network_task_failed" = "网络连接失败，请检查或切换网络后重试";

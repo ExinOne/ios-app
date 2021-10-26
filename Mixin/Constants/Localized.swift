@@ -78,7 +78,7 @@ public class Localized {
         return String(format: LocalizedString("navigation_title_enter_verification_code", comment: "Enter the 4-digit code sent to you at %@"), mobileNumber)
     }
     public static func NAVIGATION_TITLE_ENTER_EMERGENCY_CONTACT_VERIFICATION_CODE(id: String) -> String {
-        return String(format: LocalizedString("navigation_title_enter_emergency_contact_verification_code", comment: "Enter the 4-digit code sent to JustChat ID %@"), id)
+        return String(format: LocalizedString("navigation_title_enter_emergency_contact_verification_code", comment: "Enter the 4-digit code sent to ID %@"), id)
     }
     public static let TEXT_INTRO = LocalizedString("text_intro", comment: "A messenger that transfers all crypto currencies with end to end encryption. Tap \"%@\" to accept %@ and %@")
     public static let TEXT_CONFIRM_SEND_CODE = LocalizedString("text_confirm_send_code", comment: "Please confirm the phone number %@")
@@ -96,7 +96,7 @@ public class Localized {
     public static let CONTACT_NEW_GROUP_TITLE = LocalizedString("contact_new_group_title", comment: "New Group Chat")
     public static let CONTACT_NEW_GROUP_SUMMARY = LocalizedString("contact_new_group_summary", comment: "Create a group chat up to 256 people")
     public static let CONTACT_ADD_TITLE = LocalizedString("contact_add_title", comment: "Add Contact")
-    public static let CONTACT_ADD_SUMMARY = LocalizedString("contact_add_summary", comment: "Add people by JustChat ID or phone number")
+    public static let CONTACT_ADD_SUMMARY = LocalizedString("contact_add_summary", comment: "Add people by ID or phone number")
     public static let CONTACT_QR_CODE_TITLE = LocalizedString("contact_qr_code_title", comment: "JustChat QR Code")
     public static let CONTACT_QR_CODE_SUMMARY = LocalizedString("contact_qr_code_summary", comment: "Scan a friend's JustChat QR Code")
     public static let CONTACT_INVITE_TITLE = LocalizedString("contact_invite_title", comment: "Invite People")
@@ -109,10 +109,10 @@ public class Localized {
     public static let CONTACT_PHONE_CONTACTS = LocalizedString("contact_phone_contacts", comment: "Mobile Contacts")
     public static let CONTACT_PHONE_CONTACT_SUMMARY = LocalizedString("contact_phone_contact_summary", comment: "JustChat needs access to your contacts to help you connect with other people on JustChat.")
     public static func CONTACT_MY_IDENTITY_NUMBER(id: String) -> String {
-        return String(format: LocalizedString("contact_my_identity_number", comment: "My JustChat ID: %@"), id)
+        return String(format: LocalizedString("contact_my_identity_number", comment: "My ID: %@"), id)
     }
     public static func CONTACT_IDENTITY_NUMBER(identityNumber: String) -> String {
-        return String(format: LocalizedString("contact_identity_number", comment: "JustChat ID: %@"), identityNumber)
+        return String(format: LocalizedString("contact_identity_number", comment: "ID: %@"), identityNumber)
     }
     public static func CONTACT_MOBILE(mobile: String) -> String {
         return String(format: LocalizedString("contact_mobile", comment: "Mobile: %@"), mobile)
@@ -125,7 +125,7 @@ public class Localized {
     public static let CONTACT_CHANGE_NAME_FAIL = LocalizedString("contact_change_name_fail", comment: "Failed to change your name")
     public static let CONTACT_MY_QR_CODE = LocalizedString("contact_my_qr_code", comment: "My QR Code")
     public static let CONTACT_RECEIVE_MONEY = LocalizedString("contact_receive_money", comment: "Receive Money")
-    public static let PLACEHOLDER_MIXIN_ID_OR_PHONE = LocalizedString("placeholder_JustChat_id_or_phone", comment: "JustChat ID, Phone number")
+    public static let PLACEHOLDER_MIXIN_ID_OR_PHONE = LocalizedString("placeholder_JustChat_id_or_phone", comment: "ID, Phone number")
     
     // Home
     public static let HOME_TITLE = LocalizedString("home_title", comment: "Chats")
@@ -258,7 +258,7 @@ public class Localized {
     public static let PROFILE_TITLE = LocalizedString("profile_title", comment: "Info")
     public static let PROFILE_OPEN_BOT = LocalizedString("profile_open_bot", comment: "Open App")
     public static func PROFILE_MIXIN_ID(id: String) -> String {
-        return String(format: LocalizedString("profile_JustChat_id", comment: "JustChat ID: %@"), id)
+        return String(format: LocalizedString("profile_JustChat_id", comment: "ID: %@"), id)
     }
     public static func PROFILE_REPUTATION_SCORE(reputation: Int) -> String {
         return String(format: LocalizedString("profile_reputation_score", comment: "Reputation Score: %@"), String(reputation))

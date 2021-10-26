@@ -6,7 +6,7 @@ final class PrivacyViewController: SettingsTableViewController {
     private let dataSource = SettingsDataSource(sections: [
         SettingsSection(rows: [
             SettingsRow(title: R.string.localizable.setting_pin(), accessory: .disclosure),
-//            SettingsRow(title: R.string.localizable.setting_emergency_contact(), accessory: .disclosure)
+            SettingsRow(title: R.string.localizable.setting_emergency_contact(), accessory: .disclosure)
         ]),
         SettingsSection(footer: R.string.localizable.setting_privacy_and_security_summary(), rows: [
             SettingsRow(title: R.string.localizable.setting_blocked(), accessory: .disclosure),
@@ -77,8 +77,8 @@ extension PrivacyViewController {
     }
     
     @objc private func updateScreenLockRow() {
-//        let indexPath = IndexPath(row: 2, section: 0)
-        let indexPath = IndexPath(row: 1, section: 0)
+        let indexPath = IndexPath(row: 2, section: 0)
+//        let indexPath = IndexPath(row: 1, section: 0)
         let row = dataSource.row(at: indexPath)
         row.subtitle = screenLockTimeoutInterval
     }
@@ -105,9 +105,9 @@ extension PrivacyViewController: UITableViewDelegate {
                 if indexPath.row == 0 {
                     vc = PinSettingsViewController.instance()
                 }
-//                else if indexPath.row == 1 {
-//                    vc = EmergencyContactViewController.instance()
-//                }
+                else if indexPath.row == 1 {
+                    vc = EmergencyContactViewController.instance()
+                }
             else {
                     vc = ScreenLockSettingViewController.instance()
                 }

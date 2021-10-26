@@ -20,6 +20,56 @@ public class SendMessageService: MixinService {
     private let httpDispatchQueue = DispatchQueue(label: "one.mixin.services.queue.send.http.messages")
     private var httpProcessing = false
     
+    public func sendPinMessages(items: [MessageItem], conversationId: String, action: TransferPinAction) {
+        DispatchQueue.global().async {
+            let messageId = UUID().uuidString.lowercased()
+            let pinMessageIds = items.map(\.messageId)
+            let blazeMessage = BlazeMessage(messageId: messageId, pinMessageIds: pinMessageIds, conversationId: conversationId, action: action)
+            let job = Job(jobId: UUID().uuidString.lowercased(), action: JobAction.SEND_MESSAGE, conversationId: conversationId, blazeMessage: blazeMessage)
+            UserDatabase.current.save(job)
+            SendMessageService.shared.processMessages()
+            switch action {
+            case .pin:
+                guard let item = items.first else {
+                    return
+                }
+                let mention: MessageMention?
+                if item.category.hasSuffix("_TEXT"), let content = item.content {
+                    mention = MessageMention(conversationId: item.conversationId,
+                                             messageId: messageId,
+                                             content: content,
+                                             addMeIntoMentions: false,
+                                             hasRead: { _ in true })
+                } else {
+                    mention = nil
+                }
+                let pinLocalContent = PinMessage.LocalContent(category: item.category, content: item.content)
+                let content: String
+                if let data = try? JSONEncoder.default.encode(pinLocalContent), let localContent = String(data: data, encoding: .utf8) {
+                    content = localContent
+                } else {
+                    content = ""
+                }
+                let message = Message.createMessage(messageId: messageId,
+                                                    conversationId: item.conversationId,
+                                                    userId: myUserId,
+                                                    category: MessageCategory.MESSAGE_PIN.rawValue,
+                                                    content: content,
+                                                    status: MessageStatus.DELIVERED.rawValue,
+                                                    action: action.rawValue,
+                                                    quoteMessageId: item.messageId,
+                                                    createdAt: Date().toUTCString())
+                PinMessageDAO.shared.save(referencedItem: item,
+                                          source: MessageCategory.MESSAGE_PIN.rawValue,
+                                          silentNotification: true,
+                                          pinMessage: message,
+                                          mention: mention)
+            case .unpin:
+                PinMessageDAO.shared.delete(messageIds: pinMessageIds, conversationId: conversationId)
+            }
+        }
+    }
+    
     public func recallMessage(item: MessageItem) {
         let category = item.category
         let conversationId = item.conversationId
@@ -396,6 +446,8 @@ public class SendMessageService: MixinService {
                         let blazeMessage = job.toBlazeMessage()
                         if blazeMessage.action == BlazeMessageAction.createCall.rawValue {
                             try SendMessageService.shared.sendCallMessage(blazeMessage: blazeMessage)
+                        } else if blazeMessage.params?.category == MessageCategory.MESSAGE_PIN.rawValue {
+                            try SendMessageService.shared.sendPinMessage(blazeMessage: blazeMessage)
                         } else {
                             try SendMessageService.shared.sendMessage(blazeMessage: blazeMessage)
                         }
@@ -424,7 +476,7 @@ public class SendMessageService: MixinService {
                         
                         let result = try sendSenderKey(conversationId: conversationId, recipientId: recipientId, sessionId: sessionId)
                         if !result {
-                            Logger.write(conversationId: conversationId, log: "[ResendSenderKey]...recipientId:\(recipientId)...No any group signal key from server")
+                            Logger.conversation(id: conversationId).info(category: "ResendSenderKey", message: "Received no group signal key for recipient: \(recipientId)")
                             sendNoKeyMessage(conversationId: conversationId, recipientId: recipientId)
                         }
                     }
@@ -432,7 +484,8 @@ public class SendMessageService: MixinService {
                     ReceiveMessageService.shared.messageDispatchQueue.sync {
                         let blazeMessage = job.toBlazeMessage()
                         deliverNoThrow(blazeMessage: blazeMessage)
-                        Logger.write(conversationId: job.conversationId!, log: "[SendMessageService][REQUEST_RESEND_KEY]...messageId:\(blazeMessage.params?.messageId ?? "")")
+                        let messageId = blazeMessage.params?.messageId ?? "(null)"
+                        Logger.conversation(id: job.conversationId!).info(category: "SendMessageService", message: "Request resend key for message: \(messageId)")
                     }
                 case JobAction.REQUEST_RESEND_MESSAGES.rawValue:
                     deliverNoThrow(blazeMessage: job.toBlazeMessage())
@@ -472,13 +525,13 @@ public class SendMessageService: MixinService {
                         if IdentityDAO.shared.getLocalIdentity() == nil {
                             userInfo["signalError"] = "local identity nil"
                             userInfo["identityCount"] = "\(IdentityDAO.shared.getCount())"
-                            Logger.write(error: error, userInfo: userInfo)
+                            Logger.general.error(category: "SendMessageService", message: "Job execution failed: \(err)", userInfo: userInfo)
                             reporter.report(error: MixinServicesError.sendMessage(userInfo))
                             LoginManager.shared.logout(from: "SendMessengerError")
                             return false
                         }
                     }
-                    Logger.write(error: error, userInfo: userInfo)
+                    Logger.general.error(category: "SendMessageService", message: "Job execution failed: \(error)", userInfo: userInfo)
                     reporter.report(error: MixinServicesError.sendMessage(userInfo))
                 }
                 
@@ -529,7 +582,7 @@ extension SendMessageService {
         blazeMessage.params?.data = try SignalProtocol.shared.encryptSessionMessageData(recipientId: recipientId, content: message.content ?? "", resendMessageId: messageId, sessionId: job.sessionId)
         try deliverMessage(blazeMessage: blazeMessage)
         
-        Logger.write(conversationId: message.conversationId, log: "[SendMessageService][ResendMessage]...messageId:\(messageId)...resendMessageId:\(resendMessageId)...resendUserId:\(recipientId)")
+        Logger.conversation(id: message.conversationId).info(category: "SendMessageService", message: "Resend message: \(messageId), resendMessageId:\(resendMessageId), recipientId:\(recipientId)")
     }
     
     private func sendMessage(blazeMessage: BlazeMessage) throws {
@@ -601,9 +654,9 @@ extension SendMessageService {
         }
         
         try deliverMessage(blazeMessage: blazeMessage)
-        Logger.write(conversationId: message.conversationId, log: "[SendMessageService][SendMessage][\(message.category)]...messageId:\(messageId)...messageStatus:\(message.status)")
+        Logger.conversation(id: message.conversationId).info(category: "SendMessageService", message: "Send message: \(messageId), category:\(message.category), status:\(message.status)")
     }
-    
+        
     private func checkConversationExist(conversation: ConversationItem) throws {
         guard conversation.status == ConversationStatus.START.rawValue else {
             return
@@ -642,6 +695,23 @@ extension SendMessageService {
             return
         }
         guard let conversation = ConversationDAO.shared.getConversation(conversationId: conversationId) else {
+            return
+        }
+        try checkConversationExist(conversation: conversation)
+        try deliverMessage(blazeMessage: blazeMessage)
+    }
+    
+    private func sendPinMessage(blazeMessage: BlazeMessage) throws {
+        guard let params = blazeMessage.params else {
+            Logger.general.error(category: "SendPinMessage", message: "No params")
+            return
+        }
+        guard let conversationId = params.conversationId else {
+            Logger.general.error(category: "SendPinMessage", message: "No conversation ID")
+            return
+        }
+        guard let conversation = ConversationDAO.shared.getConversation(conversationId: conversationId) else {
+            Logger.general.error(category: "SendPinMessage", message: "No conversation")
             return
         }
         try checkConversationExist(conversation: conversation)

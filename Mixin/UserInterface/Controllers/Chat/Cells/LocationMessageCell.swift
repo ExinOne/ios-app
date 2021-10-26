@@ -44,8 +44,8 @@ class LocationMessageCell: ImageMessageCell {
                     maskingView.layer.mask = backgroundImageView.layer
                 }
             } else {
-                maskingView.frame = viewModel.photoFrame
-                mapImageView.frame = maskingView.bounds
+                maskingView.frame = viewModel.maskFrame
+                mapImageView.frame = viewModel.photoFrame
                 if maskingView.layer.mask == backgroundImageView.layer {
                     maskingView.layer.mask = nil
                 }
@@ -96,10 +96,17 @@ class LocationMessageCell: ImageMessageCell {
         maskingView.clipsToBounds = true
         forwarderImageView.alpha = 0.9
         encryptedImageView.alpha = 0.9
+        pinnedImageView.alpha = 0.9
         statusImageView.alpha = 0.9
     }
     
     private func reloadMapImage() {
+        // MKMapSnapshotter not working on macOS 11.6 (disguised as iOS 14.7)
+        if #available(iOS 14.0, *), ProcessInfo.processInfo.isiOSAppOnMac {
+            mapImageView.image = R.image.conversation.bg_message_location()
+            annotationView.isHidden = true
+            return
+        }
         guard let viewModel = viewModel as? LocationMessageViewModel else {
             return
         }

@@ -166,6 +166,7 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .filter(Participant.column(of: .conversationId) == conversationId)
                 .deleteAll(db)
             try deleteFTSContent(with: conversationId, from: db)
+            try PinMessageDAO.shared.deleteAll(conversationId: conversationId, from: db)
             db.afterNextTransactionCommit { (_) in
                 NotificationCenter.default.post(onMainThread: ParticipantDAO.participantDidChangeNotification,
                                                 object: self,
@@ -197,6 +198,7 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .filter(ParticipantSession.column(of: .conversationId) == conversationId)
                 .deleteAll(db)
             try deleteFTSContent(with: conversationId, from: db)
+            try PinMessageDAO.shared.deleteAll(conversationId: conversationId, from: db)
             db.afterNextTransactionCommit { (_) in
                 let job = AttachmentCleanUpJob(conversationId: conversationId,
                                                mediaUrls: mediaUrls,
@@ -224,6 +226,7 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .filter(Conversation.column(of: .conversationId) == conversationId)
                 .updateAll(db, [Conversation.column(of: .unseenMessageCount).set(to: 0)])
             try deleteFTSContent(with: conversationId, from: db)
+            try PinMessageDAO.shared.deleteAll(conversationId: conversationId, from: db)
             db.afterNextTransactionCommit { (_) in
                 let job = AttachmentCleanUpJob(conversationId: conversationId,
                                                mediaUrls: mediaUrls,
@@ -360,7 +363,7 @@ public final class ConversationDAO: UserDatabaseDAO {
                 }
             }
         } catch {
-            Logger.write(error: error)
+            Logger.general.error(category: "ConversationDAO", message: "Failed to save new created conversation: \(error)")
             completion(false)
         }
     }
@@ -376,6 +379,13 @@ public final class ConversationDAO: UserDatabaseDAO {
                 Participant(conversationId: conversationId, userId: $0.userId, role: $0.role, status: ParticipantStatus.SUCCESS.rawValue, createdAt: $0.createdAt)
             }
             try participants.insert(db)
+            if let participantSessions = response.participantSessions {
+                let createdAt = Date().toUTCString()
+                let sessions = participantSessions.map { session in
+                    ParticipantSession(conversationId: conversationId, userId: session.userId, sessionId: session.sessionId, sentToServer: nil, createdAt: createdAt)
+                }
+                try sessions.save(db)
+            }
             conversation = try ConversationItem.fetchOne(db, sql: ConversationDAO.sqlQueryConversationByCoversationId, arguments: [conversationId], adapter: nil)
             participantUsers = try ParticipantUser.fetchAll(db, sql: ParticipantDAO.sqlQueryGroupIconParticipants, arguments: [conversationId], adapter: nil)
         }

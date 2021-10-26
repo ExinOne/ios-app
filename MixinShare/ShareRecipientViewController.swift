@@ -218,7 +218,7 @@ extension ShareRecipientViewController {
                     dispatchGroup.enter()
                     attachment.loadItem(forTypeIdentifier: kUTTypeMovie as String, options: nil) { [weak self](item, error) in
                         if let err = error {
-                            Logger.write(error: err)
+                            Logger.general.error(category: "ShareRecipientViewController", message: "Unable to load attachment as movie: \(err)")
                             dispatchGroup.leave()
                             return
                         }
@@ -265,7 +265,7 @@ extension ShareRecipientViewController {
                             dispatchGroup.leave()
                         }
                         if let err = error {
-                            Logger.write(error: err)
+                            Logger.general.error(category: "ShareRecipientViewController", message: "Unable to load attachment: \(err)")
                             return
                         }
                         guard let weakSelf = self else {
@@ -407,7 +407,7 @@ extension ShareRecipientViewController {
         let thumbnailURL = AttachmentContainer.url(for: .videos, filename: messageId + ExtensionName.jpeg.withDot)
         thumbnail.saveToFile(path: thumbnailURL)
 
-        let category: MessageCategory = conversation.isSignalConversation ? .SIGNAL_VIDEO : .SIGNAL_VIDEO
+        let category: MessageCategory = conversation.isSignalConversation ? .SIGNAL_VIDEO : .PLAIN_VIDEO
         var message = Message.createMessage(category: category.rawValue, conversationId: conversation.conversationId, userId: myUserId)
         message.messageId = messageId
         message.thumbImage = thumbnail.base64Thumbnail()
@@ -426,7 +426,7 @@ extension ShareRecipientViewController {
         guard FileManager.default.fileSize(url.path) > 0 else {
             return
         }
-        let category: MessageCategory = conversation.isSignalConversation ? .SIGNAL_DATA : .SIGNAL_DATA
+        let category: MessageCategory = conversation.isSignalConversation ? .SIGNAL_DATA : .PLAIN_DATA
         var message = Message.createMessage(category: category.rawValue, conversationId: conversation.conversationId, userId: myUserId)
 
         let fileExtension = url.pathExtension.lowercased()
@@ -500,10 +500,9 @@ extension ShareRecipientViewController {
         let interaction = INInteraction(intent: messageIntent, response: nil)
         interaction.direction = .outgoing
         interaction.donate { (error) in
-            guard let err = error else {
-                return
+            if let error = error {
+                Logger.general.error(category: "ShareRecipientViewController", message: "Failed to donate interaction: \(error)")
             }
-            Logger.write(error: err)
         }
     }
 }

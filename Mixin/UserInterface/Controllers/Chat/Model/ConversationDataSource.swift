@@ -93,6 +93,8 @@ class ConversationDataSource {
         NotificationCenter.default.addObserver(self, selector: #selector(messageDaoDidRedecryptMessage(_:)), name: MessageDAO.didRedecryptMessageNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateMediaProgress(_:)), name: AttachmentLoadingJob.progressNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateMessageMediaStatus(_:)), name: MessageDAO.messageMediaStatusDidUpdateNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMessagePinning(_:)), name: PinMessageDAO.didSaveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMessagePinning(_:)), name: PinMessageDAO.didDeleteNotification, object: nil)
         reload(completion: completion)
     }
     
@@ -615,6 +617,17 @@ extension ConversationDataSource {
         }
     }
     
+    @objc private func updateMessagePinning(_ notification: Notification) {
+        guard let conversationId = notification.userInfo?[PinMessageDAO.UserInfoKey.conversationId] as? String, conversationId == self.conversationId else {
+            return
+        }
+        if let id = notification.userInfo?[PinMessageDAO.UserInfoKey.referencedMessageId] as? String {
+            updateMessage(messageId: id)
+        } else if let ids = notification.userInfo?[PinMessageDAO.UserInfoKey.referencedMessageIds] as? [String] {
+            ids.forEach(updateMessage(messageId:))
+        }
+    }
+    
     private func updateMessageStatus(messageId: String, status: MessageStatus) {
         guard let indexPath = indexPath(where: { $0.messageId == messageId }), let viewModel = viewModel(for: indexPath) as? DetailInfoMessageViewModel else {
             return
@@ -910,6 +923,7 @@ extension ConversationDataSource {
                 && !tableView.isDecelerating
                 && isLastCell
                 && (lastMessageIsVisibleBeforeInsertion || messageIsSentByMe)
+                && !(message.category == MessageCategory.MESSAGE_PIN.rawValue && messageIsSentByMe)
             if shouldScrollToNewMessage {
                 if tableView.tableFooterView == nil {
                     tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
@@ -925,7 +939,7 @@ extension ConversationDataSource {
     
     func postNewMessageOutOfBoundsNotification(message: MessageItem) {
         var userInfo: [String: Any] = [UserInfoKey.unreadMessageCount: 1]
-        if message.mentions?[myIdentityNumber] != nil {
+        if message.category != MessageCategory.MESSAGE_PIN.rawValue, message.mentions?[myIdentityNumber] != nil {
             userInfo[UserInfoKey.mentionedMessageIds] = [message.messageId]
         }
         DispatchQueue.main.async {
