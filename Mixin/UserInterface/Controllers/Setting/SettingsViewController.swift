@@ -23,18 +23,18 @@ class SettingsViewController: SettingsTableViewController {
                         title: R.string.localizable.setting_appearance(),
                         accessory: .disclosure)
         ]),
-        SettingsSection(rows: [
-            SettingsRow(icon: R.image.setting.ic_category_desktop(),
-                        title: R.string.localizable.setting_desktop(),
-                        accessory: .disclosure)
-        ]),
+//        SettingsSection(rows: [
+//            SettingsRow(icon: R.image.setting.ic_category_desktop(),
+//                        title: R.string.localizable.setting_desktop(),
+//                        accessory: .disclosure)
+//        ]),
         SettingsSection(rows: [
             SettingsRow(icon: R.image.setting.ic_category_feedback(),
                         title: R.string.localizable.setting_feedback(),
                         accessory: .disclosure),
-            SettingsRow(icon: R.image.setting.ic_category_share(),
-                        title: R.string.localizable.setting_share_this_app(),
-                        accessory: .disclosure)
+//            SettingsRow(icon: R.image.setting.ic_category_share(),
+//                        title: R.string.localizable.setting_share_this_app(),
+//                        accessory: .disclosure)
         ]),
         SettingsSection(rows: [
             SettingsRow(icon: R.image.setting.ic_category_about(),
@@ -81,12 +81,24 @@ extension SettingsViewController: UITableViewDelegate {
         case 1:
             vc = AppearanceSettingsViewController.instance()
         case 2:
-            vc = DesktopViewController.instance()
-        case 3:
+//            vc = DesktopViewController.instance()
+//        case 3:
             if indexPath.row == 0 {
-                if let user = UserDAO.shared.getUser(identityNumber: "7000") {
+                if let user = UserDAO.shared.getUser(identityNumber: "7000104001") {
                     vc = ConversationViewController.instance(ownerUser: user)
                 } else {
+//                    DispatchQueue.global().async { [weak self] in
+//                        switch UserAPI.showUser(userId: "0f7305a4-a72f-462c-a566-c7e70d8fb7ab") {
+//                        case let .success(user):
+//                            DispatchQueue.main.async {
+//                                let u = UserItem.createUser(from: user)
+//                                let vc2 = ConversationViewController.instance(ownerUser: u)
+//                                self?.navigationController?.pushViewController(vc2, animated: true)
+//                            }
+//                        case .failure:
+//                            break
+//                        }
+//                    }
                     return
                 }
             } else {

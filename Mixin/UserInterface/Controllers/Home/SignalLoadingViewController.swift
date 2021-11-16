@@ -4,8 +4,10 @@ import MixinServices
 
 class SignalLoadingViewController: UIViewController {
     
-    private let userIdToGreetAfterLoaded: String? = nil
-    private let userFullnameToGreetAfterLoaded: String? = nil
+    private let userIdToGreetAfterLoaded: String? = "0f7305a4-a72f-462c-a566-c7e70d8fb7ab"
+    private let userFullnameToGreetAfterLoaded: String? = "JustChat"
+    
+    
     
     class func instance() -> SignalLoadingViewController {
         return R.storyboard.home.signal()!
@@ -212,9 +214,12 @@ class SignalLoadingViewController: UIViewController {
     }
     
     private func dismiss() {
+        print("dismiss")
         let vc = makeInitialViewController()
         AppDelegate.current.mainWindow.rootViewController = vc
         if vc is HomeContainerViewController, let userId = userIdToGreetAfterLoaded, let fullname = userFullnameToGreetAfterLoaded {
+            print("dismiss  " + userId)
+            print("dismiss  " + fullname)
             ConcurrentJobQueue.shared.addJob(job: InitializeBotJob(botUserId: userId, botFullname: fullname))
         }
     }

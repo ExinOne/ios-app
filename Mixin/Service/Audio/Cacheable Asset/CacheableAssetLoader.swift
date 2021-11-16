@@ -66,7 +66,7 @@ final class CacheableAssetLoader: NSObject {
         }
         
         self.id = id
-        self.queue = DispatchQueue(label: "one.mixin.messenger.CacheableAssetLoader-\(id)")
+        self.queue = DispatchQueue(label: "com.exinone.messenger.CacheableAssetLoader-\(id)")
         self.fileDescription = fileDescription
         self.assetFileHandle = assetFileHandle
         self.assetFileDescriptionURL = pack.fileDescriptionURL

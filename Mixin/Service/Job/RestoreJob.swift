@@ -4,8 +4,8 @@ import MixinServices
 
 class RestoreJob: BaseJob {
 
-    private let monitorQueue = DispatchQueue(label: "one.mixin.messenger.queue.restore.download")
-    private let restoreQueue = DispatchQueue(label: "one.mixin.messenger.queue.restore")
+    private let monitorQueue = DispatchQueue(label: "com.exinone.messenger.queue.restore.download")
+    private let restoreQueue = DispatchQueue(label: "com.exinone.messenger.queue.restore")
     private var monitors = SafeDictionary<String, DownloadFile>()
     private var totalFileSize: Int64 = 0
     private var downloadedSize: Int64 = 0

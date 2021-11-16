@@ -69,7 +69,7 @@ class PlaylistManager: NSObject {
         nextItemIndex != nil
     }
     
-    private let queue = DispatchQueue(label: "one.mixin.messenger.PlaylistManager")
+    private let queue = DispatchQueue(label: "com.exinone.messenger.PlaylistManager")
     private let notificationCenter = NotificationCenter.default
     private let infoCenter = MPNowPlayingInfoCenter.default()
     private let commandCenter = MPRemoteCommandCenter.shared()

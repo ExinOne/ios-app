@@ -3,7 +3,7 @@ import MixinServices
 
 class Call: NSObject {
     
-    static let statusDidChangeNotification = Notification.Name("one.mixin.messenger.Call.StatusDidChange")
+    static let statusDidChangeNotification = Notification.Name("com.exinone.messenger.Call.StatusDidChange")
     static let statusUserInfoKey = "stat"
     
     let uuid: UUID

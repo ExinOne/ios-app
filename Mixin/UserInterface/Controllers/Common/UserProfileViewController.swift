@@ -308,14 +308,14 @@ extension UserProfileViewController {
         window.presentPopupControllerAnimated()
     }
     
-    @objc func showMyMoneyReceivingCode() {
-        guard let account = LoginManager.shared.account else {
-            return
-        }
-        let window = QrcodeWindow.instance()
-        window.renderMoneyReceivingCode(account: account)
-        window.presentPopupControllerAnimated()
-    }
+//    @objc func showMyMoneyReceivingCode() {
+//        guard let account = LoginManager.shared.account else {
+//            return
+//        }
+//        let window = QrcodeWindow.instance()
+//        window.renderMoneyReceivingCode(account: account)
+//        window.presentPopupControllerAnimated()
+//    }
     
     @objc func changeAvatarWithCamera() {
         imagePicker.presentCamera()
@@ -355,6 +355,14 @@ extension UserProfileViewController {
             let vc = WalletPasswordViewController.instance(dismissTarget: .changePhone)
             dismissAndPush(vc)
         }
+        
+//        var context = ChangeNumberContext()
+//        context.pin = ""
+//        let vc = ChangeNumberNewNumberViewController()
+//        vc.context = context
+////        navigationController?.pushViewController(vc, animated: true)
+//
+//        dismissAndPresent(vc)
     }
     
     @objc func openApp() {
@@ -631,13 +639,23 @@ extension UserProfileViewController {
                 shortcutView.leftShortcutButton.setImage(R.image.ic_open_app(), for: .normal)
                 shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
                 shortcutView.leftShortcutButton.addTarget(self, action: #selector(openApp), for: .touchUpInside)
+                shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+                shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             } else {
-                shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
-                shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
-                shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
+                if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+                    shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
+                    shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
+                    shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
+                    shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+                    shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+                }else{
+                    shortcutView.leftShortcutButton.setImage(R.image.ic_send_msg(), for: .normal)
+                    shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
+                    shortcutView.leftShortcutButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+                    shortcutView.sendMessageButton.isHidden = true
+                }
+               
             }
-            shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
-            shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             shortcutView.toggleSizeButton.removeTarget(nil, action: nil, for: .allEvents)
             shortcutView.toggleSizeButton.addTarget(self, action: #selector(toggleSize), for: .touchUpInside)
             centerStackView.addArrangedSubview(shortcutView)
@@ -654,11 +672,11 @@ extension UserProfileViewController {
                 [ProfileMenuItem(title: R.string.localizable.profile_my_qrcode(),
                                  subtitle: nil,
                                  style: [],
-                                 action: #selector(showMyQrCode)),
-                 ProfileMenuItem(title: R.string.localizable.contact_receive_money(),
-                                 subtitle: nil,
-                                 style: [],
-                                 action: #selector(showMyMoneyReceivingCode))],
+                                 action: #selector(showMyQrCode))],
+//                 ProfileMenuItem(title: R.string.localizable.contact_receive_money(),
+//                                 subtitle: nil,
+//                                 style: [],
+//                                 action: #selector(showMyMoneyReceivingCode))],
                 [ProfileMenuItem(title: R.string.localizable.profile_edit_name(),
                                  subtitle: nil,
                                  style: [],
@@ -772,10 +790,12 @@ extension UserProfileViewController {
                                                  style: [],
                                                  action: #selector(showDeveloper)))
                 }
-                group.append(ProfileMenuItem(title: R.string.localizable.profile_transactions(),
-                                             subtitle: nil,
-                                             style: [],
-                                             action: #selector(showTransactions)))
+                if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+                    group.append(ProfileMenuItem(title: R.string.localizable.profile_transactions(),
+                                                 subtitle: nil,
+                                                 style: [],
+                                                 action: #selector(showTransactions)))
+                }
                 return group
             }()
             if !editAliasAndBotRelatedGroup.isEmpty {

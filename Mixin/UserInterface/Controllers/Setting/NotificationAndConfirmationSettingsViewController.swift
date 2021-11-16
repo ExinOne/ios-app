@@ -3,6 +3,7 @@ import MixinServices
 
 class NotificationAndConfirmationSettingsViewController: SettingsTableViewController {
     
+    
     private lazy var messagePreviewRow = SettingsRow(title: R.string.localizable.setting_notification_message_preview(),
                                                      accessory: .switch(isOn: showsMessagePreview))
     private lazy var duplicateTransferRow = SettingsRow(title: R.string.localizable.setting_duplicate_transfer_title(),
@@ -11,12 +12,12 @@ class NotificationAndConfirmationSettingsViewController: SettingsTableViewContro
     private lazy var dataSource = SettingsDataSource(sections: [
         SettingsSection(footer: R.string.localizable.setting_notification_message_preview_description(), rows: [
             messagePreviewRow
-        ]),
-        makeTransferNotificationThresholdSection(),
-        makeTransferConfirmationThresholdSection(),
-        SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_summary(), rows: [
-            duplicateTransferRow
         ])
+//        makeTransferNotificationThresholdSection(),
+//        makeTransferConfirmationThresholdSection(),
+//        SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_summary(), rows: [
+//            duplicateTransferRow
+//        ])
     ])
     
     private lazy var editorController: AlertEditorController = {
@@ -50,12 +51,26 @@ class NotificationAndConfirmationSettingsViewController: SettingsTableViewContro
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+            dataSource = SettingsDataSource(sections: [
+                SettingsSection(footer: R.string.localizable.setting_notification_message_preview_description(), rows: [
+                    messagePreviewRow
+                ]),
+                makeTransferNotificationThresholdSection(),
+                makeTransferConfirmationThresholdSection(),
+                SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_summary(), rows: [
+                    duplicateTransferRow
+                ])
+            ])
+        }
         dataSource.tableViewDelegate = self
         dataSource.tableView = tableView
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(switchMessagePreview(_:)),
                                                name: SettingsRow.accessoryDidChangeNotification,
                                                object: nil)
+       
+        
     }
     
     @objc func switchMessagePreview(_ notification: Notification) {
@@ -67,7 +82,8 @@ class NotificationAndConfirmationSettingsViewController: SettingsTableViewContro
         }
         if row == messagePreviewRow {
             AppGroupUserDefaults.User.showMessagePreviewInNotification = isOn
-        } else if row == duplicateTransferRow {
+        }
+        else if row == duplicateTransferRow {
             AppGroupUserDefaults.User.duplicateTransferConfirmation = isOn
         }
     }

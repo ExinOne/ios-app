@@ -9,8 +9,8 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
     }
     
     static let shared = AudioMessagePlayingManager()
-    static let willPlayNextNotification = Notification.Name("one.mixin.messenger.AudioMessagePlayingManager.willPlayNext")
-    static let willPlayPreviousNotification = Notification.Name("one.mixin.messenger.AudioMessagePlayingManager.willPlayPrevious")
+    static let willPlayNextNotification = Notification.Name("com.exinone.messenger.AudioMessagePlayingManager.willPlayNext")
+    static let willPlayPreviousNotification = Notification.Name("com.exinone.messenger.AudioMessagePlayingManager.willPlayPrevious")
     static let conversationIdUserInfoKey = "conversation_id"
     static let messageIdUserInfoKey = "message_id"
     
@@ -18,7 +18,7 @@ class AudioMessagePlayingManager: NSObject, AudioSessionClient {
         true
     }
     
-    private let queue = DispatchQueue(label: "one.mixin.messenger.AudioMessagePlayingManager")
+    private let queue = DispatchQueue(label: "com.exinone.messenger.AudioMessagePlayingManager")
     
     // These 2 vars below should be access from main queue
     private(set) var player: OggOpusPlayer?

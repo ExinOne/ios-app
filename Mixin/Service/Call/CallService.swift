@@ -8,10 +8,10 @@ class CallService: NSObject {
     
     static let shared = CallService()
     static let maxNumberOfKrakenRetries: UInt = 30
-    static let mutenessDidChangeNotification = Notification.Name("one.mixin.messenger.CallService.MutenessDidChange")
-    static let willStartCallNotification = Notification.Name("one.mixin.messenger.CallService.WillStartCall")
-    static let willActivateCallNotification = Notification.Name("one.mixin.messenger.CallService.WillActivateCall")
-    static let willDeactivateCallNotification = Notification.Name("one.mixin.messenger.CallService.WillDeactivateCall")
+    static let mutenessDidChangeNotification = Notification.Name("com.exinone.messenger.CallService.MutenessDidChange")
+    static let willStartCallNotification = Notification.Name("com.exinone.messenger.CallService.WillStartCall")
+    static let willActivateCallNotification = Notification.Name("com.exinone.messenger.CallService.WillActivateCall")
+    static let willDeactivateCallNotification = Notification.Name("com.exinone.messenger.CallService.WillDeactivateCall")
     static let callUserInfoKey = "call"
     
     let queue = Queue(label: "one.mixin.messenger.CallService")
@@ -63,7 +63,7 @@ class CallService: NSObject {
     
     private let listPendingCallDelay = DispatchTimeInterval.seconds(2)
     private let retryInterval = DispatchTimeInterval.seconds(3)
-    private let isMainlandChina = false
+    private let isMainlandChina = true
     
     private lazy var nativeCallInterface = NativeCallInterface(service: self)
     private lazy var listPendingInvitationCounter = Counter(value: 0)

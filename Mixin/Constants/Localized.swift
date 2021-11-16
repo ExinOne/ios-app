@@ -59,9 +59,9 @@ public class Localized {
     public static let LANDING_PHONE_DIALOG_BUTTON_CANCEL = LocalizedString("landing_phone_dialog_button_cancel", comment: "Cancel")
 
     // Error
-    public static let PERMISSION_DENIED_CAMERA = LocalizedString("permission_denied_camera", comment: "Mixin doesn't have permission to use your camera. Please tap Setting to open system settings.")
-    public static let PERMISSION_DENIED_PHOTO_LIBRARY = LocalizedString("permission_denied_photo_library", comment: "Mixin doesn't have permission to use your photo library. Please tap Setting to open system settings.")
-    public static let PERMISSION_DENIED_MICROPHONE = LocalizedString("permission_denied_microphone", comment: "Mixin doesn't have permission to use your microphone. Please tap Setting to open system settings.")
+    public static let PERMISSION_DENIED_CAMERA = LocalizedString("permission_denied_camera", comment: "JustChat doesn't have permission to use your camera. Please tap Setting to open system settings.")
+    public static let PERMISSION_DENIED_PHOTO_LIBRARY = LocalizedString("permission_denied_photo_library", comment: "JustChat doesn't have permission to use your photo library. Please tap Setting to open system settings.")
+    public static let PERMISSION_DENIED_MICROPHONE = LocalizedString("permission_denied_microphone", comment: "JustChat doesn't have permission to use your microphone. Please tap Setting to open system settings.")
     public static let TOAST_COPIED = LocalizedString("toast_copied", comment: "Copied")
     public static let TOAST_ADDED = LocalizedString("toast_added", comment: "Added")
     public static let TOAST_SAVED = LocalizedString("toast_saved", comment: "Saved")
@@ -78,7 +78,7 @@ public class Localized {
         return String(format: LocalizedString("navigation_title_enter_verification_code", comment: "Enter the 4-digit code sent to you at %@"), mobileNumber)
     }
     public static func NAVIGATION_TITLE_ENTER_EMERGENCY_CONTACT_VERIFICATION_CODE(id: String) -> String {
-        return String(format: LocalizedString("navigation_title_enter_emergency_contact_verification_code", comment: "Enter the 4-digit code sent to Mixin ID %@"), id)
+        return String(format: LocalizedString("navigation_title_enter_emergency_contact_verification_code", comment: "Enter the 4-digit code sent to ID %@"), id)
     }
     public static let TEXT_INTRO = LocalizedString("text_intro", comment: "A messenger that transfers all crypto currencies with end to end encryption. Tap \"%@\" to accept %@ and %@")
     public static let TEXT_CONFIRM_SEND_CODE = LocalizedString("text_confirm_send_code", comment: "Please confirm the phone number %@")
@@ -96,23 +96,23 @@ public class Localized {
     public static let CONTACT_NEW_GROUP_TITLE = LocalizedString("contact_new_group_title", comment: "New Group Chat")
     public static let CONTACT_NEW_GROUP_SUMMARY = LocalizedString("contact_new_group_summary", comment: "Create a group chat up to 256 people")
     public static let CONTACT_ADD_TITLE = LocalizedString("contact_add_title", comment: "Add Contact")
-    public static let CONTACT_ADD_SUMMARY = LocalizedString("contact_add_summary", comment: "Add people by Mixin ID or phone number")
-    public static let CONTACT_QR_CODE_TITLE = LocalizedString("contact_qr_code_title", comment: "Mixin QR Code")
-    public static let CONTACT_QR_CODE_SUMMARY = LocalizedString("contact_qr_code_summary", comment: "Scan a friend's Mixin QR Code")
+    public static let CONTACT_ADD_SUMMARY = LocalizedString("contact_add_summary", comment: "Add people by ID or phone number")
+    public static let CONTACT_QR_CODE_TITLE = LocalizedString("contact_qr_code_title", comment: "JustChat QR Code")
+    public static let CONTACT_QR_CODE_SUMMARY = LocalizedString("contact_qr_code_summary", comment: "Scan a friend's JustChat QR Code")
     public static let CONTACT_INVITE_TITLE = LocalizedString("contact_invite_title", comment: "Invite People")
     public static func contact_invite_summary(code: String) -> String {
         return String(format: LocalizedString("contact_invite_summary", comment: "My invitation code %@"), code)
     }
-    public static let CONTACT_INVITE = LocalizedString("contact_invite", comment: "Hey, I'm using Mixin Messenger to chat. Download it here: https://mixin.one/messenger")
+    public static let CONTACT_INVITE = LocalizedString("contact_invite", comment: "Hey, I'm using JustChat Messenger to chat. Download it here: https://JustChat.one/messenger")
     public static let CONTACT_PROFILE_TITLE = LocalizedString("contact_profile_title", comment: "My Profile")
     public static let CONTACT_TITLE = LocalizedString("contact_title", comment: "Contacts")
     public static let CONTACT_PHONE_CONTACTS = LocalizedString("contact_phone_contacts", comment: "Mobile Contacts")
-    public static let CONTACT_PHONE_CONTACT_SUMMARY = LocalizedString("contact_phone_contact_summary", comment: "Mixin needs access to your contacts to help you connect with other people on Mixin.")
+    public static let CONTACT_PHONE_CONTACT_SUMMARY = LocalizedString("contact_phone_contact_summary", comment: "JustChat needs access to your contacts to help you connect with other people on JustChat.")
     public static func CONTACT_MY_IDENTITY_NUMBER(id: String) -> String {
-        return String(format: LocalizedString("contact_my_identity_number", comment: "My Mixin ID: %@"), id)
+        return String(format: LocalizedString("contact_my_identity_number", comment: "My ID: %@"), id)
     }
     public static func CONTACT_IDENTITY_NUMBER(identityNumber: String) -> String {
-        return String(format: LocalizedString("contact_identity_number", comment: "Mixin ID: %@"), identityNumber)
+        return String(format: LocalizedString("contact_identity_number", comment: "ID: %@"), identityNumber)
     }
     public static func CONTACT_MOBILE(mobile: String) -> String {
         return String(format: LocalizedString("contact_mobile", comment: "Mobile: %@"), mobile)
@@ -125,7 +125,7 @@ public class Localized {
     public static let CONTACT_CHANGE_NAME_FAIL = LocalizedString("contact_change_name_fail", comment: "Failed to change your name")
     public static let CONTACT_MY_QR_CODE = LocalizedString("contact_my_qr_code", comment: "My QR Code")
     public static let CONTACT_RECEIVE_MONEY = LocalizedString("contact_receive_money", comment: "Receive Money")
-    public static let PLACEHOLDER_MIXIN_ID_OR_PHONE = LocalizedString("placeholder_mixin_id_or_phone", comment: "Mixin ID, Phone number")
+    public static let PLACEHOLDER_MIXIN_ID_OR_PHONE = LocalizedString("placeholder_JustChat_id_or_phone", comment: "ID, Phone number")
     
     // Home
     public static let HOME_TITLE = LocalizedString("home_title", comment: "Chats")
@@ -150,7 +150,7 @@ public class Localized {
         return String(format: LocalizedString("chat_message_changed_title", comment: "%@ changed the subject to %@"), fullName, title)
     }
     public static let CHAT_CELL_TITLE_ENCRYPTION = LocalizedString("chat_cell_title_encryption", comment: "Messages to this conversation are encrypted end-to-end, click for more information")
-    public static let CHAT_CELL_TITLE_UNKNOWN_CATEGORY = LocalizedString("chat_cell_title_unknown_category", comment: "This type of message is not supported, please upgrade Mixin to the latest version.")
+    public static let CHAT_CELL_TITLE_UNKNOWN_CATEGORY = LocalizedString("chat_cell_title_unknown_category", comment: "This type of message is not supported, please upgrade JustChat to the latest version.")
     public static let CHAT_FORWARD_TITLE = LocalizedString("chat_forward_title", comment: "Forward")
     public static let CHAT_FORWARD_CHATS = LocalizedString("chat_forward_chats", comment: "CHATS")
     public static let CHAT_FORWARD_CONTACTS = LocalizedString("chat_forward_contacts", comment: "CONTACTS")
@@ -215,9 +215,9 @@ public class Localized {
     public static let GROUP_PARTICIPANT_MENU_SEND = LocalizedString("group_participant_menu_send", comment: "Send Message")
     public static let GROUP_PARTICIPANT_MENU_REMOVE = LocalizedString("group_participant_menu_remove", comment: "Remove from Group")
     public static let GROUP_JOIN_FAIL_TITLE = LocalizedString("group_join_fail_title", comment: "Couldn't Join Group")
-    public static let GROUP_JOIN_FAIL_SUMMARY = LocalizedString("group_join_fail_summary", comment: "This invite link doesn't match any Mixin groups.")
+    public static let GROUP_JOIN_FAIL_SUMMARY = LocalizedString("group_join_fail_summary", comment: "This invite link doesn't match any JustChat groups.")
     public static let CODE_RECOGNITION_FAIL_TITLE = LocalizedString("code_recognition_fail_title", comment: "Unrecognized codes")
-    public static let CODE_RECOGNITION_FAIL_SUMMARY = LocalizedString("code_recognition_fail_summary", comment: "This codes doesn't match any Mixin groups or users.")
+    public static let CODE_RECOGNITION_FAIL_SUMMARY = LocalizedString("code_recognition_fail_summary", comment: "This codes doesn't match any JustChat groups or users.")
     public static let GROUP_LINK_CHECKING = LocalizedString("group_link_checking", comment: "Checking invite link")
     public static let GROUP_REMOVE_TITLE = LocalizedString("group_remove_title", comment: "you were removed from the group")
     public static let GROUP_MENU_ANNOUNCEMENT = LocalizedString("group_menu_announcement", comment: "Edit Group Description")
@@ -229,8 +229,8 @@ public class Localized {
     
     // QRCode
     public static let MYQRCODE_TITLE = LocalizedString("myqrcode_title", comment: "My QR Code")
-    public static let MYQRCODE_PROMPT = LocalizedString("myqrcode_prompt", comment: "Scan the QR Code to add me on Mixin")
-    public static let NOT_MIXIN_QR_CODE = LocalizedString("not_mixin_qr_code", comment: "Not Mixin QR Code")
+    public static let MYQRCODE_PROMPT = LocalizedString("myqrcode_prompt", comment: "Scan the QR Code to add me on JustChat")
+    public static let NOT_JustChat_QR_CODE = LocalizedString("not_JustChat_qr_code", comment: "Not JustChat QR Code")
     public static let GROUP_QR_CODE = LocalizedString("group_qr_code", comment: "Group QR Code")
     public static let GROUP_QR_CODE_PROMPT = LocalizedString("group_qr_code_prompt", comment: "Scan the QR Code to join this group")
     public static let AUTH_SUCCESS = LocalizedString("auth_success", comment: "Scan the QR Code to join this group")
@@ -251,14 +251,14 @@ public class Localized {
     }
     public static let AUTH_ASSETS_MORE = LocalizedString("auth_assets_more", comment: " and more")
     public static let SCAN_QR_CODE = LocalizedString("scan_qr_code", comment: "Scan QR Code")
-    public static let TRANSFER_QRCODE_PROMPT = LocalizedString("transfer_qrcode_prompt", comment: "Scan the QR Code to transfer me on Mixin")
+    public static let TRANSFER_QRCODE_PROMPT = LocalizedString("transfer_qrcode_prompt", comment: "Scan the QR Code to transfer me on JustChat")
     public static let TRANSFER_BALANCE = LocalizedString("transfer_balance", comment: "BALANCE")
 
     // Profile
     public static let PROFILE_TITLE = LocalizedString("profile_title", comment: "Info")
     public static let PROFILE_OPEN_BOT = LocalizedString("profile_open_bot", comment: "Open App")
     public static func PROFILE_MIXIN_ID(id: String) -> String {
-        return String(format: LocalizedString("profile_mixin_id", comment: "Mixin ID: %@"), id)
+        return String(format: LocalizedString("profile_JustChat_id", comment: "ID: %@"), id)
     }
     public static func PROFILE_REPUTATION_SCORE(reputation: Int) -> String {
         return String(format: LocalizedString("profile_reputation_score", comment: "Reputation Score: %@"), String(reputation))

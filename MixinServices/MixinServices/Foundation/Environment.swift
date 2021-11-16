@@ -1,6 +1,6 @@
 import Foundation
 
-public let appGroupIdentifier = "group.one.mixin.messenger"
+public let appGroupIdentifier = "group.com.exinone.messenger"
 public let callTimeoutInterval: TimeInterval = 60
 
 public var isAppExtension: Bool {
@@ -30,8 +30,8 @@ public var canProcessMessages: Bool {
         && AppGroupUserDefaults.Crypto.isSessionSynchronized
 }
 
-public let checkStatusInAppExtensionDarwinNotificationName = CFNotificationName(rawValue: "one.mixin.messenger.darwin.status.check.extension" as CFString)
-public let conversationDidChangeInMainAppDarwinNotificationName = CFNotificationName(rawValue: "one.mixin.messenger.darwin.conversation.did.change" as CFString)
+public let checkStatusInAppExtensionDarwinNotificationName = CFNotificationName(rawValue: "com.exinone.messenger.darwin.status.check.extension" as CFString)
+public let conversationDidChangeInMainAppDarwinNotificationName = CFNotificationName(rawValue: "com.exinone.messenger.darwin.conversation.did.change" as CFString)
 
 public enum Mention {
     

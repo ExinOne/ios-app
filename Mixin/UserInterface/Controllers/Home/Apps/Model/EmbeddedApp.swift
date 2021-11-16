@@ -3,12 +3,12 @@ import MixinServices
 
 final class EmbeddedApp {
     
-    static let wallet = EmbeddedApp(id: App.walletAppId,
-                                    icon: R.image.ic_home_app_wallet()!,
-                                    categoryIcon: R.image.ic_app_category_wallet()!,
-                                    name: R.string.localizable.wallet_title()) {
-                                        WalletViewController.presentWallet()
-    }
+//    static let wallet = EmbeddedApp(id: App.walletAppId,
+//                                    icon: R.image.ic_home_app_wallet()!,
+//                                    categoryIcon: R.image.ic_app_category_wallet()!,
+//                                    name: R.string.localizable.wallet_title()) {
+//                                        WalletViewController.presentWallet()
+//    }
     
     static let scan = EmbeddedApp(id: App.scanAppId,
                                   icon: R.image.ic_home_app_scan()!,
@@ -24,7 +24,8 @@ final class EmbeddedApp {
                                         UIApplication.homeViewController?.showCamera(asQrCodeScanner: false)
     }
     
-    static let all: [EmbeddedApp] = [.wallet, .scan, .camera]
+//    static let all: [EmbeddedApp] = [.wallet, .scan, .camera]
+    static let all: [EmbeddedApp] = [.scan, .camera]
     
     let id: String
     let icon: UIImage
