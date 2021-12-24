@@ -129,7 +129,7 @@ extension PrivacyViewController: UITableViewDelegate {
         case 3:
             vc = AuthorizationsViewController.instance()
         default:
-            vc = LogViewController.instance()
+            vc = LogViewController.instance(category: .all)
         }
         navigationController?.pushViewController(vc, animated: true)
     }

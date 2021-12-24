@@ -3,6 +3,7 @@ import Foundation
 public let appGroupIdentifier = "group.com.exinone.messenger"
 public let callTimeoutInterval: TimeInterval = 60
 
+
 public var isAppExtension: Bool {
     Bundle.main.bundleURL.pathExtension == "appex"
 }

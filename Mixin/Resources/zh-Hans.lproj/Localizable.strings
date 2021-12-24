@@ -407,18 +407,18 @@
 "call_encryption_title" = "此通话使用端对端加密进行保护";
 "call_encryption_description" = "除了参与通话的人，其他人包含JustChat在内都无法听取或查看。";
 "call_hint_on_another_call" = "正在通话中，请挂断当前电话后重试";
-"call_status_outgoing" = "正在呼叫...";
-"call_status_incoming" = "语音通话来电";
-"call_status_connecting" = "正在连接";
-"call_status_disconnecting" = "正在断开";
-"call_status_waiting" = "等待接听";
-"call_status_done" = "已结束";
+"call_state_outgoing" = "正在呼叫...";
+"call_state_incoming" = "语音通话来电";
+"call_state_connecting" = "正在连接";
+"call_state_stalled" = "网络状态不佳";
+"call_state_disconnecting" = "正在断开";
+"call_state_brief_waiting" = "等待接听";
+"call_state_brief_done" = "已结束";
 "call_func_accept" = "接听";
 "call_func_mute" = "静音";
 "call_func_speaker" = "扬声器";
 "call_no_microphone_permission" = "如果使用语音通话，JustChat 需要麦克风权限，请点击'设置'打开系统授权。";
 "call_no_network" = "通话服务不可用，请确认网络连接正常并重试";
-"call_user_not_found" = "找不到用户";
 "call_declined_lack_microphone_permission" = "已拒绝通话";
 "call_webrtc_disconnected" = "连接已断开";
 "call_remote_error" = "连接失败。代码%@";
@@ -536,17 +536,18 @@
 "wallet_hide_asset_empty" = "没有需要隐藏的资产";
 "wallet_send_amount" = "数量";
 "wallet_button_add_address" = "点击添加地址";
-"wallet_hint_transaction_fee" = "需要 %@ 作为 %@ 提现手续费。";
 "wallet_password_address_tips" = "通过密码保存";
+"wallet_withdrawal_network_fee" = "提现的手续费: %@";
+"wallet_withdrawal_minimum_reserve" = "账号至少保留: %@";
+"wallet_withdrawal_minimum_amount" = "提现最小金额: %@";
 "wallet_withdrawal_change_amount" = "修改金额";
 "wallet_withdrawal_change_amount_count" = "修改金额 (%@)";
 "wallet_withdrawal_address_tips" = "首次提现到新地址，建议小额尝试！如果您提现到错误的地址资产将无法找回！";
 "wallet_withdrawal_asset" = "%@ 提现";
 "wallet_withdrawal_pay_password" = "通过密码提现";
-"wallet_withdrawal_reserve" = " %@ 要求账号至少保留 %@。";
 "wallet_no_price" = "暂无价格";
-//"wallet_pin_create_title" = "设置 6 位数字密码创建你的第一个数字钱包";
-"wallet_pin_create_title" = "设置 6 位数字密码";
+"wallet_pin_create_title" = "设置 6 位数字密码创建你的第一个数字钱包，阅读文档以了解更多。";
+"wallet_pin_create_title" = "设置 6 位数字密码，阅读文档以了解更多。";
 "wallet_pin_confirm_title" = "确认 6 位数字密码并牢记它";
 //"wallet_pin_confirm_subtitle" = "如果忘记，你的钱包将无法找回。";
 "wallet_pin_confirm_subtitle" = "";
@@ -669,6 +670,8 @@
 
 // Url
 "url_invalid_payment" = "无效支付信息";
+"url_unrecognized" = "链接识别失败";
+"url_unrecognized_tip" = "%@ 识别失败，请升级至 Mixin 最新版本或联系开发者检查链接";
 
 // Multisig
 "multisig_by_pin" = "通过密码签名";
@@ -900,6 +903,7 @@
 "setting_appearance_language_alert_title" = "设置语言";
 "setting_appearance_language_alert_description" = "前往系统设置修改语言偏好";
 "setting_pin" = "密码";
+"setting_pin_hint" = "注意密码丢失无法找回，6 位数字密码是基于去中心化密钥派生协议 Throttled Identity Protocol，阅读文档以了解更多。";
 "setting_feedback" = "反馈";
 "setting_share_this_app" = "分享此 App";
 "setting_share_this_app_content" = "快来 JustChat 与我聊天！简单、安全好用还支持比特币、以太坊等加密货币，下载 https://mixin.one/messenger 后搜索 %@ 加我好友。";
@@ -940,6 +944,8 @@
 "report_message"="允许手动上报消息";
 "report_compress_database"="压缩数据库";
 "report_compress_database_success"="已压缩";
+"report_optimize_database"="优化查询索引";
+"report_optimize_database_success"="已优化";
 
 // Playlist
 "playlist" = "播放列表";

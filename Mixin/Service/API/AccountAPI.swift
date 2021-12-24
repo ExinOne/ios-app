@@ -3,6 +3,11 @@ import Alamofire
 
 final class AccountAPI: MixinAPI {
     
+    enum LogCategory {
+        case incorrectPin
+        case all
+    }
+    
     enum Path {
         static let verifications = "/verifications"
         static func verifications(id: String) -> String {
@@ -17,13 +22,17 @@ final class AccountAPI: MixinAPI {
         
         static let verifyPin = "/pin/verify"
         static let updatePin = "/pin/update"
-        static func logs(offset: String? = nil, category: String? = nil, limit: Int? = nil) -> String {
+        
+        static func logs(offset: String? = nil, category: LogCategory, limit: Int? = nil) -> String {
             var params = [String]()
             if let offset = offset {
                 params.append("offset=\(offset)")
             }
-            if let category = category {
-                params.append("category=\(category)")
+            switch category {
+            case .incorrectPin:
+                params.append("category=PIN_INCORRECT")
+            case .all:
+                break
             }
             if let limit = limit {
                 params.append("limit=\(limit)")
@@ -37,6 +46,22 @@ final class AccountAPI: MixinAPI {
             return path
         }
 
+    }
+    
+    enum VoIPToken {
+        
+        case token(String)
+        case remove
+        
+        var value: String {
+            switch self {
+            case .token(let value):
+                return value
+            case .remove:
+                return "REMOVE"
+            }
+        }
+        
     }
     
     static func me(completion: @escaping (MixinAPI.Result<Account>) -> Void) {
@@ -73,6 +98,7 @@ final class AccountAPI: MixinAPI {
             self.request(method: .post,
                          path: Path.verifications(id: verificationId),
                          parameters: parameters,
+                         retry: false,
                          completion: completion)
         }
     }
@@ -95,8 +121,8 @@ final class AccountAPI: MixinAPI {
         request(method: .post, path: Path.me, parameters: param, completion: completion)
     }
     
-    static func updateSession(deviceToken: String? = nil, voipToken: String? = nil, deviceCheckToken: String? = nil) {
-        let sessionRequest = SessionRequest(notification_token: deviceToken ?? "", voip_token: voipToken ?? "", device_check_token: deviceCheckToken ?? "")
+    static func updateSession(deviceToken: String? = nil, voipToken: VoIPToken? = nil, deviceCheckToken: String? = nil) {
+        let sessionRequest = SessionRequest(notification_token: deviceToken ?? "", voip_token: voipToken?.value ?? "", device_check_token: deviceCheckToken ?? "")
         request(method: .post, path: Path.session, parameters: sessionRequest) { (result: MixinAPI.Result<Account>) in
             
         }
@@ -118,32 +144,30 @@ final class AccountAPI: MixinAPI {
             self.request(method: .post,
                          path: Path.verifyPin,
                          parameters: ["pin": encryptedPin],
+                         retry: false,
                          completion: completion)
         }
     }
     
     static func updatePin(old: String?, new: String, completion: @escaping (MixinAPI.Result<Account>) -> Void) {
-        var param: [String: String] = [:]
-        if let old = old {
-            switch PINEncryptor.encrypt(pin: old) {
-            case .success(let encryptedOld):
-                param["old_pin"] = encryptedOld
-            case .failure(let error):
-                completion(.failure(.pinEncryption(error)))
-                return
+        func encryptNewPinThenStartRequest() {
+            PINEncryptor.encrypt(pin: new, onFailure: completion) { encryptedPin in
+                param["pin"] = encryptedPin
+                request(method: .post, path: Path.updatePin, parameters: param, retry: false, completion: completion)
             }
         }
-        switch PINEncryptor.encrypt(pin: new) {
-        case .success(let encryptedNew):
-            param["pin"] = encryptedNew
-        case .failure(let error):
-            completion(.failure(.pinEncryption(error)))
-            return
+        var param: [String: String] = [:]
+        if let old = old {
+            PINEncryptor.encrypt(pin: old, onFailure: completion) { encryptedPin in
+                param["old_pin"] = encryptedPin
+                encryptNewPinThenStartRequest()
+            }
+        } else {
+            encryptNewPinThenStartRequest()
         }
-        request(method: .post, path: Path.updatePin, parameters: param, completion: completion)
     }
     
-    static func logs(offset: String? = nil, category: String? = nil, limit: Int? = nil, completion: @escaping (MixinAPI.Result<[LogResponse]>) -> Void) {
+    static func logs(offset: String? = nil, category: LogCategory, limit: Int? = nil, completion: @escaping (MixinAPI.Result<[LogResponse]>) -> Void) {
         request(method: .get, path: Path.logs(offset: offset, category: category, limit: limit), completion: completion)
     }
     

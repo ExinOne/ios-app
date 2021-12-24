@@ -62,11 +62,11 @@ public final class MessageDAO: UserDatabaseDAO {
     """
     static let sqlQueryFullAudioMessages = """
     \(sqlQueryFullMessage)
-    WHERE m.conversation_id = ? AND m.category in ('SIGNAL_AUDIO', 'PLAIN_AUDIO')
+    WHERE m.conversation_id = ? AND m.category in ('SIGNAL_AUDIO', 'PLAIN_AUDIO', 'ENCRYPTED_AUDIO')
     """
     static let sqlQueryFullDataMessages = """
     \(sqlQueryFullMessage)
-    WHERE m.conversation_id = ? AND m.category in ('SIGNAL_DATA', 'PLAIN_DATA')
+    WHERE m.conversation_id = ? AND m.category in ('SIGNAL_DATA', 'PLAIN_DATA', 'ENCRYPTED_DATA')
     """
     static let sqlQueryFullMessageById = sqlQueryFullMessage + " WHERE m.id = ?"
     static let sqlQueryQuoteMessageById = """
@@ -106,8 +106,13 @@ public final class MessageDAO: UserDatabaseDAO {
     }
     
     public func getTranscriptMessageIds(conversationId: String, database: GRDB.Database) throws -> [String] {
+        let categories = [
+            MessageCategory.SIGNAL_TRANSCRIPT.rawValue,
+            MessageCategory.PLAIN_TRANSCRIPT.rawValue,
+            MessageCategory.ENCRYPTED_TRANSCRIPT.rawValue
+        ]
         let condition: SQLSpecificExpressible = Message.column(of: .conversationId) == conversationId
-            && [MessageCategory.SIGNAL_TRANSCRIPT.rawValue, MessageCategory.PLAIN_TRANSCRIPT.rawValue].contains(Message.column(of: .category))
+            && categories.contains(Message.column(of: .category))
         return try Message
             .select(Message.column(of: .messageId))
             .filter(condition)
@@ -369,6 +374,12 @@ public final class MessageDAO: UserDatabaseDAO {
         }
     }
     
+    public func updateMessageCategory(_ category: String, forMessageWithId id: String) {
+        db.update(Message.self,
+                  assignments: [Message.column(of: .category).set(to: category)],
+                  where: Message.column(of: .messageId) == id)
+    }
+    
     public func getFullMessage(messageId: String) -> MessageItem? {
         db.select(with: MessageDAO.sqlQueryFullMessageById, arguments: [messageId])
     }
@@ -387,19 +398,27 @@ public final class MessageDAO: UserDatabaseDAO {
         guard hasUnreadMessage(conversationId: conversationId) else {
             return nil
         }
-        let myLastMessage: Message? = db.select(where: Message.column(of: .conversationId) == conversationId && Message.column(of: .userId) == myUserId,
+        let statuses = [
+            MessageStatus.SENDING.rawValue,
+            MessageStatus.DELIVERED.rawValue,
+            MessageStatus.SENT.rawValue,
+            MessageStatus.READ.rawValue
+        ]
+        let myLastMessage: Message? = db.select(where: Message.column(of: .conversationId) == conversationId
+                                                     && statuses.contains(Message.column(of: .status))
+                                                     && Message.column(of: .userId) == myUserId,
                                                 order: [Message.column(of: .createdAt).desc])
         let lastReadCondition: SQLSpecificExpressible
         if let myLastMessage = myLastMessage {
             lastReadCondition = Message.column(of: .conversationId) == conversationId
-                && Message.column(of: .category) != MessageCategory.SYSTEM_CONVERSATION.rawValue
                 && Message.column(of: .status) == MessageStatus.READ.rawValue
+                && Message.column(of: .category) != MessageCategory.SYSTEM_CONVERSATION.rawValue
                 && Message.column(of: .userId) != myUserId
                 && Message.column(of: .createdAt) > myLastMessage.createdAt
         } else {
             lastReadCondition = Message.column(of: .conversationId) == conversationId
-                && Message.column(of: .category) != MessageCategory.SYSTEM_CONVERSATION.rawValue
                 && Message.column(of: .status) == MessageStatus.READ.rawValue
+                && Message.column(of: .category) != MessageCategory.SYSTEM_CONVERSATION.rawValue
                 && Message.column(of: .userId) != myUserId
         }
         let lastReadMessage: Message? = db.select(where: lastReadCondition, order: [Message.column(of: .createdAt).desc])

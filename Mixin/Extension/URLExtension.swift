@@ -6,11 +6,12 @@ extension URL {
     static let blank = URL(string: "about:blank")!
 //    static let terms = URL(string: "https://mixin.one/pages/terms")!
 //    static let privacy = URL(string: "https://mixin.one/pages/privacy")!
-    static let terms = URL(string: "https://hulnlvbnh.com/service-en.html")!
-    static let privacy = URL(string: "https://hulnlvbnh.com/privacy-en.html")!
+    static let terms = URL(string: "https://ijust.chat/service-en.html")!
+    static let privacy = URL(string: "https://ijust.chat/privacy-en.html")!
     static let aboutEncryption = URL(string: "https://mixin.one/pages/1000007")!
     static let emergencyContact = URL(string: "https://mixinmessenger.zendesk.com/hc/articles/360029154692")!
     static let unknownCategory = URL(string: "https://mixinmessenger.zendesk.com/hc/articles/360043776071")!
+    static let pinTIP = URL(string: "https://tip.id")!
     
     func getKeyVals() -> [String: String] {
         return URLComponents(url: self, resolvingAgainstBaseURL: true)?.getKeyVals() ?? [:]

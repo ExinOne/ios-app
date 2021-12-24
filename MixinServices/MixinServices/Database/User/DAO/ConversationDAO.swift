@@ -382,7 +382,12 @@ public final class ConversationDAO: UserDatabaseDAO {
             if let participantSessions = response.participantSessions {
                 let createdAt = Date().toUTCString()
                 let sessions = participantSessions.map { session in
-                    ParticipantSession(conversationId: conversationId, userId: session.userId, sessionId: session.sessionId, sentToServer: nil, createdAt: createdAt)
+                    ParticipantSession(conversationId: conversationId,
+                                       userId: session.userId,
+                                       sessionId: session.sessionId,
+                                       sentToServer: nil,
+                                       createdAt: createdAt,
+                                       publicKey: session.publicKey)
                 }
                 try sessions.save(db)
             }
@@ -452,7 +457,12 @@ public final class ConversationDAO: UserDatabaseDAO {
             
             if let participantSessions = conversation.participantSessions, participantSessions.count > 0 {
                 let sessionParticipants = participantSessions.map {
-                    ParticipantSession(conversationId: conversationId, userId: $0.userId, sessionId: $0.sessionId, sentToServer: nil, createdAt: Date().toUTCString())
+                    ParticipantSession(conversationId: conversationId,
+                                       userId: $0.userId,
+                                       sessionId: $0.sessionId,
+                                       sentToServer: nil,
+                                       createdAt: Date().toUTCString(),
+                                       publicKey: $0.publicKey)
                 }
                 try sessionParticipants.save(db)
             }
@@ -534,7 +544,8 @@ public final class ConversationDAO: UserDatabaseDAO {
     }
     
     public func makeConversationId(userId: String, ownerUserId: String) -> String {
-        return (min(userId, ownerUserId) + max(userId, ownerUserId)).toUUID()
+        let merged = min(userId, ownerUserId) + max(userId, ownerUserId)
+        return merged.uuidDigest()
     }
     
 }
