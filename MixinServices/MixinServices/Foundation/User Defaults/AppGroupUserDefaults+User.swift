@@ -48,6 +48,7 @@ extension AppGroupUserDefaults {
             case assetSearchHistory = "asset_search_history"
             
             case emergencyContactBulletinDismissalDate = "emergency_contact_bulletin_dismissal_date"
+            case initializePINBulletinDismissalDate = "initialize_pin_bulletin_dismissal_date"
             
             case lockScreenTimeout = "lock_screen_timeout_interval"
             case lockScreenWithBiometricAuthentication = "lock_screen_with_biometric_authentication"
@@ -64,7 +65,7 @@ extension AppGroupUserDefaults {
             case hasNewStickers = "has_new_stickers"
         }
         
-        public static let version = 28
+        public static let version = 30
         public static let uninitializedVersion = -1
         
         public static let didChangeRecentlyUsedAppIdsNotification = Notification.Name(rawValue: "one.mixin.services.recently.used.app.ids.change")
@@ -196,6 +197,9 @@ extension AppGroupUserDefaults {
         
         @Default(namespace: .user, key: Key.emergencyContactBulletinDismissalDate, defaultValue: nil)
         public static var emergencyContactBulletinDismissalDate: Date?
+        
+        @Default(namespace: .user, key: Key.initializePINBulletinDismissalDate, defaultValue: nil)
+        public static var initializePINBulletinDismissalDate: Date?
         
         @Default(namespace: .user, key: Key.lockScreenWithBiometricAuthentication, defaultValue: false)
         public static var lockScreenWithBiometricAuthentication: Bool

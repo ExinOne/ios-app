@@ -207,10 +207,10 @@ class CallViewController: ResizablePopupViewController {
             self.view.backgroundColor = .black.withAlphaComponent(0.4)
         }
         if animated {
-            UIView.animate(withDuration: 0.5) {
-                UIView.setAnimationCurve(.overdamped)
-                layout()
-            }
+            UIView.animate(withDuration: 0.5,
+                           delay: 0,
+                           options: .overdampedCurve,
+                           animations: layout)
         } else {
             layout()
         }
@@ -223,8 +223,7 @@ class CallViewController: ResizablePopupViewController {
         isShowingContentView = false
         hideContentViewConstraint.priority = .defaultHigh
         showContentViewConstraint.priority = .defaultLow
-        UIView.animate(withDuration: 0.5) {
-            UIView.setAnimationCurve(.overdamped)
+        UIView.animate(withDuration: 0.5, delay: 0, options: .overdampedCurve) {
             self.view.layoutIfNeeded()
             self.view.backgroundColor = .black.withAlphaComponent(0)
         } completion: { _ in
@@ -269,6 +268,7 @@ class CallViewController: ResizablePopupViewController {
                 let item = UserItem.createUser(userId: call.remoteUserId, fullName: call.remoteUsername, identityNumber: "", avatarUrl: "", appId: nil)
                 members = [item]
             }
+            membersCollectionView.dataSource = self
             membersCollectionView.reloadData()
         } else if let call = call as? GroupCall {
             notificationCenter.addObserver(self,
@@ -278,9 +278,10 @@ class CallViewController: ResizablePopupViewController {
             titleLabel.text = call.conversationName
             membersCollectionView.isHidden = false
             call.membersDataSource.collectionView = membersCollectionView
-            view.layoutIfNeeded()
             call.beginSpeakingStatusPolling()
         }
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
         updateMembersCountLabel()
         updateViews(call: call)
         muteSwitch.isSelected = call.isMuted

@@ -37,11 +37,9 @@ class ShareRecipientViewController: UIViewController {
             return
         }
         
-        if #available(iOSApplicationExtension 13.0, *) {
-            if let messageIntent = extensionContext?.intent as? INSendMessageIntent, let conversationId = messageIntent.conversationIdentifier, !conversationId.isEmpty, let conversationItem = ConversationDAO.shared.getConversation(conversationId: conversationId), let conversation = RecipientSearchItem(conversation: conversationItem) {
-                shareAction(conversation: conversation, avatarImage: nil, fromIntent: true)
-                return
-            }
+        if let messageIntent = extensionContext?.intent as? INSendMessageIntent, let conversationId = messageIntent.conversationIdentifier, !conversationId.isEmpty, let conversationItem = ConversationDAO.shared.getConversation(conversationId: conversationId), let conversation = RecipientSearchItem(conversation: conversationItem) {
+            shareAction(conversation: conversation, avatarImage: nil, fromIntent: true)
+            return
         }
 
         searchView.isHidden = false
@@ -383,7 +381,7 @@ extension ShareRecipientViewController {
 
         let filename = "\(message.messageId).\(extensionName)"
         let url = AttachmentContainer.url(for: .photos, filename: filename)
-        message.thumbImage = targetImage.base64Thumbnail()
+        message.thumbImage = targetImage.blurHash()
 
         do {
             try imageData.write(to: url)
@@ -413,7 +411,7 @@ extension ShareRecipientViewController {
         let category: MessageCategory = conversation.isSignalConversation ? .SIGNAL_VIDEO : .PLAIN_VIDEO
         var message = Message.createMessage(category: category.rawValue, conversationId: conversation.conversationId, userId: myUserId)
         message.messageId = messageId
-        message.thumbImage = thumbnail.base64Thumbnail()
+        message.thumbImage = thumbnail.blurHash()
         message.mediaDuration = Int64(asset.duration.seconds * millisecondsPerSecond)
         let size = videoTrack.naturalSize.applying(videoTrack.preferredTransform)
         message.mediaWidth = Int(abs(size.width))
@@ -491,9 +489,6 @@ extension ShareRecipientViewController {
 extension ShareRecipientViewController {
     
     private func sendMessageIntent(conversation: RecipientSearchItem, avatarImage: UIImage?) {
-        guard #available(iOSApplicationExtension 12.0, *) else {
-            return
-        }
         let recipientHandle = INPersonHandle(value: conversation.conversationId, type: .unknown)
         let recipient = INPerson(personHandle: recipientHandle, nameComponents: nil, displayName: conversation.name, image: nil, contactIdentifier: nil, customIdentifier: conversation.conversationId)
         let messageIntent = INSendMessageIntent(recipients: [recipient],

@@ -41,6 +41,7 @@ final class UserProfileViewController: ProfileViewController {
     private var favoriteAppViewIfLoaded: ProfileFavoriteAppsView?
     private var sharedAppUsers: [User]?
     private var dismissHomeAppsWindow = true
+    private var centerStackViewHeightConstraint: NSLayoutConstraint?
     
     init(user: UserItem) {
         super.init(nibName: R.nib.profileView.name, bundle: R.nib.profileView.bundle)
@@ -68,15 +69,19 @@ final class UserProfileViewController: ProfileViewController {
         size = isMe ? .unavailable : .compressed
         super.viewDidLoad()
         reloadData()
-        reloadFavoriteApps(userId: user.userId, fromRemote: true)
-        if !isMe {
-            reloadCircles(conversationId: conversationId, userId: user.userId)
+        if user.isCreatedByMessenger {
+            reloadFavoriteApps(userId: user.userId, fromRemote: true)
+            if !isMe {
+                reloadCircles(conversationId: conversationId, userId: user.userId)
+            }
+            let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressAction(_:)))
+            recognizer.delegate = self
+            view.addGestureRecognizer(recognizer)
+            NotificationCenter.default.addObserver(self, selector: #selector(willHideMenu(_:)), name: UIMenuController.willHideMenuNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(accountDidChange(_:)), name: LoginManager.accountDidChangeNotification, object: nil)
+        } else {
+            resizeRecognizer.isEnabled = false
         }
-        let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressAction(_:)))
-        recognizer.delegate = self
-        view.addGestureRecognizer(recognizer)
-        NotificationCenter.default.addObserver(self, selector: #selector(willHideMenu(_:)), name: UIMenuController.willHideMenuNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(accountDidChange(_:)), name: LoginManager.accountDidChangeNotification, object: nil)
     }
 
     override func dismissAction(_ sender: Any) {
@@ -143,8 +148,7 @@ final class UserProfileViewController: ProfileViewController {
         avatarPreviewImageView = imageView
         view.isUserInteractionEnabled = false
         hideContentConstraint.priority = .defaultHigh
-        UIView.animate(withDuration: 0.5, animations: {
-            UIView.setAnimationCurve(.overdamped)
+        UIView.animate(withDuration: 0.5, delay: 0, options: .overdampedCurve) {
             self.view.layoutIfNeeded()
             let width = window.bounds.width - 28 * 2
             imageView.bounds = CGRect(x: 0, y: 0, width: width, height: width)
@@ -153,7 +157,7 @@ final class UserProfileViewController: ProfileViewController {
             backgroundView.effect = .regularBlur
             dismissButton.alpha = 1
             imageView.alpha = 1
-        })
+        }
     }
     
     override func updateMuteInterval(inSeconds interval: Int64) {
@@ -205,9 +209,7 @@ final class UserProfileViewController: ProfileViewController {
         becomeFirstResponder()
         subtitleLabel.highlightIdentityNumber = true
         if let highlightedRect = subtitleLabel.highlightedRect {
-            let menu = UIMenuController.shared
-            menu.setTargetRect(highlightedRect, in: subtitleLabel)
-            menu.setMenuVisible(true, animated: true)
+            UIMenuController.shared.showMenu(from: subtitleLabel, rect: highlightedRect)
             AppDelegate.current.mainWindow.addDismissMenuResponder()
         }
     }
@@ -591,10 +593,15 @@ extension UserProfileViewController {
         for view in menuStackView.subviews {
             view.removeFromSuperview()
         }
+        let isMessengerUser = user.isCreatedByMessenger
         
         avatarImageView.setImage(with: user)
         titleLabel.text = user.fullName
-        subtitleLabel.identityNumber = user.identityNumber
+        if isMessengerUser {
+            subtitleLabel.identityNumber = user.identityNumber
+        } else {
+            subtitleLabel.identityNumber = nil
+        }
         
         if user.isVerified {
             badgeImageView.image = R.image.ic_user_verified()
@@ -606,23 +613,25 @@ extension UserProfileViewController {
             badgeImageView.isHidden = true
         }
         
-        switch relationship {
-        case .ME, .FRIEND:
-            relationshipView.style = .none
-        case .STRANGER:
-            if user.isBot {
-                relationshipView.style = .addBot
-            } else {
-                relationshipView.style = .addContact
+        if isMessengerUser {
+            switch relationship {
+            case .ME, .FRIEND:
+                relationshipView.style = .none
+            case .STRANGER:
+                if user.isBot {
+                    relationshipView.style = .addBot
+                } else {
+                    relationshipView.style = .addContact
+                }
+                relationshipView.button.removeTarget(nil, action: nil, for: .allEvents)
+                relationshipView.button.addTarget(self, action: #selector(addContact), for: .touchUpInside)
+                centerStackView.addArrangedSubview(relationshipView)
+            case .BLOCKING:
+                relationshipView.style = .unblock
+                relationshipView.button.removeTarget(nil, action: nil, for: .allEvents)
+                relationshipView.button.addTarget(self, action: #selector(unblockUser), for: .touchUpInside)
+                centerStackView.addArrangedSubview(relationshipView)
             }
-            relationshipView.button.removeTarget(nil, action: nil, for: .allEvents)
-            relationshipView.button.addTarget(self, action: #selector(addContact), for: .touchUpInside)
-            centerStackView.addArrangedSubview(relationshipView)
-        case .BLOCKING:
-            relationshipView.style = .unblock
-            relationshipView.button.removeTarget(nil, action: nil, for: .allEvents)
-            relationshipView.button.addTarget(self, action: #selector(unblockUser), for: .touchUpInside)
-            centerStackView.addArrangedSubview(relationshipView)
         }
         
         if !user.biography.isEmpty {
@@ -630,7 +639,7 @@ extension UserProfileViewController {
             centerStackView.addArrangedSubview(descriptionView)
         }
         
-        if !isMe {
+        if !isMe, isMessengerUser {
             if let view = favoriteAppViewIfLoaded {
                 centerStackView.addArrangedSubview(view)
             }
@@ -665,6 +674,17 @@ extension UserProfileViewController {
             menuStackViewTopConstraint.constant = 24
         } else {
             menuStackViewTopConstraint.constant = 0
+        }
+        if !isMessengerUser && centerStackView.arrangedSubviews.isEmpty {
+            if let constraint = centerStackViewHeightConstraint {
+                constraint.isActive = true
+            } else {
+                let constraint = centerStackView.heightAnchor.constraint(equalToConstant: 38)
+                constraint.isActive = true
+                centerStackViewHeightConstraint = constraint
+            }
+        } else {
+            centerStackViewHeightConstraint?.isActive = false
         }
         
         if isMe {
@@ -714,7 +734,7 @@ extension UserProfileViewController {
                 footerLabel.text = R.string.localizable.profile_join_in(rep)
                 menuStackView.addArrangedSubview(footerLabel)
             }
-        } else {
+        } else if isMessengerUser {
             var groups = [[ProfileMenuItem]]()
             
             let shareUserItem = ProfileMenuItem(title: R.string.localizable.profile_share_card(),
@@ -840,6 +860,8 @@ extension UserProfileViewController {
             
             reloadMenu(groups: groups)
             menuStackView.insertArrangedSubview(circleItemView, at: groups.count - 2)
+        } else {
+            reloadMenu(groups: [])
         }
         
         view.frame.size.width = AppDelegate.current.mainWindow.bounds.width

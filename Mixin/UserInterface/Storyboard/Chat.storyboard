@@ -634,6 +634,7 @@
                         <outlet property="textView" destination="ucd-YD-Vpg" id="Dqi-dB-Qz5"/>
                         <outlet property="textViewHeightConstraint" destination="Kzm-2u-qAF" id="vvq-oU-Wdv"/>
                         <outlet property="textViewRightAccessoryView" destination="4Hc-pE-gbi" id="x53-gR-XSA"/>
+                        <outlet property="textViewRightAccessoryWidthConstraint" destination="HhS-mj-m72" id="jms-SZ-NMR"/>
                         <outlet property="unblockButton" destination="iAX-RP-UWF" id="I6N-dn-BhE"/>
                     </connections>
                 </viewController>
@@ -891,6 +892,7 @@
                                             <outlet property="collectionView" destination="3Cl-kB-Fh3" id="qLV-1X-85Y"/>
                                             <outlet property="collectionViewLeadingConstraint" destination="doJ-XS-yK0" id="CuE-kF-ISl"/>
                                             <outlet property="collectionViewTrailingConstraint" destination="bQf-Cx-tiS" id="RCr-an-KRQ"/>
+                                            <outlet property="layout" destination="Lai-36-8qQ" id="K34-BX-TOg"/>
                                             <outlet property="nameLabel" destination="5md-9Y-eyo" id="n5T-5X-H5W"/>
                                         </connections>
                                     </collectionViewCell>
