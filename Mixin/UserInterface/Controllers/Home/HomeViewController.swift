@@ -142,11 +142,11 @@ class HomeViewController: UIViewController {
         Logger.general.info(category: "HomeViewController", message: "View did load with app state: \(UIApplication.shared.applicationStateString)")
         if UIApplication.shared.applicationState != .background {
             ConcurrentJobQueue.shared.addJob(job: RefreshAccountJob())
-            ConcurrentJobQueue.shared.addJob(job: CleanUpUnusedAttachmentJob())
             if AppGroupUserDefaults.User.hasRecoverMedia {
                 ConcurrentJobQueue.shared.addJob(job: RecoverMediaJob())
             }
             initializeFTSIfNeeded()
+            refreshExternalSchemesIfNeeded()
         }
         UIApplication.homeContainerViewController?.clipSwitcher.loadClipsFromPreviousSession()
     }
@@ -287,6 +287,7 @@ class HomeViewController: UIViewController {
         updateBulletinView()
         fetchConversations()
         initializeFTSIfNeeded()
+        refreshExternalSchemesIfNeeded()
     }
     
     @objc func dataDidChange(_ sender: Notification) {
@@ -573,6 +574,12 @@ extension HomeViewController: UIScrollViewDelegate {
 }
 
 extension HomeViewController {
+    
+    private func refreshExternalSchemesIfNeeded() {
+        if -AppGroupUserDefaults.User.externalSchemesRefreshDate.timeIntervalSinceNow > .oneDay {
+            ConcurrentJobQueue.shared.addJob(job: RefreshExternalSchemeJob())
+        }
+    }
     
     private func initializeFTSIfNeeded() {
         guard !AppGroupUserDefaults.Database.isFTSInitialized else {

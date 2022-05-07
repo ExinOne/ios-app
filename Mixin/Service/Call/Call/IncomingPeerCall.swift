@@ -24,6 +24,17 @@ class IncomingPeerCall: PeerCall {
         self.remoteUser = remoteUser
     }
     
+    override func end(reason: EndedReason, by side: EndedSide, completion: (() -> Void)? = nil) {
+        super.end(reason: reason, by: side) {
+            if let completion = self.answerCompletion {
+                Logger.call.info(category: "IncomingPeerCall", message: "[\(self.uuidString)] Ended with answer callback awaiting")
+                completion(CallError.invalidState(description: "Already ended"))
+                self.answerCompletion = nil
+            }
+            completion?()
+        }
+    }
+    
 }
 
 // MARK: - WebRTCClientDelegate
@@ -127,7 +138,7 @@ extension IncomingPeerCall {
             } else {
                 Logger.call.info(category: "IncomingPeerCall", message: "[\(self.uuidString)] User has accepted this call, now waits for remote SDP")
                 self.isUserAccepted = true
-                completion(nil)
+                self.answerCompletion = completion
             }
         }
     }
@@ -144,23 +155,34 @@ extension IncomingPeerCall {
                 completion(CallError.setRemoteSdp(error))
             } else {
                 self.rtcClient.answer { result in
-                    switch result {
-                    case.success(let sdp):
-                        let answer = Message.createWebRTCMessage(conversationId: self.conversationId,
-                                                                 category: .WEBRTC_AUDIO_ANSWER,
-                                                                 content: sdp,
-                                                                 status: .SENDING,
-                                                                 quoteMessageId: self.uuidString)
-                        SendMessageService.shared.sendMessage(message: answer,
-                                                              ownerUser: self.remoteUser,
-                                                              isGroupMessage: false)
-                        Logger.call.info(category: "IncomingPeerCall", message: "[\(self.uuidString)] Answer is sent")
-                        self.queue.async {
-                            self.answerCompletion = completion
+                    self.queue.async {
+                        guard self.internalState != .disconnecting else {
+                            completion(CallError.invalidState(description: "Answering to a disconnecting call"))
+                            return
                         }
-                    case .failure(let error):
-                        completion(CallError.answerConstruction(error))
-                        Logger.call.error(category: "IncomingPeerCall", message: "[\(self.uuidString)] Failed to construct answer: \(error)")
+                        switch result {
+                        case.success(let sdp):
+                            let answer = Message.createWebRTCMessage(conversationId: self.conversationId,
+                                                                     category: .WEBRTC_AUDIO_ANSWER,
+                                                                     content: sdp,
+                                                                     status: .SENDING,
+                                                                     quoteMessageId: self.uuidString)
+                            SendMessageService.shared.sendMessage(message: answer,
+                                                                  ownerUser: self.remoteUser,
+                                                                  isGroupMessage: false)
+                            Logger.call.info(category: "IncomingPeerCall", message: "[\(self.uuidString)] Answer is sent")
+                            if let answerCompletion = self.answerCompletion {
+                                self.answerCompletion = { error in
+                                    answerCompletion(error)
+                                    completion(error)
+                                }
+                            } else {
+                                self.answerCompletion = completion
+                            }
+                        case .failure(let error):
+                            completion(CallError.answerConstruction(error))
+                            Logger.call.error(category: "IncomingPeerCall", message: "[\(self.uuidString)] Failed to construct answer: \(error)")
+                        }
                     }
                 }
             }

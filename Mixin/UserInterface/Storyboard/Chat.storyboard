@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="20037" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait" appearance="dark"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="20020"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
@@ -904,7 +904,7 @@
                                         <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" contentInsetAdjustmentBehavior="never" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="TCC-kH-Uue">
                                             <rect key="frame" x="0.0" y="10" width="375" height="170"/>
                                             <color key="backgroundColor" name="background"/>
-                                            <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" minimumLineSpacing="6" minimumInteritemSpacing="0.0" id="0dd-GT-YgM" customClass="StickersStoreBannerFlowLayout" customModule="Mixin" customModuleProvider="target">
+                                            <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" minimumLineSpacing="6" minimumInteritemSpacing="0.0" id="0dd-GT-YgM" customClass="SnapCenterFlowLayout" customModule="Mixin" customModuleProvider="target">
                                                 <size key="itemSize" width="320" height="170"/>
                                                 <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                                 <size key="footerReferenceSize" width="0.0" height="0.0"/>
@@ -2583,6 +2583,7 @@
                                                 </state>
                                                 <userDefinedRuntimeAttributes>
                                                     <userDefinedRuntimeAttribute type="string" keyPath="dynamicTextSize" value="semibold18"/>
+                                                    <userDefinedRuntimeAttribute type="string" keyPath="local_title" value="action_send"/>
                                                 </userDefinedRuntimeAttributes>
                                                 <connections>
                                                     <action selector="sendAction:" destination="lA6-Lu-PN4" eventType="touchUpInside" id="jAu-4c-Npf"/>
@@ -2621,6 +2622,7 @@
                                                 <integer key="value" value="13"/>
                                             </userDefinedRuntimeAttribute>
                                             <userDefinedRuntimeAttribute type="string" keyPath="dynamicTextSize" value="semibold18"/>
+                                            <userDefinedRuntimeAttribute type="string" keyPath="local_title" value="dialog_button_cancel"/>
                                         </userDefinedRuntimeAttributes>
                                         <connections>
                                             <action selector="dismissAction:" destination="lA6-Lu-PN4" eventType="touchUpInside" id="xxL-n8-in1"/>

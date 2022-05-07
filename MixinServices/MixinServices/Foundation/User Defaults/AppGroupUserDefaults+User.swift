@@ -20,8 +20,6 @@ extension AppGroupUserDefaults {
             case lastBackupDate = "last_backup_date"
             case lastBackupSize = "last_backup_size"
             
-            case lastAttachmentCleanUpDate = "last_attachment_cleanup_date"
-            
             case showMessagePreviewInNotification = "show_message_preview_in_notification"
             case duplicateTransferConfirmation = "duplicate_transfer_confirmation"
             case conversationDraft = "conversation_draft"
@@ -63,6 +61,9 @@ extension AppGroupUserDefaults {
             
             case stickerRefreshDate = "sticker_refresh_date"
             case hasNewStickers = "has_new_stickers"
+            
+            case externalSchemes = "external_schemes"
+            case externalSchemesRefreshDate = "external_schemes_refresh_date"
         }
         
         public static let version = 30
@@ -121,9 +122,6 @@ extension AppGroupUserDefaults {
         @Default(namespace: .user, key: Key.lastBackupSize, defaultValue: nil)
         public static var lastBackupSize: Int64?
         
-        @Default(namespace: .user, key: Key.lastAttachmentCleanUpDate, defaultValue: Date())
-        public static var lastAttachmentCleanUpDate: Date
-        
         @Default(namespace: .user, key: Key.showMessagePreviewInNotification, defaultValue: true)
         public static var showMessagePreviewInNotification: Bool
         
@@ -180,8 +178,7 @@ extension AppGroupUserDefaults {
             }
         }
         
-//        @Default(namespace: .user, key: Key.homeApp, defaultValue: [App.walletAppId, App.cameraAppId])
-        @Default(namespace: .user, key: Key.homeApp, defaultValue: [App.cameraAppId])
+        @Default(namespace: .user, key: Key.homeApp, defaultValue: [App.scanAppId])
         public static var homeAppIds: [String] {
             didSet {
                 NotificationCenter.default.post(onMainThread: homeAppIdsDidChangeNotification, object: self)
@@ -239,6 +236,12 @@ extension AppGroupUserDefaults {
                 NotificationCenter.default.post(onMainThread: hasNewStickersDidChangeNotification, object: self)
             }
         }
+        
+        @Default(namespace: .user, key: Key.externalSchemes, defaultValue: [])
+        public static var externalSchemes: [String]
+        
+        @Default(namespace: .crypto, key: Key.externalSchemesRefreshDate, defaultValue: .distantPast)
+        public static var externalSchemesRefreshDate: Date
         
         public static func insertRecentlyUsedAppId(id: String) {
             let maxNumberOfIds = 12

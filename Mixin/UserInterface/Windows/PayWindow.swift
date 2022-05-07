@@ -113,6 +113,7 @@ class PayWindow: BottomSheetView {
         token: CollectibleToken? = nil,
         action: PinAction,
         amount: String,
+        isAmountLocalized: Bool = true,
         memo: String,
         error: String? = nil,
         fiatMoneyAmount: String? = nil,
@@ -134,7 +135,11 @@ class PayWindow: BottomSheetView {
             mixinIDPlaceView.isHidden = false
             amountLabelPlaceHeightConstraint.constant = 10
             resultViewPlaceHeightConstraint.constant = 30
-            let amountToken = CurrencyFormatter.localizedString(from: amount, locale: .current, format: .precision, sign: .whenNegative, symbol: .custom(asset.symbol)) ?? amount
+            let amountToken = CurrencyFormatter.localizedString(from: amount,
+                                                                locale: isAmountLocalized ? .current : .us,
+                                                                format: .precision,
+                                                                sign: .whenNegative,
+                                                                symbol: .custom(asset.symbol)) ?? amount
             let amountExchange = CurrencyFormatter.localizedPrice(price: amount, priceUsd: asset.priceUsd)
             if let fiatMoneyAmount = fiatMoneyAmount {
                 amountLabel.text = fiatMoneyAmount + " " + Currency.current.code
@@ -164,7 +169,7 @@ class PayWindow: BottomSheetView {
                 multisigView.isHidden = true
                 nameLabel.text = R.string.localizable.pay_withdrawal_title(address.label)
                 mixinIDLabel.text = address.fullAddress
-                let feeToken = CurrencyFormatter.localizedString(from: address.fee, locale: .current, format: .precision, sign: .whenNegative, symbol: .custom(chainAsset.symbol)) ?? address.fee
+                let feeToken = CurrencyFormatter.localizedString(from: address.fee, locale: .us, format: .precision, sign: .whenNegative, symbol: .custom(chainAsset.symbol)) ?? address.fee
                 let feeExchange = CurrencyFormatter.localizedPrice(price: address.fee, priceUsd: chainAsset.priceUsd)
                 if let fiatMoneyAmount = fiatMoneyAmount {
                     amountExchangeLabel.text = R.string.localizable.pay_withdrawal_memo(amountToken, "≈ " + Currency.current.symbol + fiatMoneyAmount, feeToken, feeExchange)
@@ -875,10 +880,15 @@ extension PayWindow {
         }
 
         if AppGroupUserDefaults.User.duplicateTransferConfirmation, let trace = TraceDAO.shared.getTrace(assetId: asset.assetId, amount: amount, opponentId: opponentId, destination: destination, tag: tag, createdAt: Date().within6Hours().toUTCString()) {
-
+            let localizedAmount: String
+            if fromWeb, let separator = Locale.current.decimalSeparator {
+                localizedAmount = amount.replacingOccurrences(of: ".", with: separator)
+            } else {
+                localizedAmount = amount
+            }
             if let snapshotId = trace.snapshotId, !snapshotId.isEmpty {
                 DispatchQueue.main.async {
-                    DuplicateConfirmationWindow.instance().render(traceCreatedAt: trace.createdAt, asset: asset, action: action, amount: amount, memo: memo, fiatMoneyAmount: fiatMoneyAmount) { (isContinue, errorMsg) in
+                    DuplicateConfirmationWindow.instance().render(traceCreatedAt: trace.createdAt, asset: asset, action: action, amount: localizedAmount, memo: memo, fiatMoneyAmount: fiatMoneyAmount) { (isContinue, errorMsg) in
                         if isContinue {
                             checkAmountAction()
                         } else {
@@ -892,7 +902,7 @@ extension PayWindow {
                 case let .success(snapshot):
                     TraceDAO.shared.updateSnapshot(traceId: traceId, snapshotId: snapshot.snapshotId)
                     DispatchQueue.main.async {
-                        DuplicateConfirmationWindow.instance().render(traceCreatedAt: snapshot.createdAt, asset: asset, action: action, amount: amount, memo: memo, fiatMoneyAmount: fiatMoneyAmount) { (isContinue, errorMsg) in
+                        DuplicateConfirmationWindow.instance().render(traceCreatedAt: snapshot.createdAt, asset: asset, action: action, amount: localizedAmount, memo: memo, fiatMoneyAmount: fiatMoneyAmount) { (isContinue, errorMsg) in
                             if isContinue {
                                 checkAmountAction()
                             } else {

@@ -56,6 +56,7 @@
 "action_change_settings" = "更改设置";
 "action_open" = "打开";
 "action_settings" = "设置";
+"action_phone_call" = "呼叫号码";
 "menu_delete" = "删除";
 "menu_edit" = "编辑";
 "menu_report" = "上报";
@@ -413,6 +414,7 @@
 "call_state_outgoing" = "正在呼叫...";
 "call_state_incoming" = "语音通话来电";
 "call_state_connecting" = "正在连接";
+"call_state_connected" = "已连接";
 "call_state_stalled" = "网络状态不佳";
 "call_state_disconnecting" = "正在断开";
 "call_state_brief_waiting" = "等待接听";
@@ -444,7 +446,7 @@
 "sticker_remove_title" = "删除贴纸";
 "sticker_add_failed" = "添加贴纸失败";
 "sticker_remove_failed" = "删除贴纸失败";
-"sticker_add_required" = "贴纸要求大于 1KB 且小于 800KB，宽高大于 64 像素且小于 512 像素。";
+"sticker_add_requirements" = "贴纸要求大于 %@KB 且小于 %@KB，宽高大于 %@ 像素且小于 %@ 像素。";
 "sticker_store_title" = "表情商场";
 "sticker_store_add" = "添加";
 "sticker_store_added" = "已添加";
@@ -680,7 +682,7 @@
 // Url
 "url_invalid_payment" = "无效支付信息";
 "url_unrecognized" = "链接识别失败";
-"url_unrecognized_tip" = "%@ 识别失败，请升级至 Mixin 最新版本或联系开发者检查链接";
+"url_unrecognized_tip" = "%@ 识别失败，请升级至 JustChat 最新版本或联系开发者检查链接";
 
 // Multisig
 "multisig_by_pin" = "通过密码签名";
@@ -788,6 +790,7 @@
 "profile_shared_app_reach_limit" = "已达到上限";
 "profile_call_with_mixin" = "语音通话";
 "profile_call_phone" = "电话呼叫";
+"profile_groups_in_common" = "共同的群聊";
 
 // Emergency
 "emergency_view" = "查看紧急联系人";
@@ -929,7 +932,7 @@
 "setting_delete_account_hint_message" = "本地消息和 iCloud 备份不会被自动删除";
 "setting_delete_account_hint_transaction" = "交易不能被删除";
 "setting_delete_account_view_wallet" = "查看钱包";
-"setting_delete_account_assets_hint" = "你的 Mixin 钱包还有一些资产，可以提现至其他钱包或交易所，账户一旦注销，这些资产将和钱包一起被弃用无法找回。";
+"setting_delete_account_assets_hint" = "你的 钱包还有一些资产，可以提现至其他钱包或交易所，账户一旦注销，这些资产将和钱包一起被弃用无法找回。";
 "setting_delete_account_confirm_title" = "输入您的钱包密码以删除账户";
 //"setting_delete_account_confirm_hint" = "如果继续，您的个人资料和账户信息将在%@被删除。阅读文档以了解更多。";
 "setting_delete_account_confirm_hint" = "如果继续，您的个人资料和账户信息将在%@被删除。";
@@ -952,8 +955,9 @@
 "about_diagnose" = "诊断";
 
 // Diagnose
-"diagnose_warning" = "⚠️请在Mixin团队指导下使用";
+"diagnose_warning" = "⚠️请在JustChat团队指导下使用";
 "diagnose_database_access" = "数据库访问";
+"diagnose_attachment" = "清理缓存";
 
 "report_title"="给开发人员发送聊天日志?";
 "report_button"="把日志发给开发者";
@@ -1072,3 +1076,5 @@
 "error_malformed_address_detailed" = "地址格式错误。请输入正确的 %@ 地址";
 
 "error_network_task_failed" = "网络连接失败，请检查或切换网络后重试";
+"error_invalid_width" = "宽度无效";
+"error_invalid_height" = "高度无效";

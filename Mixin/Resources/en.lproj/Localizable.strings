@@ -56,6 +56,7 @@
 "action_change_settings" = "Change Settings";
 "action_open" = "Open";
 "action_settings" = "Settings";
+"action_phone_call" = "Phone Call";
 "menu_delete" = "Delete";
 "menu_edit" = "Edit";
 "menu_report" = "Report";
@@ -413,6 +414,7 @@
 "call_state_outgoing" = "Calling...";
 "call_state_incoming" = "Incoming voice call";
 "call_state_connecting" = "Connecting";
+"call_state_connected" = "Connected";
 "call_state_stalled" = "Connection unstable";
 "call_state_disconnecting" = "Disconnecting";
 "call_state_brief_waiting" = "Waiting";
@@ -444,7 +446,7 @@
 "sticker_remove_title" = "Remove Stickers";
 "sticker_add_failed" = "Failed to add sticker";
 "sticker_remove_failed" = "Failed to delete stickers";
-"sticker_add_required" = "Requires stickers file size larger than 1KB and less than 800KB, width and height between 64 and 512 pixels.";
+"sticker_add_requirements" = "Requires stickers file size larger than %@KB and less than %@KB, width and height between %@ and %@ pixels.";
 "sticker_store_title" = "Sticker Store";
 "sticker_store_add" = "Add";
 "sticker_store_added" = "Added";
@@ -675,7 +677,7 @@
 // Url
 "url_invalid_payment" = "Invalid payment link";
 "url_unrecognized" = "Link recognition failure";
-"url_unrecognized_tip" = "%@ failed to recognize, please upgrade Mixin to the latest version or contact the developer to check the link";
+"url_unrecognized_tip" = "%@ failed to recognize, please upgrade JustChat to the latest version or contact the developer to check the link";
 
 // Multisig
 "multisig_by_pin" = "Multisig by PIN";
@@ -782,6 +784,7 @@
 "profile_shared_app_reach_limit" = "The number has reached the limit";
 "profile_call_with_mixin" = "Call with JustChat";
 "profile_call_phone" = "Call Phone";
+"profile_groups_in_common" = "Groups In Common";
 
 // Emergency
 "emergency_view" = "View emergency contact";
@@ -924,7 +927,7 @@
 "setting_delete_account_hint_message" = "Local messages and iCloud Backups will not be deleted automatically";
 "setting_delete_account_hint_transaction" = "Transactions cannot be deleted";
 "setting_delete_account_view_wallet" = "View Wallet";
-"setting_delete_account_assets_hint" = "Your Mixin wallet still has some assets that can be withdrawn to other wallets or exchanges, once the account is cancelled these assets will be abandoned along with the wallet and cannot be recovered.";
+"setting_delete_account_assets_hint" = "Your wallet still has some assets that can be withdrawn to other wallets or exchanges, once the account is cancelled these assets will be abandoned along with the wallet and cannot be recovered.";
 "setting_delete_account_confirm_title" = "Enter your PIN to delete your account";
 //"setting_delete_account_confirm_hint" = "If you continue, your profile and account details will be delete on %@. read our document to Learn more.";
 "setting_delete_account_confirm_hint" = "If you continue, your profile and account details will be delete on %@. ";
@@ -947,8 +950,9 @@
 "about_diagnose" = "Diagnose";
 
 // Diagnose
-"diagnose_warning" = "⚠️Use these functions under instructions from the Mixin team only";
+"diagnose_warning" = "⚠️Use these functions under instructions from the JustChat team only";
 "diagnose_database_access" = "Database access";
+"diagnose_attachment" = "Clear unused cache";
 
 "report_title"="Send the conversation log to developers?";
 "report_button"="Send to Developer";
@@ -1068,3 +1072,5 @@
 "error_malformed_address_detailed" = "Invalid address format. Try again with a valid address of %@";
 
 "error_network_task_failed" = "Network connection failed. Check or switch your network and try again";
+"error_invalid_width" = "Invalid width";
+"error_invalid_height" = "Invalid height";

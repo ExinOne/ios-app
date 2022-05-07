@@ -58,6 +58,19 @@ class UrlWindow {
             switch url {
             case let .identityNumber(number):
                 return checkUser(identityNumber: number)
+            case let .phoneNumber(number):
+                let sheet = UIAlertController(title: number, message: nil, preferredStyle: .actionSheet)
+                sheet.addAction(UIAlertAction(title: R.string.localizable.action_phone_call(), style: .default, handler: { _ in
+                    let url = URL(string: "tel://\(number)")!
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                }))
+                sheet.addAction(UIAlertAction(title: R.string.localizable.action_copy(), style: .default, handler: { _ in
+                    UIPasteboard.general.string = number
+                    showAutoHiddenHud(style: .notification, text: R.string.localizable.toast_copied())
+                }))
+                sheet.addAction(UIAlertAction(title: R.string.localizable.dialog_button_cancel(), style: .cancel, handler: nil))
+                UIApplication.homeContainerViewController?.present(sheet, animated: true, completion: nil)
+                return true
             }
         } else {
             return false
@@ -206,6 +219,35 @@ class UrlWindow {
             return false
         }
         
+        func pushConversationViewController(user: UserItem? = nil, conversation: ConversationItem? = nil) {
+            let pushController = {
+                let viewController: UIViewController?
+                if let user = user {
+                    viewController = ConversationViewController.instance(ownerUser: user)
+                } else if let conversation = conversation {
+                    viewController = ConversationViewController.instance(conversation: conversation)
+                } else {
+                    viewController = nil
+                }
+                if let viewController = viewController {
+                    UIApplication.homeNavigationController?.pushViewController(withBackRoot: viewController)
+                }
+            }
+            if let container = UIApplication.homeContainerViewController, container.galleryIsOnTopMost {
+                let currentItemViewController = container.galleryViewController.currentItemViewController
+                if let vc = currentItemViewController as? GalleryVideoItemViewController {
+                    vc.togglePipMode(completion: {
+                        DispatchQueue.main.async(execute: pushController)
+                    })
+                } else {
+                    container.galleryViewController.dismiss(transitionViewInitialOffsetY: 0)
+                    pushController()
+                }
+            } else {
+                pushController()
+            }
+        }
+        
         let hud = Hud()
         hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
         DispatchQueue.global().async {
@@ -219,8 +261,7 @@ class UrlWindow {
                 }
                 DispatchQueue.main.async {
                     hud.hide()
-                    let vc = ConversationViewController.instance(ownerUser: user)
-                    UIApplication.homeNavigationController?.pushViewController(withBackRoot: vc)
+                    pushConversationViewController(user: user)
                 }
             } else {
                 var conversation = ConversationDAO.shared.getConversation(conversationId: conversationId)
@@ -259,8 +300,7 @@ class UrlWindow {
                 
                 DispatchQueue.main.async {
                     hud.hide()
-                    let vc = ConversationViewController.instance(conversation: conversation)
-                    UIApplication.homeNavigationController?.pushViewController(withBackRoot: vc)
+                    pushConversationViewController(conversation: conversation)
                 }
             }
         }
@@ -409,7 +449,7 @@ class UrlWindow {
         guard ["bitcoin:", "bitcoincash:", "bitcoinsv:", "ethereum:", "litecoin:", "dash:", "ripple:", "zcash:", "horizen:", "monero:", "binancecoin:", "stellar:", "dogecoin:", "mobilecoin:"].contains(where: url.lowercased().hasPrefix) else {
             return false
         }
-        guard let components = URLComponents(string: url.lowercased()) else {
+        guard let components = URLComponents(string: url) else {
             return false
         }
         return checkPayUrl(url: url, query: components.getKeyVals())
@@ -420,7 +460,7 @@ class UrlWindow {
             UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
             return true
         }
-        guard let recipientId = query["recipient"], let assetId = query["asset"], let amount = query["amount"] else {
+        guard let recipientId = query["recipient"]?.lowercased(), let assetId = query["asset"]?.lowercased(), let amount = query["amount"] else {
             Logger.general.error(category: "PayURL", message: "Invalid URL: \(url)")
             showAutoHiddenHud(style: .error, text: R.string.localizable.url_invalid_payment())
             return true
@@ -452,7 +492,7 @@ class UrlWindow {
                 DispatchQueue.main.async {
                     if canPay {
                         hud.hide()
-                        PayWindow.instance().render(asset: asset, action: action, amount: amount, memo: memo ?? "").presentPopupControllerAnimated()
+                        PayWindow.instance().render(asset: asset, action: action, amount: amount, isAmountLocalized: false, memo: memo ?? "").presentPopupControllerAnimated()
                     } else if let error = errorMsg {
                         hud.set(style: .error, text: error)
                         hud.scheduleAutoHidden()
@@ -631,6 +671,27 @@ class UrlWindow {
             }
         }
         return true
+    }
+    
+    class func checkExternalScheme(url: String) -> Bool {
+        guard let url = URL(string: url), let host = url.host else {
+            return false
+        }
+        let externalSchemeHosts = AppGroupUserDefaults.User.externalSchemes
+            .compactMap(URL.init)
+            .compactMap(\.host)
+        if externalSchemeHosts.contains(host) {
+            guard let container = UIApplication.homeContainerViewController else {
+                return false
+            }
+            var parent = container.topMostChild
+            if let visibleViewController = (parent as? UINavigationController)?.visibleViewController {
+                parent = visibleViewController
+            }
+            MixinWebViewController.presentInstance(with: .init(conversationId: "", initialUrl: url), asChildOf: parent)
+            return true
+        }
+        return false
     }
     
 }

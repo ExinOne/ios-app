@@ -226,6 +226,11 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
         guard let itemViewController = currentItemViewController, let item = itemViewController.item else {
             return
         }
+        children.forEach { controller in
+            if let vc = controller as? MixinWebViewController {
+                vc.dismissAsChild(animated: false, completion: nil)
+            }
+        }
         delegate?.galleryViewController(self, willDismiss: item)
         pageViewController.view.alpha = 0
         pageViewController.view.transform = .identity
@@ -362,6 +367,9 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
         }
         if let url = (itemViewController as? GalleryImageItemViewController)?.detectedUrl {
             alert.addAction(UIAlertAction(title: Localized.SCAN_QR_CODE, style: .default, handler: { (_) in
+                if UrlWindow.checkExternalScheme(url: url.absoluteString) {
+                    return
+                }
                 if !UrlWindow.checkUrl(url: url, clearNavigationStack: false) {
                     RecognizeWindow.instance().presentWindow(text: url.absoluteString)
                 }
