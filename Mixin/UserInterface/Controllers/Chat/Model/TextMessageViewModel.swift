@@ -17,6 +17,7 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
     
     private static let appIdentityNumberRegex = try? NSRegularExpression(pattern: #"(?<=^|\D)7000\d{6}(?=$|\D)"#, options: [])
     private static let phoneNumberDetector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.phoneNumber.rawValue)
+    private static let phoneNumberValidator = PhoneNumberValidator()
     
     var content: CoreTextLabel.Content?
     var contentLabelFrame = CGRect.zero
@@ -207,7 +208,7 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
         // Calculate content size
         let additionalTrailingSize: CGSize = {
             let statusImageWidth = showStatusImage
-                ? ImageSet.MessageStatus.size.width
+                ? StatusImage.size.width
                 : 0
             let forwarderIconWidth = style.contains(.forwardedByBot)
                 ? Self.forwarderIconRightMargin + R.image.conversation.ic_forwarder_bot()!.size.width
@@ -385,6 +386,9 @@ class TextMessageViewModel: DetailInfoMessageViewModel {
                 return
             }
             let number = nsString.substring(with: range)
+            guard Self.phoneNumberValidator.isValid(number) else {
+                return
+            }
             guard let url = MixinInternalURL.phoneNumber(number).url else {
                 return
             }

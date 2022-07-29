@@ -44,7 +44,7 @@ class StickerPreviewViewController: UIViewController {
         } else {
             category = nil
         }
-        if category == AlbumCategory.SYSTEM, let stickerId = message.stickerId {
+        if category != AlbumCategory.PERSONAL, let stickerId = message.stickerId {
             loadAlbum(stickerId: stickerId, albumId: message.albumId)
         }
     }
@@ -130,11 +130,11 @@ extension StickerPreviewViewController {
             return
         }
         if albumItem.isAdded {
-            stickerActionButton.setTitle(R.string.localizable.sticker_store_added(), for: .normal)
+            stickerActionButton.setTitle(R.string.localizable.added(), for: .normal)
             stickerActionButton.backgroundColor = R.color.sticker_button_background_disabled()
             stickerActionButton.setTitleColor(R.color.sticker_button_text_disabled(), for: .normal)
         } else {
-            stickerActionButton.setTitle(R.string.localizable.sticker_store_add(), for: .normal)
+            stickerActionButton.setTitle(R.string.localizable.add_sticker(), for: .normal)
             stickerActionButton.backgroundColor = R.color.theme()
             stickerActionButton.setTitleColor(.white, for: .normal)
         }

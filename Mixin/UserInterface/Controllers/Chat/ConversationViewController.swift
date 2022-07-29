@@ -156,7 +156,7 @@ class ConversationViewController: UIViewController {
         button.titleLabel?.setFont(scaledFor: .systemFont(ofSize: 16),
                                    adjustForContentSize: true)
         button.setTitleColor(.theme, for: .normal)
-        button.setTitle(R.string.localizable.dialog_button_cancel(), for: .normal)
+        button.setTitle(R.string.localizable.cancel(), for: .normal)
         button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         button.addTarget(self, action: #selector(endMultipleSelection), for: .touchUpInside)
         return button
@@ -370,6 +370,7 @@ class ConversationViewController: UIViewController {
         center.addObserver(self, selector: #selector(pinMessageDidSave(_:)), name: PinMessageDAO.didSaveNotification, object: nil)
         center.addObserver(self, selector: #selector(pinMessageDidDelete(_:)), name: PinMessageDAO.didDeleteNotification, object: nil)
         center.addObserver(self, selector: #selector(pinMessageBannerDidChange), name: AppGroupUserDefaults.User.pinMessageBannerDidChangeNotification, object: nil)
+        center.addObserver(self, selector: #selector(expiredMessageDidDelete(_:)), name: ExpiredMessageDAO.expiredMessageDidDeleteNotification, object: nil)
         
         if dataSource.category == .group {
             updateGroupCallIndicatorViewHidden()
@@ -530,22 +531,22 @@ class ConversationViewController: UIViewController {
                 navigationController?.pushViewController(vc, animated: true)
             } else {
                 let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-                alert.addAction(UIAlertAction(title: R.string.localizable.chat_forward_one_by_one(), style: .default, handler: { (_) in
+                alert.addAction(UIAlertAction(title: R.string.localizable.one_by_one_forward(), style: .default, handler: { (_) in
                     let vc = MessageReceiverViewController.instance(content: .messages(messages))
                     self.navigationController?.pushViewController(vc, animated: true)
                 }))
-                alert.addAction(UIAlertAction(title: R.string.localizable.chat_forward_combined(), style: .default, handler: { (_) in
+                alert.addAction(UIAlertAction(title: R.string.localizable.combine_and_forward(), style: .default, handler: { (_) in
                     let vc = MessageReceiverViewController.instance(content: .transcript(messages))
                     self.navigationController?.pushViewController(vc, animated: true)
                 }))
-                alert.addAction(UIAlertAction(title: R.string.localizable.dialog_button_cancel(), style: .cancel, handler: nil))
+                alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
                 present(alert, animated: true, completion: nil)
             }
         case .delete:
             let viewModels = dataSource.selectedViewModels.values.map({ $0 })
             let controller = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
             if !viewModels.contains(where: { $0.message.userId != myUserId || !$0.message.canRecall }) {
-                controller.addAction(UIAlertAction(title: Localized.ACTION_DELETE_EVERYONE, style: .destructive, handler: { (_) in
+                controller.addAction(UIAlertAction(title: R.string.localizable.delete_for_everyone(), style: .destructive, handler: { (_) in
                     if AppGroupUserDefaults.User.hasShownRecallTips {
                         self.deleteForEveryone(viewModels: viewModels)
                     } else {
@@ -553,10 +554,10 @@ class ConversationViewController: UIViewController {
                     }
                 }))
             }
-            controller.addAction(UIAlertAction(title: Localized.ACTION_DELETE_ME, style: .destructive, handler: { (_) in
+            controller.addAction(UIAlertAction(title: R.string.localizable.delete_for_me(), style: .destructive, handler: { (_) in
                 self.deleteForMe(viewModels: viewModels)
             }))
-            controller.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
+            controller.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
             self.present(controller, animated: true, completion: nil)
         }
     }
@@ -704,8 +705,9 @@ class ConversationViewController: UIViewController {
         guard let inviterId = myInvitation?.userId else {
             return
         }
-        let alert = UIAlertController(title: R.string.localizable.chat_exit_group_and_report_inviter_confirmation(), message: nil, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: R.string.localizable.dialog_button_confirm(), style: .destructive, handler: { _ in
+        let conversationId = self.conversationId
+        let alert = UIAlertController(title: R.string.localizable.exit_group_and_report_inviter(), message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: R.string.localizable.confirm(), style: .destructive, handler: { _ in
             let hud = Hud()
             if let view = self.navigationController?.view {
                 hud.show(style: .busy, text: "", on: view)
@@ -715,12 +717,26 @@ class ConversationViewController: UIViewController {
                 case let .success(user):
                     DispatchQueue.global().async {
                         UserDAO.shared.updateUsers(users: [user], sendNotificationAfterFinished: false)
-                        ConversationDAO.shared.deleteChat(conversationId: self.conversationId)
-                        DispatchQueue.main.async {
-                            hud.set(style: .notification, text: R.string.localizable.profile_report_success())
-                            hud.scheduleAutoHidden()
-                            UIApplication.homeNavigationController?.backToHome()
+                    }
+                    ConversationAPI.exitConversation(conversationId: conversationId) { result in
+                        let exitGroup = {
+                            DispatchQueue.global().async {
+                                ConversationDAO.shared.exitGroup(conversationId: conversationId)
+                            }
+                            hud.set(style: .notification, text: R.string.localizable.done())
                         }
+                        switch result {
+                        case .success:
+                            exitGroup()
+                        case let .failure(error):
+                            switch error {
+                            case .forbidden, .notFound:
+                                exitGroup()
+                            default:
+                                hud.set(style: .error, text: error.localizedDescription)
+                            }
+                        }
+                        hud.scheduleAutoHidden()
                     }
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
@@ -728,7 +744,7 @@ class ConversationViewController: UIViewController {
                 }
             }
         }))
-        alert.addAction(UIAlertAction(title: R.string.localizable.dialog_button_cancel(), style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
@@ -788,7 +804,7 @@ class ConversationViewController: UIViewController {
                 if AudioMessagePlayingManager.shared.playingMessage?.messageId == message.messageId, AudioMessagePlayingManager.shared.player?.status == .playing {
                     AudioMessagePlayingManager.shared.pause()
                 } else if CallService.shared.hasCall {
-                    alert(R.string.localizable.chat_voice_record_on_call())
+                    alert(R.string.localizable.call_on_another_call_hint())
                 } else {
                     (cell as? AudioMessageCell)?.updateUnreadStyle()
                     AudioMessagePlayingManager.shared.play(message: message)
@@ -807,7 +823,7 @@ class ConversationViewController: UIViewController {
                     UIApplication.homeContainerViewController?.pipController?.pauseAction(self)
                     if viewModel.isListPlayable {
                         if CallService.shared.hasCall {
-                            alert(R.string.localizable.chat_voice_record_on_call())
+                            alert(R.string.localizable.call_on_another_call_hint())
                         } else {
                             let item = PlaylistItem(message: message)
                             PlaylistManager.shared.playOrPause(index: 0, in: [item], source: .conversation(message.conversationId))
@@ -852,7 +868,7 @@ class ConversationViewController: UIViewController {
                 openAppCard(appCard: appCard, sendUserId: message.userId)
             } else if message.category.hasSuffix("_LOCATION"), let location = message.location {
                 let vc = LocationPreviewViewController(location: location)
-                let container = ContainerViewController.instance(viewController: vc, title: R.string.localizable.chat_menu_location())
+                let container = ContainerViewController.instance(viewController: vc, title: R.string.localizable.location())
                 navigationController?.pushViewController(container, animated: true)
             } else if message.category.hasSuffix("_TRANSCRIPT") {
                 let vc = TranscriptPreviewViewController(transcriptMessage: message)
@@ -943,31 +959,31 @@ class ConversationViewController: UIViewController {
         }
         
         let conversationId = self.conversationId
-        let alc = UIAlertController(title: Localized.REPORT_TITLE, message: MixinHost.http, preferredStyle: .actionSheet)
-        alc.addAction(UIAlertAction(title: Localized.REPORT_BUTTON, style: .default, handler: { (_) in
+        let alc = UIAlertController(title: R.string.localizable.report_title(), message: MixinHost.http, preferredStyle: .actionSheet)
+        alc.addAction(UIAlertAction(title: R.string.localizable.send_to_developer(), style: .default, handler: { (_) in
             self.report(conversationId: conversationId)
         }))
-        alc.addAction(UIAlertAction(title: R.string.localizable.report_share(), style: .default, handler: { (_) in
+        alc.addAction(UIAlertAction(title: R.string.localizable.share_log_file(), style: .default, handler: { (_) in
             self.reportAirDop(conversationId: conversationId)
         }))
         if !Self.allowReportSingleMessage {
-            alc.addAction(UIAlertAction(title: R.string.localizable.report_message(), style: .default, handler: { (_) in
+            alc.addAction(UIAlertAction(title: R.string.localizable.allow_manual_report_message(), style: .default, handler: { (_) in
                 Self.allowReportSingleMessage = true
             }))
         }
         
         if myIdentityNumber == "762532" || myIdentityNumber == "26596" {
             if let userId = ownerUser?.userId, dataSource.category == .contact {
-                alc.addAction(UIAlertAction(title: R.string.localizable.report_copy_user_id(), style: .default, handler: {(_) in
+                alc.addAction(UIAlertAction(title: R.string.localizable.copy_user_id(), style: .default, handler: {(_) in
                     UIPasteboard.general.string = userId
                 }))
             }
-            alc.addAction(UIAlertAction(title: R.string.localizable.report_copy_conversation_id(), style: .default, handler: { (_) in
+            alc.addAction(UIAlertAction(title: R.string.localizable.copy_conversation_id(), style: .default, handler: { (_) in
                 UIPasteboard.general.string = self.conversationId
             }))
         }
         
-        alc.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
+        alc.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
         self.present(alc, animated: true, completion: nil)
     }
     
@@ -1003,6 +1019,8 @@ class ConversationViewController: UIViewController {
             if newStatus == .MENTION_READ {
                 mentionScrollingDestinations.removeAll(where: { $0 == messageId })
             }
+        case let .updateConversationStatus(status) where status == .QUIT:
+            updateInvitationHintView()
         default:
             break
         }
@@ -1188,6 +1206,17 @@ class ConversationViewController: UIViewController {
         }
     }
     
+    @objc private func expiredMessageDidDelete(_ notification: Notification) {
+        guard let messageId = notification.userInfo?[ExpiredMessageDAO.messageIdKey] as? String else {
+            return
+        }
+        guard let indexPath = dataSource.indexPath(where: { $0.messageId == messageId }) else {
+            return
+        }
+        _ = dataSource?.removeViewModel(at: indexPath)
+        tableView.reloadData()
+    }
+    
     // MARK: - Interface
     func updateInputWrapper(for preferredContentHeight: CGFloat, animated: Bool) {
         let oldHeight = inputWrapperHeightConstraint.constant
@@ -1210,7 +1239,7 @@ class ConversationViewController: UIViewController {
             DispatchQueue.global().async { [weak self] in
                 let users: [UserItem]
                 if let keyword = keyword, !keyword.isEmpty {
-                    let oneWeekAgo = Date().addingTimeInterval(-7 * TimeInterval.oneDay).toUTCString()
+                    let oneWeekAgo = Date().addingTimeInterval(-7 * TimeInterval.day).toUTCString()
                     users = UserDAO.shared.botGroupUsers(conversationId: conversationId, keyword: keyword, createAt: oneWeekAgo)
                 } else {
                     users = UserDAO.shared.contacts(count: 20)
@@ -1261,7 +1290,7 @@ class ConversationViewController: UIViewController {
     
     func showLocationPicker() {
         let vc = LocationPickerViewController(input: conversationInputViewController)
-        let container = ContainerViewController.instance(viewController: vc, title: R.string.localizable.chat_menu_location())
+        let container = ContainerViewController.instance(viewController: vc, title: R.string.localizable.location())
         navigationController?.pushViewController(container, animated: true)
     }
     
@@ -1939,7 +1968,7 @@ extension ConversationViewController {
                     case let .success(sticker):
                         DispatchQueue.global().async {
                             StickerDAO.shared.insertOrUpdateFavoriteSticker(sticker: sticker)
-                            showAutoHiddenHud(style: .notification, text: Localized.TOAST_ADDED)
+                            showAutoHiddenHud(style: .notification, text: R.string.localizable.added())
                         }
                     case let .failure(error):
                         showAutoHiddenHud(style: .error, text: error.localizedDescription)
@@ -1991,7 +2020,7 @@ extension ConversationViewController {
                     weakSelf.isMember = isParticipant
                     weakSelf.conversationInputViewController.deleteConversationButton.isHidden = true
                     weakSelf.conversationInputViewController.inputBarView.isHidden = false
-                    weakSelf.subtitleLabel.text = Localized.GROUP_SECTION_TITLE_MEMBERS(count: count)
+                    weakSelf.subtitleLabel.text = R.string.localizable.participants_count(count > 0 ? "\(count) " : "")
                 }
             } else {
                 DispatchQueue.main.sync {
@@ -2004,7 +2033,7 @@ extension ConversationViewController {
                     weakSelf.isMember = isParticipant
                     weakSelf.conversationInputViewController.deleteConversationButton.isHidden = false
                     weakSelf.conversationInputViewController.inputBarView.isHidden = false
-                    weakSelf.subtitleLabel.text = Localized.GROUP_REMOVE_TITLE
+                    weakSelf.subtitleLabel.text = R.string.localizable.you_have_left_the_group()
                 }
             }
         }
@@ -2107,6 +2136,13 @@ extension ConversationViewController {
         }
         let conversationId = self.conversationId
         DispatchQueue.global().async { [weak self] in
+            let isParticipant = ParticipantDAO.shared.userId(myUserId, isParticipantOfConversationId: conversationId)
+            guard isParticipant else {
+                DispatchQueue.main.async {
+                    self?.tableView.tableFooterView = nil
+                }
+                return
+            }
             let isInvitedByStranger: Bool
             let myInvitation = MessageDAO.shared.getInvitationMessage(conversationId: conversationId, inviteeUserId: myUserId)
             if let inviterId = myInvitation?.userId, !MessageDAO.shared.hasSentMessage(inConversationOf: conversationId), let inviter = UserDAO.shared.getUser(userId: inviterId), inviter.relationship != Relationship.FRIEND.rawValue {
@@ -2349,13 +2385,13 @@ extension ConversationViewController {
         }
         let shouldShowAnnouncement: Bool
         if let date = AppGroupUserDefaults.User.closeScamAnnouncementDate[user.userId] {
-            shouldShowAnnouncement = abs(date.timeIntervalSinceNow) > .oneDay
+            shouldShowAnnouncement = abs(date.timeIntervalSinceNow) > .day
         } else {
             shouldShowAnnouncement = true
         }
         if shouldShowAnnouncement {
             announcementBadgeContentView.iconView.image = R.image.ic_warning()
-            updateAnnouncementBadge(announcement: R.string.localizable.chat_warning_scam())
+            updateAnnouncementBadge(announcement: R.string.localizable.scam_warning())
         } else {
             updateAnnouncementBadge(announcement: nil)
         }
@@ -2701,12 +2737,12 @@ extension ConversationViewController {
     }
     
     private func showRecallTips(viewModels: [MessageViewModel]) {
-        let alc = UIAlertController(title: R.string.localizable.chat_delete_tip(), message: "", preferredStyle: .alert)
-        alc.addAction(UIAlertAction(title: R.string.localizable.action_learn_more(), style: .default, handler: { (_) in
+        let alc = UIAlertController(title: R.string.localizable.chat_recall_delete_alert(), message: "", preferredStyle: .alert)
+        alc.addAction(UIAlertAction(title: R.string.localizable.learn_more(), style: .default, handler: { (_) in
             AppGroupUserDefaults.User.hasShownRecallTips = true
             UIApplication.shared.openURL(url: "https://mixinmessenger.zendesk.com/hc/articles/360028209571")
         }))
-        alc.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_OK, style: .default, handler: { (_) in
+        alc.addAction(UIAlertAction(title: R.string.localizable.ok(), style: .default, handler: { (_) in
             AppGroupUserDefaults.User.hasShownRecallTips = true
             self.deleteForEveryone(viewModels: viewModels)
         }))
@@ -2743,15 +2779,15 @@ extension ConversationViewController {
             return
         }
         let alert = UIAlertController(title: url.absoluteString, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localized.CHAT_MESSAGE_OPEN_URL, style: .default, handler: { [weak self](_) in
+        alert.addAction(UIAlertAction(title: R.string.localizable.open_url(), style: .default, handler: { [weak self](_) in
             self?.open(url: url)
         }))
-        alert.addAction(UIAlertAction(title: Localized.CHAT_MESSAGE_MENU_COPY, style: .default, handler: { (_) in
+        alert.addAction(UIAlertAction(title: R.string.localizable.copy(), style: .default, handler: { (_) in
             UIPasteboard.general.string = url.absoluteString
-            showAutoHiddenHud(style: .notification, text: Localized.TOAST_COPIED)
+            showAutoHiddenHud(style: .notification, text: R.string.localizable.copied())
             
         }))
-        alert.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
@@ -2764,14 +2800,14 @@ extension ConversationViewController {
                     if viewModel.message.appCard?.isShareable ?? true {
                         return .available
                     } else {
-                        let reason = R.string.localizable.chat_forward_invalid_app_card_not_shareable()
+                        let reason = R.string.localizable.app_card_shareable_false()
                         return .visibleButUnavailable(reason: reason)
                     }
                 } else if viewModel.message.category.hasSuffix("_LIVE") {
                     if viewModel.message.live?.isShareable ?? true {
                         return .available
                     } else {
-                        let reason = R.string.localizable.chat_forward_invalid_live_not_shareable()
+                        let reason = R.string.localizable.live_shareable_false()
                         return .visibleButUnavailable(reason: reason)
                     }
                 } else {

@@ -46,7 +46,7 @@ extension Date {
         let dateComponents = Calendar.current.dateComponents([.day, .month, .year, .weekOfYear], from: self)
 
         if nowDateComponents.day == dateComponents.day && nowDateComponents.year == dateComponents.year && nowDateComponents.month == dateComponents.month {
-            return R.string.localizable.chat_time_today()
+            return R.string.localizable.today()
         } else {
             if nowDateComponents.year == dateComponents.year {
                 return DateFormatter.month.string(from: self)
@@ -63,6 +63,9 @@ extension Date {
 
 extension TimeInterval {
     
-    static let oneDay: TimeInterval = 24 * 60 * 60
+    static let minute: TimeInterval = 60
+    static let hour: TimeInterval = 60 * .minute
+    static let day: TimeInterval = 24 * .hour
+    static let week: TimeInterval = 7 * .day
     
 }

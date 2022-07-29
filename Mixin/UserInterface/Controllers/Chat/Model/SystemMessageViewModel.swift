@@ -19,26 +19,26 @@ class SystemMessageViewModel: MessageViewModel {
     
     override init(message: MessageItem) {
         let senderIsMe = message.userId == myUserId
-        let senderName = senderIsMe ? R.string.localizable.chat_message_you() : (message.userFullName ?? "")
+        let senderName = senderIsMe ? R.string.localizable.you() : (message.userFullName ?? "")
         if message.category == MessageCategory.KRAKEN_PUBLISH.rawValue {
-            text = R.string.localizable.group_call_publish(senderName)
+            text = R.string.localizable.started_group_call(senderName)
         } else if message.category == MessageCategory.KRAKEN_CANCEL.rawValue {
-            text = R.string.localizable.group_call_cancel(senderName)
+            text = R.string.localizable.chat_group_call_cancel(senderName)
         } else if message.category == MessageCategory.KRAKEN_DECLINE.rawValue {
-            text = R.string.localizable.group_call_decline(senderName)
+            text = R.string.localizable.chat_group_call_decline(senderName)
         } else if message.category == MessageCategory.KRAKEN_INVITE.rawValue {
-            text = R.string.localizable.group_call_invite(senderName)
+            text = R.string.localizable.chat_group_call_invite(senderName)
         } else if message.category == MessageCategory.KRAKEN_END.rawValue {
             let mediaDuration = Double(message.mediaDuration ?? 0) / millisecondsPerSecond
             let duration = CallDurationFormatter.string(from: mediaDuration) ?? "0"
-            text = R.string.localizable.group_call_end_duration(duration)
+            text = R.string.localizable.group_call_end_with_duration(duration)
         } else {
             text = SystemConversationAction.getSystemMessage(actionName: message.actionName,
                                                              userId: message.userId,
                                                              userFullName: message.userFullName ?? "",
                                                              participantId: message.participantUserId,
                                                              participantFullName: message.participantFullName,
-                                                             content: message.content ?? "")
+                                                             content: message.content)
         }
         super.init(message: message)
         backgroundImage = R.image.ic_chat_bubble_system()

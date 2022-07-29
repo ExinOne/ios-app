@@ -520,6 +520,11 @@ extension ConversationDataSource {
             updateMediaContent(messageId: messageId, message: message)
         case .recallMessage(let messageId):
             updateMessage(messageId: messageId)
+        case .updateExpireIn(let expireIn, let messageId):
+            conversation.expireIn = expireIn
+            if let messageId = messageId {
+                updateMessage(messageId: messageId)
+            }
         case .updateConversation, .startedUpdateConversation:
             break
         }
@@ -990,7 +995,7 @@ extension MessageItem {
                                   conversationId: conversationId,
                                   userId: "",
                                   category: MessageCategory.EXT_ENCRYPTION.rawValue,
-                                  content: Localized.CHAT_CELL_TITLE_ENCRYPTION,
+                                  content: R.string.localizable.message_e2ee(),
                                   status: MessageStatus.READ.rawValue,
                                   createdAt: "")
         return message

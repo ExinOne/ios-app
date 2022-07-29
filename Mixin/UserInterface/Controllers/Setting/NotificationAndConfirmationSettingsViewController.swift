@@ -3,19 +3,17 @@ import MixinServices
 
 class NotificationAndConfirmationSettingsViewController: SettingsTableViewController {
     
-    
-    private lazy var messagePreviewRow = SettingsRow(title: R.string.localizable.setting_notification_message_preview(),
-                                                     accessory: .switch(isOn: showsMessagePreview))
-    private lazy var duplicateTransferRow = SettingsRow(title: R.string.localizable.setting_duplicate_transfer_title(),
+    private lazy var messagePreviewRow = SettingsRow(title: R.string.localizable.message_preview(), accessory: .switch(isOn: showsMessagePreview))
+    private lazy var duplicateTransferRow = SettingsRow(title: R.string.localizable.duplicate_transfer_confirmation(),
                                                      accessory: .switch(isOn: duplicateTransferConfirmation))
     
     private lazy var dataSource = SettingsDataSource(sections: [
-        SettingsSection(footer: R.string.localizable.setting_notification_message_preview_description(), rows: [
+        SettingsSection(footer: R.string.localizable.notification_message_preview_description(), rows: [
             messagePreviewRow
-        ])
+        ]),
 //        makeTransferNotificationThresholdSection(),
 //        makeTransferConfirmationThresholdSection(),
-//        SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_summary(), rows: [
+//        SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_desc(), rows: [
 //            duplicateTransferRow
 //        ])
     ])
@@ -46,19 +44,19 @@ class NotificationAndConfirmationSettingsViewController: SettingsTableViewContro
     
     class func instance() -> UIViewController {
         let vc = NotificationAndConfirmationSettingsViewController()
-        return ContainerViewController.instance(viewController: vc, title: R.string.localizable.setting_title())
+        return ContainerViewController.instance(viewController: vc, title: R.string.localizable.settings())
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
             dataSource = SettingsDataSource(sections: [
-                SettingsSection(footer: R.string.localizable.setting_notification_message_preview_description(), rows: [
+                SettingsSection(footer: R.string.localizable.notification_message_preview_description(), rows: [
                     messagePreviewRow
                 ]),
                 makeTransferNotificationThresholdSection(),
                 makeTransferConfirmationThresholdSection(),
-                SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_summary(), rows: [
+                SettingsSection(footer: R.string.localizable.setting_duplicate_transfer_desc(), rows: [
                     duplicateTransferRow
                 ])
             ])
@@ -94,11 +92,11 @@ extension NotificationAndConfirmationSettingsViewController: UITableViewDelegate
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let actionTitle = R.string.localizable.dialog_button_change()
-        let placeholder = R.string.localizable.wallet_send_amount()
+        let actionTitle = R.string.localizable.change()
+        let placeholder = R.string.localizable.amount()
         switch indexPath.section {
         case 1:
-            let title = R.string.localizable.setting_notification_transfer_amount(Currency.current.symbol)
+            let title = R.string.localizable.transfer_amount_count_down(Currency.current.symbol)
             editorController.present(title: title, actionTitle: actionTitle, currentText: transferNotificationThreshold, placeholder: placeholder) { (controller) in
                 guard let amount = controller.textFields?.first?.text else {
                     return
@@ -106,7 +104,7 @@ extension NotificationAndConfirmationSettingsViewController: UITableViewDelegate
                 self.saveTransferNotificationThreshold(amount)
             }
         case 2:
-            let title = R.string.localizable.setting_transfer_large_title(Currency.current.symbol)
+            let title = R.string.localizable.large_amount_confirmation_with_symbol(Currency.current.symbol)
             editorController.present(title: title, actionTitle: actionTitle, currentText: transferConfirmationThreshold, placeholder: placeholder) { (controller) in
                 guard let amount = controller.textFields?.first?.text else {
                     return
@@ -125,7 +123,7 @@ extension NotificationAndConfirmationSettingsViewController {
     private func makeTransferNotificationThresholdSection() -> SettingsSection {
         let representation = Currency.current.symbol + transferNotificationThreshold
         let footer = R.string.localizable.setting_notification_transfer_summary(representation)
-        let row = SettingsRow(title: R.string.localizable.setting_notification_transfer(),
+        let row = SettingsRow(title: R.string.localizable.transfer_notifications(),
                               subtitle: representation,
                               accessory: .disclosure)
         return SettingsSection(footer: footer, rows: [row])
@@ -133,8 +131,13 @@ extension NotificationAndConfirmationSettingsViewController {
     
     private func makeTransferConfirmationThresholdSection() -> SettingsSection {
         let representation = Currency.current.symbol + transferConfirmationThreshold
-        let footer = R.string.localizable.setting_transfer_large_summary(representation)
-        let row = SettingsRow(title: R.string.localizable.setting_transfer_large(),
+        let footer: String
+        if transferConfirmationThreshold == "0" {
+            footer = R.string.localizable.setting_transfer_large_summary_greater(representation)
+        } else {
+            footer = R.string.localizable.setting_transfer_large_summary(representation)
+        }
+        let row = SettingsRow(title: R.string.localizable.large_amount_confirmation(),
                               subtitle: representation,
                               accessory: .disclosure)
         return SettingsSection(footer: footer, rows: [row])
@@ -153,7 +156,7 @@ extension NotificationAndConfirmationSettingsViewController {
             case .success(let account):
                 LoginManager.shared.setAccount(account)
                 Currency.refreshCurrentCurrency()
-                hud.set(style: .notification, text: R.string.localizable.toast_saved())
+                hud.set(style: .notification, text: R.string.localizable.saved())
                 let section = self.makeTransferNotificationThresholdSection()
                 self.dataSource.replaceSection(at: 1, with: section, animation: .none)
             case let .failure(error):
@@ -176,7 +179,7 @@ extension NotificationAndConfirmationSettingsViewController {
             case .success(let account):
                 LoginManager.shared.setAccount(account)
                 Currency.refreshCurrentCurrency()
-                hud.set(style: .notification, text: R.string.localizable.toast_saved())
+                hud.set(style: .notification, text: R.string.localizable.saved())
                 let section = self.makeTransferConfirmationThresholdSection()
                 self.dataSource.replaceSection(at: 2, with: section, animation: .none)
             case let .failure(error):

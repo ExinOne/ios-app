@@ -8,6 +8,7 @@ final class ConversationMessageComposer {
     let conversationId: String
     let isGroup: Bool
     let ownerUser: UserItem?
+    var expireIn: Int64
     
     private(set) var opponentApp: App?
     
@@ -20,18 +21,24 @@ final class ConversationMessageComposer {
         return options
     }()
     
-    init(queue: DispatchQueue, conversationId: String, isGroup: Bool, ownerUser: UserItem?) {
+    init(queue: DispatchQueue, conversationId: String, isGroup: Bool, ownerUser: UserItem?, expireIn: Int64) {
         self.queue = queue
         self.conversationId = conversationId
         self.isGroup = isGroup
         self.ownerUser = ownerUser
+        self.expireIn = expireIn
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(updateExpireIn(_:)),
+                                               name: MixinServices.conversationDidChangeNotification,
+                                               object: nil)
     }
     
     convenience init(dataSource: ConversationDataSource, ownerUser: UserItem?) {
         self.init(queue: dataSource.queue,
                   conversationId: dataSource.conversationId,
                   isGroup: dataSource.category == .group,
-                  ownerUser: ownerUser)
+                  ownerUser: ownerUser,
+                  expireIn: dataSource.conversation.expireIn)
     }
     
     func loadOpponentApp(userId: String, completion: ((App?) -> Void)?) {
@@ -50,6 +57,7 @@ final class ConversationMessageComposer {
         let isGroupMessage = self.isGroup
         let ownerUser = self.ownerUser
         let app = self.opponentApp
+        let expireIn = self.expireIn
         let createdAt: Date = {
             var date = Date()
             if let quote = quote {
@@ -75,12 +83,13 @@ final class ConversationMessageComposer {
                                                       ownerUser: ownerUser,
                                                       opponentApp: app,
                                                       isGroupMessage: isGroupMessage,
-                                                      silentNotification: silentNotification)
+                                                      silentNotification: silentNotification,
+                                                      expireIn: expireIn)
             }
         } else if type == .SIGNAL_DATA, let url = value as? URL {
             queue.async {
                 guard FileManager.default.fileSize(url.path) > 0 else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 let fileExtension = url.pathExtension.lowercased()
@@ -88,7 +97,7 @@ final class ConversationMessageComposer {
                 do {
                     try FileManager.default.copyItem(at: url, to: targetUrl)
                 } catch {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 message.name = url.lastPathComponent
@@ -99,13 +108,14 @@ final class ConversationMessageComposer {
                 SendMessageService.shared.sendMessage(message: message,
                                                       ownerUser: ownerUser,
                                                       opponentApp: app,
-                                                      isGroupMessage: isGroupMessage)
+                                                      isGroupMessage: isGroupMessage,
+                                                      expireIn: expireIn)
             }
         } else if type == .SIGNAL_VIDEO, let url = value as? URL {
             queue.async {
                 let asset = AVAsset(url: url)
                 guard asset.duration.isValid, let videoTrack = asset.tracks(withMediaType: .video).first else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 if let thumbnail = UIImage(withFirstFrameOfVideoAtURL: url) {
@@ -113,7 +123,7 @@ final class ConversationMessageComposer {
                     thumbnail.saveToFile(path: thumbnailURL)
                     message.thumbImage = thumbnail.blurHash()
                 } else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 message.mediaDuration = Int64(asset.duration.seconds * millisecondsPerSecond)
@@ -127,12 +137,13 @@ final class ConversationMessageComposer {
                 SendMessageService.shared.sendMessage(message: message,
                                                       ownerUser: ownerUser,
                                                       opponentApp: app,
-                                                      isGroupMessage: isGroupMessage)
+                                                      isGroupMessage: isGroupMessage,
+                                                      expireIn: expireIn)
             }
         } else if type == .SIGNAL_AUDIO, let value = value as? (tempUrl: URL, metadata: AudioMetadata) {
             queue.async {
                 guard FileManager.default.fileSize(value.tempUrl.path) > 0 else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 let url = AttachmentContainer.url(for: .audios, filename: message.messageId + ExtensionName.ogg.withDot)
@@ -147,9 +158,10 @@ final class ConversationMessageComposer {
                     SendMessageService.shared.sendMessage(message: message,
                                                           ownerUser: ownerUser,
                                                           opponentApp: app,
-                                                          isGroupMessage: isGroupMessage)
+                                                          isGroupMessage: isGroupMessage,
+                                                          expireIn: expireIn)
                 } catch {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                 }
             }
         } else if type == .SIGNAL_STICKER, let sticker = value as? StickerItem {
@@ -170,7 +182,8 @@ final class ConversationMessageComposer {
                 SendMessageService.shared.sendMessage(message: message,
                                                       ownerUser: ownerUser,
                                                       opponentApp: app,
-                                                      isGroupMessage: isGroupMessage)
+                                                      isGroupMessage: isGroupMessage,
+                                                      expireIn: expireIn)
             }
         }
     }
@@ -180,6 +193,7 @@ final class ConversationMessageComposer {
         let ownerUser = self.ownerUser
         let app = self.opponentApp
         let isGroupMessage = self.isGroup
+        let expireIn = self.expireIn
         queue.async {
             var message = Message.createMessage(category: MessageCategory.SIGNAL_IMAGE.rawValue,
                                                 conversationId: conversationId,
@@ -192,7 +206,7 @@ final class ConversationMessageComposer {
                 message.thumbImage = thumbnail.blurHash()
             }
             message.mediaMimeType = "image/gif"
-            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage)
+            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage, expireIn: expireIn)
         }
     }
     
@@ -201,6 +215,7 @@ final class ConversationMessageComposer {
         let ownerUser = self.ownerUser
         let app = self.opponentApp
         let isGroupMessage = self.isGroup
+        let expireIn = self.expireIn
         queue.async {
             var message = Message.createMessage(category: MessageCategory.SIGNAL_IMAGE.rawValue,
                                                 conversationId: conversationId,
@@ -216,7 +231,7 @@ final class ConversationMessageComposer {
             message.quoteMessageId = quoteMessageId
             message.thumbImage = image.blurHash()
             message.mediaMimeType = "image/jpeg"
-            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage)
+            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage, expireIn: expireIn)
         }
     }
     
@@ -225,6 +240,7 @@ final class ConversationMessageComposer {
         let ownerUser = self.ownerUser
         let app = self.opponentApp
         let isGroupMessage = self.isGroup
+        let expireIn = self.expireIn
         queue.async {
             var message = Message.createMessage(category: MessageCategory.SIGNAL_VIDEO.rawValue,
                                                 conversationId: conversationId,
@@ -234,7 +250,7 @@ final class ConversationMessageComposer {
                 try FileManager.default.moveItem(at: source, to: url)
                 let asset = AVAsset(url: url)
                 guard asset.duration.isValid, let videoTrack = asset.tracks(withMediaType: .video).first else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 if let thumbnail = UIImage(withFirstFrameOfVideoAtURL: url) {
@@ -242,7 +258,7 @@ final class ConversationMessageComposer {
                     thumbnail.saveToFile(path: thumbnailURL)
                     message.thumbImage = thumbnail.blurHash()
                 } else {
-                    showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                    showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
                     return
                 }
                 message.mediaDuration = Int64(asset.duration.seconds * millisecondsPerSecond)
@@ -254,9 +270,9 @@ final class ConversationMessageComposer {
                 message.mediaUrl = url.lastPathComponent
                 message.mediaStatus = MediaStatus.PENDING.rawValue
                 message.quoteMessageId = quoteMessageId
-                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage)
+                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage, expireIn: expireIn)
             } catch {
-                showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
             }
         }
     }
@@ -266,6 +282,7 @@ final class ConversationMessageComposer {
         let ownerUser = self.ownerUser
         let app = self.opponentApp
         let isGroupMessage = self.isGroup
+        let expireIn = self.expireIn
         queue.async {
             var message = Message.createMessage(category: MessageCategory.SIGNAL_IMAGE.rawValue,
                                                 conversationId: conversationId,
@@ -280,9 +297,9 @@ final class ConversationMessageComposer {
                 message.mediaHeight = Int(image.size.height * image.scale)
                 message.thumbImage = image.blurHash()
                 message.mediaMimeType = "image/gif"
-                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage)
+                SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage, expireIn: expireIn)
             } catch {
-                showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+                showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
             }
         }
     }
@@ -293,6 +310,7 @@ final class ConversationMessageComposer {
         let app = self.opponentApp
         let isGroupMessage = self.isGroup
         let options = self.thumbnailRequestOptions
+        let expireIn = self.expireIn
         queue.async {
             assert(asset.mediaType == .image || asset.mediaType == .video)
             let assetMediaTypeIsImage = asset.mediaType == .image
@@ -316,7 +334,16 @@ final class ConversationMessageComposer {
                     message.thumbImage = image.blurHash()
                 }
             }
-            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage)
+            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, opponentApp: app, isGroupMessage: isGroupMessage, expireIn: expireIn)
+        }
+    }
+    
+    @objc private func updateExpireIn(_ notification: Notification) {
+        guard let change = notification.object as? ConversationChange, change.conversationId == conversationId else {
+            return
+        }
+        if case .updateExpireIn(let expireIn, _) = change.action {
+            self.expireIn = expireIn
         }
     }
     

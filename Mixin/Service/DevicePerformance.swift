@@ -1,5 +1,5 @@
 import Foundation
-import DeviceGuru
+import MixinServices
 
 enum DevicePerformance {
     case low    // A11 family and before
@@ -9,10 +9,64 @@ enum DevicePerformance {
 
 extension DevicePerformance {
     
+    private enum Platform {
+        
+        case iPhone
+        case iPodTouch
+        case iPad
+        case appleWatch
+        case appleTV
+        case unknown
+        
+        init(machineName name: String) {
+            if name.hasPrefix("iPhone") {
+                self = .iPhone
+            } else if name.hasPrefix("iPad") {
+                self = .iPad
+            } else if name.hasPrefix("iPod") {
+                self = .iPodTouch
+            } else if name.hasPrefix("Watch") {
+                self = .appleWatch
+            } else if name.hasPrefix("AppleTV") {
+                self = .appleTV
+            } else {
+                self = .unknown
+            }
+        }
+        
+    }
+    
+    private struct Version {
+        
+        let major: Int
+        let minor: Int
+        
+        init?(machineName name: String) {
+            guard let regex = try? NSRegularExpression(pattern: #"(\d+),(\d+)"#) else {
+                return nil
+            }
+            let nsName = name as NSString
+            let full = NSRange(location: 0, length: nsName.length)
+            guard let match = regex.firstMatch(in: name, range: full) else {
+                return nil
+            }
+            guard match.numberOfRanges == 3 else {
+                return nil
+            }
+            let majorString = nsName.substring(with: match.range(at: 1))
+            let minorString = nsName.substring(with: match.range(at: 2))
+            guard let major = Int(majorString), let minor = Int(minorString) else {
+                return nil
+            }
+            self.major = major
+            self.minor = minor
+        }
+        
+    }
+    
     static let current: DevicePerformance = {
-        let guru = DeviceGuru()
-        let platform = guru.platform()
-        let version = guru.deviceVersion()
+        let platform = Platform(machineName: Machine.current.name)
+        let version = Version(machineName: Machine.current.name)
         switch platform {
         case .iPhone:
             if let version = version {

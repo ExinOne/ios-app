@@ -268,10 +268,10 @@ class ConversationInputViewController: UIViewController {
         let conversationId = composer.conversationId
 
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: { (_) in
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: { (_) in
             self.deleteConversationButton.isBusy = false
         }))
-        alert.addAction(UIAlertAction(title: R.string.localizable.group_menu_delete(), style: .destructive, handler: { (_) in
+        alert.addAction(UIAlertAction(title: R.string.localizable.delete_chat(), style: .destructive, handler: { (_) in
             DispatchQueue.global().async { [weak self] in
                 ConversationDAO.shared.deleteChat(conversationId: conversationId)
                 DispatchQueue.main.async {
@@ -359,7 +359,7 @@ class ConversationInputViewController: UIViewController {
                     }
                     self.extensionViewController.apps = apps.map { ($0, nil) }
                     self.reloadFixedExtensions()
-                    self.textView.placeholder = R.string.localizable.e2e_encrypted()
+                    self.textView.placeholder = R.string.localizable.end_to_end_encryption()
                 }
             }
         } else if let ownerUser = composer.ownerUser {
@@ -376,7 +376,7 @@ class ConversationInputViewController: UIViewController {
                 }
                 self.loadFavoriteApps(ownerUser: ownerUser)
                 self.reloadFixedExtensions()
-                self.textView.placeholder = isEncrypted ? R.string.localizable.e2e_encrypted() : nil
+                self.textView.placeholder = isEncrypted ? R.string.localizable.end_to_end_encryption() : nil
             }
         }
         
@@ -469,6 +469,7 @@ class ConversationInputViewController: UIViewController {
         let ownerUser = composer.ownerUser
         let app = composer.opponentApp
         let isGroup = composer.isGroup
+        let expireIn = composer.expireIn
         var quoteMessageId = quote?.message.messageId
         quote = nil
         DispatchQueue.global().async {
@@ -487,7 +488,8 @@ class ConversationInputViewController: UIViewController {
                 SendMessageService.shared.sendMessage(message: message,
                                                       ownerUser: ownerUser,
                                                       opponentApp: app,
-                                                      isGroupMessage: isGroup)
+                                                      isGroupMessage: isGroup,
+                                                      expireIn: expireIn)
             }
             DispatchQueue.main.async(execute: completion)
         }
@@ -505,7 +507,8 @@ class ConversationInputViewController: UIViewController {
         SendMessageService.shared.sendMessage(message: message,
                                               ownerUser: composer.ownerUser,
                                               opponentApp: composer.opponentApp,
-                                              isGroupMessage: composer.isGroup)
+                                              isGroupMessage: composer.isGroup,
+                                              expireIn: composer.expireIn)
     }
     
 }

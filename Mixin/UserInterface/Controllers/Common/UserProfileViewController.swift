@@ -31,7 +31,14 @@ final class UserProfileViewController: ProfileViewController {
     
     private lazy var imagePicker = ImagePickerController(initialCameraPosition: .front, cropImageAfterPicked: true, parent: self, delegate: self)
     private lazy var footerLabel = FooterLabel()
-    
+    private lazy var expiredMessageItemView: ProfileMenuItemView  = {
+        let view = ProfileMenuItemView()
+        view.label.text = R.string.localizable.disappearing_message()
+        view.subtitleLabel.text = ""
+        view.button.addTarget(self, action: #selector(self.editExpiredMessageDuration), for: .touchUpInside)
+        return view
+    }()
+
     private var isMe = false
     private var relationship = Relationship.ME
     private var developer: UserItem?
@@ -42,6 +49,7 @@ final class UserProfileViewController: ProfileViewController {
     private var sharedAppUsers: [User]?
     private var dismissHomeAppsWindow = true
     private var centerStackViewHeightConstraint: NSLayoutConstraint?
+    private var conversationExpireIn: Int64?
     
     init(user: UserItem) {
         super.init(nibName: R.nib.profileView.name, bundle: R.nib.profileView.bundle)
@@ -73,6 +81,7 @@ final class UserProfileViewController: ProfileViewController {
             reloadFavoriteApps(userId: user.userId, fromRemote: true)
             if !isMe {
                 reloadCircles(conversationId: conversationId, userId: user.userId)
+                reloadMessageExpiration(conversationId: conversationId)
             }
             let recognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressAction(_:)))
             recognizer.delegate = self
@@ -177,10 +186,10 @@ final class UserProfileViewController: ProfileViewController {
                 }
                 let toastMessage: String
                 if interval == MuteInterval.none {
-                    toastMessage = Localized.PROFILE_TOAST_UNMUTED
+                    toastMessage = R.string.localizable.unmuted()
                 } else {
                     let dateRepresentation = DateFormatter.dateSimple.string(from: response.muteUntil.toUTCDate())
-                    toastMessage = Localized.PROFILE_TOAST_MUTED(muteUntil: dateRepresentation)
+                    toastMessage = R.string.localizable.mute_until(dateRepresentation)
                 }
                 hud.set(style: .notification, text: toastMessage)
             case let .failure(error):
@@ -232,7 +241,7 @@ extension UserProfileViewController: ImagePickerControllerDelegate {
     
     func imagePickerController(_ controller: ImagePickerController, didPickImage image: UIImage) {
         guard let avatarBase64 = image.imageByScaling(to: CGSize(width: 1024, height: 1024))?.base64 else {
-            alert(Localized.CONTACT_ERROR_COMPOSE_AVATAR)
+            alert(R.string.localizable.failed_to_compose_avatar())
             return
         }
         let hud = Hud()
@@ -241,7 +250,7 @@ extension UserProfileViewController: ImagePickerControllerDelegate {
             switch result {
             case let .success(account):
                 LoginManager.shared.setAccount(account)
-                hud.set(style: .notification, text: Localized.TOAST_CHANGED)
+                hud.set(style: .notification, text: R.string.localizable.changed())
             case let .failure(error):
                 hud.set(style: .error, text: error.localizedDescription)
             }
@@ -262,7 +271,7 @@ extension UserProfileViewController {
         vc.transitioningDelegate = PopupPresentationManager.shared
         vc.modalPresentationStyle = .custom
         vc.loadViewIfNeeded()
-        vc.titleLabel.text = R.string.localizable.profile_shared_app_of_user(user.fullName)
+        vc.titleLabel.text = R.string.localizable.contact_share_bots_title(user.fullName)
         vc.users = users
         dismissAndPresent(vc)
     }
@@ -304,20 +313,20 @@ extension UserProfileViewController {
             return
         }
         let window = QrcodeWindow.instance()
-        window.render(title: Localized.CONTACT_MY_QR_CODE,
-                      description: Localized.MYQRCODE_PROMPT,
+        window.render(title: R.string.localizable.my_qr_code(),
+                      description: R.string.localizable.scan_code_add_me(),
                       account: account)
         window.presentPopupControllerAnimated()
     }
     
-//    @objc func showMyMoneyReceivingCode() {
-//        guard let account = LoginManager.shared.account else {
-//            return
-//        }
-//        let window = QrcodeWindow.instance()
-//        window.renderMoneyReceivingCode(account: account)
-//        window.presentPopupControllerAnimated()
-//    }
+    @objc func showMyMoneyReceivingCode() {
+        guard let account = LoginManager.shared.account else {
+            return
+        }
+        let window = QrcodeWindow.instance()
+        window.renderMoneyReceivingCode(account: account)
+        window.presentPopupControllerAnimated()
+    }
     
     @objc func changeAvatarWithCamera() {
         imagePicker.presentCamera()
@@ -328,14 +337,14 @@ extension UserProfileViewController {
     }
     
     @objc func editMyName() {
-        presentEditNameController(title: R.string.localizable.profile_edit_name(), text: user.fullName, placeholder: R.string.localizable.profile_full_name()) { (name) in
+        presentEditNameController(title: R.string.localizable.edit_name(), text: user.fullName, placeholder: R.string.localizable.name()) { (name) in
             let hud = Hud()
             hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
             AccountAPI.update(fullName: name) { (result) in
                 switch result {
                 case let .success(account):
                     LoginManager.shared.setAccount(account)
-                    hud.set(style: .notification, text: Localized.TOAST_CHANGED)
+                    hud.set(style: .notification, text: R.string.localizable.changed())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
                 }
@@ -357,14 +366,6 @@ extension UserProfileViewController {
             let vc = WalletPasswordViewController.instance(dismissTarget: .changePhone)
             dismissAndPush(vc)
         }
-        
-//        var context = ChangeNumberContext()
-//        context.pin = ""
-//        let vc = ChangeNumberNewNumberViewController()
-//        vc.context = context
-////        navigationController?.pushViewController(vc, animated: true)
-//
-//        dismissAndPresent(vc)
     }
     
     @objc func openApp() {
@@ -404,14 +405,14 @@ extension UserProfileViewController {
     
     @objc func editAlias() {
         let userId = user.userId
-        presentEditNameController(title: R.string.localizable.profile_edit_name(), text: user.fullName, placeholder: R.string.localizable.profile_full_name()) { [weak self] (name) in
+        presentEditNameController(title: R.string.localizable.edit_name(), text: user.fullName, placeholder: R.string.localizable.name()) { [weak self] (name) in
             let hud = Hud()
             hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
             UserAPI.remarkFriend(userId: userId, full_name: name) { [weak self] (result) in
                 switch result {
                 case let .success(response):
                     self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: true)
-                    hud.set(style: .notification, text: Localized.TOAST_CHANGED)
+                    hud.set(style: .notification, text: R.string.localizable.changed())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
                 }
@@ -448,7 +449,7 @@ extension UserProfileViewController {
     @objc func showSharedMedia() {
         let vc = R.storyboard.chat.shared_media()!
         vc.conversationId = conversationId
-        let container = ContainerViewController.instance(viewController: vc, title: R.string.localizable.chat_shared_media())
+        let container = ContainerViewController.instance(viewController: vc, title: R.string.localizable.shared_media())
         dismissAndPush(container)
     }
     
@@ -478,10 +479,10 @@ extension UserProfileViewController {
     
     @objc func removeFriend() {
         let userId = user.userId
-        let hint = user.isBot ? R.string.localizable.profile_remove_hint_bot() : R.string.localizable.profile_remove_hint_contact()
-        let removeTitle = user.isBot ? R.string.localizable.profile_remove_bot() : R.string.localizable.profile_remove_contact()
+        let hint = user.isBot ? R.string.localizable.remove_bot_hint() : R.string.localizable.remove_contact_hint()
+        let removeTitle = user.isBot ? R.string.localizable.remove_bot() : R.string.localizable.remove_contact()
         let alert = UIAlertController(title: hint, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
         alert.addAction(UIAlertAction(title: removeTitle, style: .destructive, handler: { (_) in
             let hud = Hud()
             hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
@@ -489,7 +490,7 @@ extension UserProfileViewController {
                 switch result {
                 case let .success(response):
                     self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: true)
-                    hud.set(style: .notification, text: R.string.localizable.toast_deleted())
+                    hud.set(style: .notification, text: R.string.localizable.deleted())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
                 }
@@ -501,9 +502,9 @@ extension UserProfileViewController {
     
     @objc func blockUser() {
         let userId = user.userId
-        let alert = UIAlertController(title: R.string.localizable.profile_block_hint(), message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: R.string.localizable.profile_block(), style: .destructive, handler: { (_) in
+        let alert = UIAlertController(title: R.string.localizable.block_hint(), message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: R.string.localizable.block(), style: .destructive, handler: { (_) in
             self.relationshipView.isBusy = true
             let hud = Hud()
             hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
@@ -511,7 +512,7 @@ extension UserProfileViewController {
                 switch result {
                 case let .success(response):
                     self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: false)
-                    hud.set(style: .notification, text: R.string.localizable.toast_blocked())
+                    hud.set(style: .notification, text: R.string.localizable.blocked())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
                 }
@@ -530,7 +531,7 @@ extension UserProfileViewController {
             switch result {
             case let .success(response):
                 self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: false)
-                hud.set(style: .notification, text: Localized.TOAST_CHANGED)
+                hud.set(style: .notification, text: R.string.localizable.changed())
             case let .failure(error):
                 hud.set(style: .error, text: error.localizedDescription)
             }
@@ -541,9 +542,9 @@ extension UserProfileViewController {
     
     @objc func reportUser() {
         let userId = user.userId
-        let alert = UIAlertController(title: R.string.localizable.profile_report_hint(), message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: Localized.DIALOG_BUTTON_CANCEL, style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: R.string.localizable.profile_report(), style: .destructive, handler: { (_) in
+        let alert = UIAlertController(title: R.string.localizable.report_and_block(), message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: R.string.localizable.report(), style: .destructive, handler: { (_) in
             let hud = Hud()
             hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
             DispatchQueue.global().async {
@@ -551,7 +552,7 @@ extension UserProfileViewController {
                 case let .success(user):
                     UserDAO.shared.updateUsers(users: [user], sendNotificationAfterFinished: false)
                     DispatchQueue.main.async {
-                        hud.set(style: .notification, text: R.string.localizable.profile_report_success())
+                        hud.set(style: .notification, text: R.string.localizable.user_is_reported())
                         hud.scheduleAutoHidden()
                         self.dismiss(animated: true, completion: nil)
                     }
@@ -564,6 +565,35 @@ extension UserProfileViewController {
             }
         }))
         present(alert, animated: true, completion: nil)
+    }
+    
+    @objc func editExpiredMessageDuration() {
+        func dismissAndPushController(expireIn: Int64) {
+            let controller = ExpiredMessageViewController.instance(conversationId: conversationId, expireIn: expireIn)
+            dismissAndPush(controller)
+        }
+        if let expireIn = conversationExpireIn {
+            dismissAndPushController(expireIn: expireIn)
+        } else {
+            let hud = Hud()
+            hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
+            let request = ConversationRequest(conversationId: conversationId,
+                                              name: nil,
+                                              category: ConversationCategory.CONTACT.rawValue,
+                                              participants: [ParticipantRequest(userId: user.userId, role: "")],
+                                              duration: nil,
+                                              announcement: nil)
+            ConversationAPI.createConversation(conversation: request) { result in
+                switch result {
+                case let .success(response):
+                    hud.hide()
+                    dismissAndPushController(expireIn: response.expireIn)
+                case let .failure(error):
+                    hud.set(style: .error, text: error.localizedDescription)
+                    hud.scheduleAutoHidden()
+                }
+            }
+        }
     }
     
 }
@@ -653,23 +683,13 @@ extension UserProfileViewController {
                 shortcutView.leftShortcutButton.setImage(R.image.ic_open_app(), for: .normal)
                 shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
                 shortcutView.leftShortcutButton.addTarget(self, action: #selector(openApp), for: .touchUpInside)
-                shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
-                shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             } else {
-                if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
-                    shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
-                    shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
-                    shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
-                    shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
-                    shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
-                }else{
-                    shortcutView.leftShortcutButton.setImage(R.image.ic_send_msg(), for: .normal)
-                    shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
-                    shortcutView.leftShortcutButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
-                    shortcutView.sendMessageButton.isHidden = true
-                }
-               
+                shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
+                shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
+                shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
             }
+            shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+            shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             shortcutView.toggleSizeButton.removeTarget(nil, action: nil, for: .allEvents)
             shortcutView.toggleSizeButton.addTarget(self, action: #selector(toggleSize), for: .touchUpInside)
             centerStackView.addArrangedSubview(shortcutView)
@@ -694,31 +714,31 @@ extension UserProfileViewController {
         
         if isMe {
             let groups = [
-                [ProfileMenuItem(title: R.string.localizable.profile_my_qrcode(),
+                [ProfileMenuItem(title: R.string.localizable.my_qr_code(),
                                  subtitle: nil,
                                  style: [],
-                                 action: #selector(showMyQrCode))],
-//                 ProfileMenuItem(title: R.string.localizable.contact_receive_money(),
-//                                 subtitle: nil,
-//                                 style: [],
-//                                 action: #selector(showMyMoneyReceivingCode))],
-                [ProfileMenuItem(title: R.string.localizable.profile_edit_name(),
+                                 action: #selector(showMyQrCode)),
+                 ProfileMenuItem(title: R.string.localizable.receive_money(),
+                                 subtitle: nil,
+                                 style: [],
+                                 action: #selector(showMyMoneyReceivingCode))],
+                [ProfileMenuItem(title: R.string.localizable.edit_name(),
                                  subtitle: nil,
                                  style: [],
                                  action: #selector(editMyName)),
-                 ProfileMenuItem(title: R.string.localizable.profile_edit_biography(),
+                 ProfileMenuItem(title: R.string.localizable.edit_biography(),
                                  subtitle: nil,
                                  style: [],
                                  action: #selector(editMyBiography))],
-                [ProfileMenuItem(title: R.string.localizable.profile_change_avatar_camera(),
+                [ProfileMenuItem(title: R.string.localizable.change_profile_photo_with_camera(),
                                  subtitle: nil,
                                  style: [],
                                  action: #selector(changeAvatarWithCamera)),
-                 ProfileMenuItem(title: R.string.localizable.profile_change_avatar_library(),
+                 ProfileMenuItem(title: R.string.localizable.change_profile_photo_with_library(),
                                  subtitle: nil,
                                  style: [],
                                  action: #selector(changeAvatarWithLibrary))],
-                [ProfileMenuItem(title: R.string.localizable.profile_change_number(),
+                [ProfileMenuItem(title: R.string.localizable.change_phone_number(),
                                  subtitle: user.phone,
                                  style: [],
                                  action: #selector(changeNumber))]
@@ -736,24 +756,24 @@ extension UserProfileViewController {
             
             if let createdAt = user.createdAt?.toUTCDate() {
                 let rep = DateFormatter.dateSimple.string(from: createdAt)
-                footerLabel.text = R.string.localizable.profile_join_in(rep)
+                footerLabel.text = R.string.localizable.joined_in(rep)
                 menuStackView.addArrangedSubview(footerLabel)
             }
         } else if isMessengerUser {
             var groups = [[ProfileMenuItem]]()
             
-            let shareUserItem = ProfileMenuItem(title: R.string.localizable.profile_share_card(),
+            let shareUserItem = ProfileMenuItem(title: R.string.localizable.share_contact(),
                                                 subtitle: nil,
                                                 style: [],
                                                 action: #selector(shareUser))
             groups.append([shareUserItem])
             
             let sharedMediaAndSearchGroup = [
-                ProfileMenuItem(title: R.string.localizable.chat_shared_media(),
+                ProfileMenuItem(title: R.string.localizable.shared_media(),
                                 subtitle: nil,
                                 style: [],
                                 action: #selector(showSharedMedia)),
-                ProfileMenuItem(title: R.string.localizable.profile_search_conversation(),
+                ProfileMenuItem(title: R.string.localizable.search_conversation(),
                                 subtitle: nil,
                                 style: [],
                                 action: #selector(searchConversation))
@@ -766,22 +786,22 @@ extension UserProfileViewController {
                     let subtitle: String?
                     if let date = user.muteUntil?.toUTCDate() {
                         let rep = DateFormatter.log.string(from: date)
-                        subtitle = R.string.localizable.profile_mute_ends_at(rep)
+                        subtitle = R.string.localizable.mute_until(rep)
                     } else {
                         subtitle = nil
                     }
-                    group = [ProfileMenuItem(title: R.string.localizable.profile_muted(),
+                    group = [ProfileMenuItem(title: R.string.localizable.muted(),
                                              subtitle: subtitle,
                                              style: [],
                                              action: #selector(mute))]
                 } else {
-                    group = [ProfileMenuItem(title: R.string.localizable.profile_mute(),
+                    group = [ProfileMenuItem(title: R.string.localizable.mute(),
                                              subtitle: nil,
                                              style: [],
                                              action: #selector(mute))]
                 }
                 if relationship == .FRIEND {
-                    group.append(ProfileMenuItem(title: R.string.localizable.profile_edit_name(),
+                    group.append(ProfileMenuItem(title: R.string.localizable.edit_name(),
                                                  subtitle: nil,
                                                  style: [],
                                                  action: #selector(editAlias)))
@@ -792,12 +812,12 @@ extension UserProfileViewController {
 
             if !user.isBot {
                 let callGroup: [ProfileMenuItem] = {
-                    var group = [ProfileMenuItem(title: R.string.localizable.profile_call_with_mixin(),
+                    var group = [ProfileMenuItem(title: R.string.localizable.call_with_mixin(),
                                                  subtitle: nil,
                                                  style: [],
                                                  action: #selector(callWithMixin))]
                     if let number = user.phone, !number.isEmpty {
-                        group.append(ProfileMenuItem(title: R.string.localizable.profile_call_phone(),
+                        group.append(ProfileMenuItem(title: R.string.localizable.phone_call(),
                                                      subtitle: number,
                                                      style: [],
                                                      action: #selector(callPhone)))
@@ -810,13 +830,13 @@ extension UserProfileViewController {
             let editAliasAndBotRelatedGroup: [ProfileMenuItem] = {
                 var group = [ProfileMenuItem]()
                 if user.isBot && !user.isSelfBot {
-                    group.append(ProfileMenuItem(title: R.string.localizable.chat_menu_developer(),
+                    group.append(ProfileMenuItem(title: R.string.localizable.developer(),
                                                  subtitle: nil,
                                                  style: [],
                                                  action: #selector(showDeveloper)))
                 }
                 if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
-                    group.append(ProfileMenuItem(title: R.string.localizable.profile_transactions(),
+                    group.append(ProfileMenuItem(title: R.string.localizable.transactions(),
                                                  subtitle: nil,
                                                  style: [],
                                                  action: #selector(showTransactions)))
@@ -828,7 +848,7 @@ extension UserProfileViewController {
             }
             
             if !user.isBot {
-                let groupsInCommonGroup = [ProfileMenuItem(title: R.string.localizable.profile_groups_in_common(),
+                let groupsInCommonGroup = [ProfileMenuItem(title: R.string.localizable.groups_in_common(),
                                                            subtitle: nil,
                                                            style: [],
                                                            action: #selector(groupsInCommon))]
@@ -841,23 +861,23 @@ extension UserProfileViewController {
                 case .ME:
                     group = []
                 case .FRIEND:
-                    let removeTitle = user.isBot ? R.string.localizable.profile_remove_bot() : R.string.localizable.profile_remove_contact()
+                    let removeTitle = user.isBot ? R.string.localizable.remove_bot() : R.string.localizable.remove_contact()
                     group = [ProfileMenuItem(title: removeTitle,
                                              subtitle: nil,
                                              style: [.destructive],
                                              action: #selector(removeFriend))]
                 case .STRANGER:
-                    group = [ProfileMenuItem(title: R.string.localizable.profile_block(),
+                    group = [ProfileMenuItem(title: R.string.localizable.block(),
                                              subtitle: nil,
                                              style: [.destructive],
                                              action: #selector(blockUser))]
                 case .BLOCKING:
-                    group = [ProfileMenuItem(title: R.string.localizable.profile_unblock(),
+                    group = [ProfileMenuItem(title: R.string.localizable.unblock(),
                                              subtitle: nil,
                                              style: [.destructive],
                                              action: #selector(unblockUser))]
                 }
-                group.append(ProfileMenuItem(title: R.string.localizable.group_menu_clear(),
+                group.append(ProfileMenuItem(title: R.string.localizable.clear_chat(),
                                              subtitle: nil,
                                              style: [.destructive],
                                              action: #selector(clearChat)))
@@ -865,7 +885,7 @@ extension UserProfileViewController {
             }()
             groups.append(contactRelationshipGroup)
             
-            let reportItem = ProfileMenuItem(title: R.string.localizable.profile_report(),
+            let reportItem = ProfileMenuItem(title: R.string.localizable.report(),
                                              subtitle: nil,
                                              style: [.destructive],
                                              action: #selector(reportUser))
@@ -873,6 +893,7 @@ extension UserProfileViewController {
             
             reloadMenu(groups: groups)
             menuStackView.insertArrangedSubview(circleItemView, at: groups.count - 2)
+            menuStackView.insertArrangedSubview(expiredMessageItemView, at: 2)
         } else {
             reloadMenu(groups: [])
         }
@@ -979,6 +1000,21 @@ extension UserProfileViewController {
             }
             view.layoutIfNeeded()
             updatePreferredContentSizeHeight(size: size)
+        }
+    }
+    
+    private func reloadMessageExpiration(conversationId: String) {
+        expiredMessageItemView.button.isEnabled = false
+        DispatchQueue.global().async {
+            let expireIn = ConversationDAO.shared.getExpireIn(conversationId: conversationId)
+            DispatchQueue.main.sync {
+                if let expireIn = expireIn {
+                    self.conversationExpireIn = expireIn
+                    let subtitle = ExpiredMessageDurationFormatter.string(from: expireIn)
+                    self.expiredMessageItemView.subtitleLabel.text = subtitle
+                }
+                self.expiredMessageItemView.button.isEnabled = true
+            }
         }
     }
     

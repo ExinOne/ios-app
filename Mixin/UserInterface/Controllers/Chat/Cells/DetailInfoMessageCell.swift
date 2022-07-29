@@ -1,4 +1,6 @@
 import UIKit
+import SDWebImage
+import MixinServices
 
 protocol DetailInfoMessageCellDelegate: AnyObject {
     func detailInfoMessageCellDidSelectFullname(_ cell: DetailInfoMessageCell)
@@ -12,10 +14,19 @@ class DetailInfoMessageCell: MessageCell {
     let encryptedImageView = UIImageView(image: R.image.ic_message_encrypted())
     let pinnedImageView = UIImageView(image: R.image.ic_message_pinned())
     let timeLabel = UILabel()
-    let statusImageView = UIImageView()
+    let statusImageView = SDAnimatedImageView()
     let forwarderImageView = UIImageView(image: R.image.conversation.ic_forwarder_bot())
     let identityIconImageView = UIImageView(image: R.image.ic_user_bot())
     let highlightAnimationDuration: TimeInterval = 0.2
+    
+    lazy var expiredIconView: UIImageView = {
+        let view = UIImageView(image: R.image.ic_chat_clock_fill())
+        messageContentView.addSubview(view)
+        expiredIconViewIfLoaded = view
+        return view
+    }()
+    
+    private(set) weak var expiredIconViewIfLoaded: UIImageView?
     
     override func render(viewModel: MessageViewModel) {
         super.render(viewModel: viewModel)
@@ -47,6 +58,12 @@ class DetailInfoMessageCell: MessageCell {
             updateStatusImageView()
             if viewModel.message.userIsBot {
                 identityIconImageView.frame = viewModel.identityIconFrame
+            }
+            if viewModel.message.isExpiredMessage {
+                expiredIconView.frame = viewModel.expiredIconFrame
+                expiredIconView.isHidden = false
+            } else {
+                expiredIconViewIfLoaded?.isHidden = true
             }
         }
     }
@@ -89,6 +106,13 @@ class DetailInfoMessageCell: MessageCell {
         messageContentView.addSubview(identityIconImageView)
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateStatusImageView()
+        }
+    }
+    
     @objc func fullnameAction(_ sender: Any) {
         delegate?.detailInfoMessageCellDidSelectFullname(self)
     }
@@ -118,8 +142,8 @@ class DetailInfoMessageCell: MessageCell {
             return
         }
         statusImageView.frame = viewModel.statusFrame
-        statusImageView.image = viewModel.statusImage
         statusImageView.tintColor = viewModel.statusTintColor
+        statusImageView.image = viewModel.statusImage?.image(traitCollection: traitCollection)
     }
     
 }

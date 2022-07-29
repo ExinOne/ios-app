@@ -18,7 +18,7 @@ class MessageReceiverViewController: PeerViewController<[MessageReceiver], Check
     class func instance(content: MessageContent) -> UIViewController {
         let vc = MessageReceiverViewController()
         vc.messageContent = content
-        return ContainerViewController.instance(viewController: vc, title: Localized.ACTION_SHARE_TO)
+        return ContainerViewController.instance(viewController: vc, title: R.string.localizable.share_to())
     }
     
     override func viewDidLoad() {
@@ -41,9 +41,9 @@ class MessageReceiverViewController: PeerViewController<[MessageReceiver], Check
         let appReceivers = apps.map(MessageReceiver.init)
         let conversations = ConversationDAO.shared.conversationList()
             .compactMap(MessageReceiver.init)
-        let titles = [R.string.localizable.chat_forward_chats(),
-                      R.string.localizable.chat_forward_contacts(),
-                      R.string.localizable.chat_forward_apps()]
+        let titles = [R.string.localizable.recent_chats(),
+                      R.string.localizable.contacts(),
+                      R.string.localizable.bots()]
         return (titles, [conversations, contactReceivers, appReceivers])
     }
     
@@ -148,7 +148,7 @@ class MessageReceiverViewController: PeerViewController<[MessageReceiver], Check
 extension MessageReceiverViewController: ContainerViewControllerDelegate {
     
     func textBarRightButton() -> String? {
-        return R.string.localizable.action_send()
+        R.string.localizable.send()
     }
     
     func barRightButtonTappedAction() {
@@ -161,20 +161,23 @@ extension MessageReceiverViewController: ContainerViewControllerDelegate {
                 guard !messages.isEmpty else {
                     continue
                 }
+                let expireIn = ConversationDAO.shared.getExpireIn(conversationId: receiver.conversationId) ?? 0
                 switch receiver.item {
                 case .group:
                     for m in messages {
                         SendMessageService.shared.sendMessage(message: m.message,
                                                               children: m.children,
                                                               ownerUser: nil,
-                                                              isGroupMessage: true)
+                                                              isGroupMessage: true,
+                                                              expireIn: expireIn)
                     }
                 case .user(let user):
                     for m in messages {
                         SendMessageService.shared.sendMessage(message: m.message,
                                                               children: m.children,
                                                               ownerUser: user,
-                                                              isGroupMessage: false)
+                                                              isGroupMessage: false,
+                                                              expireIn: expireIn)
                     }
                 }
             }
@@ -438,7 +441,7 @@ extension MessageReceiverViewController {
             newMessage.mediaUrl = message.mediaUrl
             newMessage.stickerId = message.stickerId
             newMessage.mediaStatus = MediaStatus.PENDING.rawValue
-            let transferData = TransferStickerData(stickerId: message.stickerId, name: nil, albumId: nil)
+            let transferData = TransferStickerData(stickerId: message.stickerId, name: nil, albumId: message.albumId)
             newMessage.content = try! JSONEncoder().encode(transferData).base64EncodedString()
         } else if message.category.hasSuffix("_CONTACT") {
             guard let sharedUserId = message.sharedUserId else {
@@ -541,7 +544,7 @@ extension MessageReceiverViewController {
         let filename = message.messageId + ExtensionName.jpeg.withDot
         let path = AttachmentContainer.url(for: .photos, filename: filename)
         guard image.saveToFile(path: path), FileManager.default.fileSize(path.path) > 0, image.size.width > 0, image.size.height > 0 else {
-            showAutoHiddenHud(style: .error, text: R.string.localizable.error_operation_failed())
+            showAutoHiddenHud(style: .error, text: R.string.localizable.operation_failed())
             return nil
         }
         message.thumbImage = image.blurHash()
