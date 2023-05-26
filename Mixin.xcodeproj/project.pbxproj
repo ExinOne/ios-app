@@ -875,7 +875,6 @@
 		DFE864F22422A59E009B1833 /* RecipientHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFE864F12422A59E009B1833 /* RecipientHeaderView.swift */; };
 		DFF1AD7C22254C6F0087173D /* R.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF1AD7B22254C6E0087173D /* R.generated.swift */; };
 		DFF2145D209AC7D400612234 /* ConerLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF2145C209AC7D400612234 /* ConerLabel.swift */; };
-		DFF44175223A035000DDD5F8 /* Mixin-Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = DFF44173223A035000DDD5F8 /* Mixin-Keys.plist */; };
 		DFF44176223A035000DDD5F8 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DFF44174223A035000DDD5F8 /* GoogleService-Info.plist */; };
 		DFF4417A223BC63100DDD5F8 /* ContactCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF44179223BC63100DDD5F8 /* ContactCell.swift */; };
 		DFFDCF8420AD8A7A00B4956E /* FileSendViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFFDCF8320AD8A7A00B4956E /* FileSendViewController.swift */; };
@@ -1874,7 +1873,6 @@
 		DFEAED4C1FBD762100A617D8 /* Mixin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mixin.entitlements; sourceTree = "<group>"; };
 		DFF1AD7B22254C6E0087173D /* R.generated.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = R.generated.swift; sourceTree = SOURCE_ROOT; };
 		DFF2145C209AC7D400612234 /* ConerLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConerLabel.swift; sourceTree = "<group>"; };
-		DFF44173223A035000DDD5F8 /* Mixin-Keys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Mixin-Keys.plist"; sourceTree = "<group>"; };
 		DFF44174223A035000DDD5F8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		DFF44179223BC63100DDD5F8 /* ContactCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactCell.swift; sourceTree = "<group>"; };
 		DFFDCF8320AD8A7A00B4956E /* FileSendViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileSendViewController.swift; sourceTree = "<group>"; };
@@ -1934,6 +1932,7 @@
 		E0FAE8D123CDC4F4008B056A /* CrashlyticalReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashlyticalReporter.swift; sourceTree = "<group>"; };
 		E0FE4CCD237421F0009A14F6 /* ProfileMenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileMenuItem.swift; sourceTree = "<group>"; };
 		E49F74E7017E780C23E3311F /* Pods_MixinDebug.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MixinDebug.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB21DBD42A20B25900761759 /* Mixin-Keys.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Mixin-Keys.plist"; path = "../../../ios-app 2/Mixin/Supporting Files/Mixin-Keys.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3212,9 +3211,9 @@
 			isa = PBXGroup;
 			children = (
 				DFF44174223A035000DDD5F8 /* GoogleService-Info.plist */,
-				DFF44173223A035000DDD5F8 /* Mixin-Keys.plist */,
 				7BBD8A3220C1D51C00DF2735 /* captcha.html */,
 				277FF7101F909A1200DBB2EB /* Info.plist */,
+				FB21DBD42A20B25900761759 /* Mixin-Keys.plist */,
 				94E8913825C019F000F1E5D4 /* Pods-Mixin-acknowledgements.plist */,
 				94739A5326258F8200E8914D /* Custom-acknowledgements.plist */,
 			);
@@ -3987,7 +3986,6 @@
 				7BB788B2216C5A4A00EDE7B4 /* LoadingIndicatorFooterView.xib in Resources */,
 				DFDD89E922C4B8E600128991 /* DepositTipWindow.xib in Resources */,
 				DFA5B5911FB04C9C00549728 /* Wallet.storyboard in Resources */,
-				DFF44175223A035000DDD5F8 /* Mixin-Keys.plist in Resources */,
 				DFA5B58E1FADC88D00549728 /* Group.storyboard in Resources */,
 				DF1ED8E220BC0794003E10E8 /* Photo.storyboard in Resources */,
 				7B9863911FA313E300D4B16C /* BottomWrapperView.xib in Resources */,
@@ -5345,7 +5343,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20220601;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -5559,7 +5557,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20220601Firebase/Crashlytics;
 				DEVELOPMENT_ASSET_PATHS = "\"MixinDebug/Preview Content\"";
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MixinDebug/Info.plist;
@@ -5628,7 +5626,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinShare/MixinShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20220601;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -5681,7 +5679,7 @@
 				CODE_SIGN_ENTITLEMENTS = MixinNotificationService/MixinNotificationService.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 20220601;
-				DEVELOPMENT_TEAM = 5EL4S7LCG6;
+				DEVELOPMENT_TEAM = HD4KY6K28L;
 				INFOPLIST_FILE = MixinNotificationService/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
