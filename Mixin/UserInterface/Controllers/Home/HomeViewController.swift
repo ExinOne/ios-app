@@ -239,8 +239,8 @@ class HomeViewController: UIViewController {
         case .emergencyContact:
             let vc = EmergencyContactViewController.instance()
             navigationController?.pushViewController(vc, animated: true)
-        case .initializePIN:
-            WalletViewController.presentWallet()
+//        case .initializePIN:
+//            WalletViewController.presentWallet()
         case .migrateToTIP:
             let tip = TIPNavigationViewController(intent: .migrate, destination: nil)
             present(tip, animated: true)
@@ -255,8 +255,8 @@ class HomeViewController: UIViewController {
             AppGroupUserDefaults.notificationBulletinDismissalDate = Date()
         case .emergencyContact:
             AppGroupUserDefaults.User.emergencyContactBulletinDismissalDate = Date()
-        case .initializePIN:
-            AppGroupUserDefaults.User.initializePINBulletinDismissalDate = Date()
+//        case .initializePIN:
+//            AppGroupUserDefaults.User.initializePINBulletinDismissalDate = Date()
         case .migrateToTIP:
             return
         case .none:
@@ -864,19 +864,19 @@ extension HomeViewController {
                 content = .notification
             }
             
-            if content == nil {
-                switch TIP.status {
-                case .needsInitialize:
-                    let userJustDismissedInitializePINBulletin = isDate(AppGroupUserDefaults.User.initializePINBulletinDismissalDate, fallsInto: BulletinDetectInterval.initializePIN)
-                    if !userJustDismissedInitializePINBulletin {
-                        content = .initializePIN
-                    }
-                case .needsMigrate:
-                    break
-                case .ready, .unknown:
-                    break
-                }
-            }
+//            if content == nil {
+//                switch TIP.status {
+//                case .needsInitialize:
+//                    let userJustDismissedInitializePINBulletin = isDate(AppGroupUserDefaults.User.initializePINBulletinDismissalDate, fallsInto: BulletinDetectInterval.initializePIN)
+//                    if !userJustDismissedInitializePINBulletin {
+//                        content = .initializePIN
+//                    }
+//                case .needsMigrate:
+//                    break
+//                case .ready, .unknown:
+//                    break
+//                }
+//            }
 
             if content == nil {
                 let checkWalletBalance = await MainActor.run {

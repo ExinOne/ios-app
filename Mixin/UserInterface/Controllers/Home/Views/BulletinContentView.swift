@@ -20,11 +20,11 @@ class BulletinContentView: UIView {
                 descriptionLabel.text = R.string.localizable.setting_emergency_content()
                 continueButton.setTitle(R.string.localizable.settings(), for: .normal)
                 closeButton.isHidden = false
-            case .initializePIN:
-                titleLabel.text = R.string.localizable.get_a_new_wallet()
-                descriptionLabel.text = R.string.localizable.new_wallet_hint()
-                continueButton.setTitle(R.string.localizable.continue(), for: .normal)
-                closeButton.isHidden = false
+//            case .initializePIN:
+//                titleLabel.text = R.string.localizable.get_a_new_wallet()
+//                descriptionLabel.text = R.string.localizable.new_wallet_hint()
+//                continueButton.setTitle(R.string.localizable.continue(), for: .normal)
+//                closeButton.isHidden = false
             case .migrateToTIP:
                 titleLabel.text = R.string.localizable.upgrade_tip()
                 descriptionLabel.text = R.string.localizable.tip_introduction()

@@ -20,7 +20,8 @@ class SignalLoadingViewController: UIViewController {
     }
     
     private var allUsersInitialBots: [InitializeBotJob.Bot] {
-        [InitializeBotJob.Bot(userId: "773e5e77-4107-45c2-b648-8fc722ed77f5", fullname: "Team Mixin")]
+//        [InitializeBotJob.Bot(userId: "773e5e77-4107-45c2-b648-8fc722ed77f5", fullname: "Team Mixin")]
+        [InitializeBotJob.Bot(userId: "0f7305a4-a72f-462c-a566-c7e70d8fb7ab", fullname: "JustChat")]
     }
     
     class func instance(isUsernameJustInitialized: Bool) -> SignalLoadingViewController {

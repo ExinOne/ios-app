@@ -23,6 +23,7 @@ class EditSharedAppsViewController: UIViewController {
         tableView.delegate = self
         DispatchQueue.global().async {
             let favorites = FavoriteAppsDAO.shared.favoriteAppUsersOfUser(withId: myUserId)
+            print("Array", favorites)
             let candidates = UserDAO.shared.appFriends(notIn: favorites.compactMap({ $0.userId }))
             DispatchQueue.main.async {
                 if favorites.isEmpty && candidates.isEmpty {

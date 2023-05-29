@@ -902,14 +902,25 @@ extension ConversationInputViewController {
     }
     
     private func reloadFixedExtensions() {
+        
+        
+        var hasExinOne = false
+        let apps = UserDAO.shared.getAppUsers()
+        for app in apps {
+            if(app.identityNumber == "7000101276") {
+                hasExinOne = true
+            }
+        }
+        
         if !composer.isGroup, let ownerUser = composer.ownerUser, !ownerUser.isBot {
-            if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+            if(hasExinOne) {
                 extensionViewController.fixedExtensions = [.transfer, .call, .camera, .file, .contact, .location]
             }else{
                 extensionViewController.fixedExtensions = [ .call, .camera, .file, .contact, .location]
             }
         } else if let app = composer.opponentApp, app.creatorId == myUserId {
-            if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+            print("Array", hasExinOne)
+            if(hasExinOne) {
                 extensionViewController.fixedExtensions = [.transfer, .camera, .file, .contact, .location]
             }else{
                 extensionViewController.fixedExtensions = [ .camera, .file, .contact, .location]

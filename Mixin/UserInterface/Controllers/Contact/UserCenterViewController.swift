@@ -4,6 +4,7 @@ import MixinServices
 class UserCenterViewController: SettingsTableViewController, MixinNavigationAnimating {
     
     private lazy var dataSource = SettingsDataSource(sections: [
+            
         SettingsSection(rows: [
             SettingsRow(icon: R.image.ic_user_profile(),
                         title: R.string.localizable.profile(),
@@ -11,9 +12,9 @@ class UserCenterViewController: SettingsTableViewController, MixinNavigationAnim
             SettingsRow(icon: R.image.ic_user_qr_code(),
                         title: R.string.localizable.my_qr_code(),
                         accessory: .disclosure),
-            SettingsRow(icon: R.image.ic_user_receive_money(),
-                        title: R.string.localizable.receive_money(),
-                        accessory: .disclosure),
+//            SettingsRow(icon: R.image.ic_user_receive_money(),
+//                        title: R.string.localizable.receive_money(),
+//                        accessory: .disclosure),
         ]),
         SettingsSection(rows: [
             SettingsRow(icon: R.image.ic_user_chat(),
@@ -107,6 +108,7 @@ extension UserCenterViewController {
         guard let account = LoginManager.shared.account, let headerView = tableView.tableHeaderView as? UserCenterTableHeaderView else {
             return
         }
+
         DispatchQueue.main.async {
             headerView.avatarImageView.setImage(with: account.avatarURL, userId: account.userID, name: account.fullName)
             headerView.nameLabel.text = account.fullName

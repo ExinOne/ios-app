@@ -49,7 +49,14 @@ class NotificationAndConfirmationSettingsViewController: SettingsTableViewContro
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+        var hasExinOne = false
+        let apps = UserDAO.shared.getAppUsers()
+        for app in apps {
+            if(app.identityNumber == "7000101276") {
+                hasExinOne = true
+            }
+        }
+        if(hasExinOne) {
             dataSource = SettingsDataSource(sections: [
                 SettingsSection(footer: R.string.localizable.notification_message_preview_description(), rows: [
                     messagePreviewRow

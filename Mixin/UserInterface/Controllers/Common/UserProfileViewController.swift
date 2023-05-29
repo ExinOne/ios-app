@@ -704,17 +704,36 @@ extension UserProfileViewController {
                 centerStackView.addArrangedSubview(view)
             }
             
+            var hasExinOne = false
+            let apps = UserDAO.shared.getAppUsers()
+            for app in apps {
+                if(app.identityNumber == "7000101276") {
+                    hasExinOne = true
+                }
+            }
+            
             if user.isBot {
                 shortcutView.leftShortcutButton.setImage(R.image.ic_open_app(), for: .normal)
                 shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
                 shortcutView.leftShortcutButton.addTarget(self, action: #selector(openApp), for: .touchUpInside)
+                shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+                shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
             } else {
-                shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
-                shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
-                shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
+                if(hasExinOne) {
+                    shortcutView.leftShortcutButton.setImage(R.image.ic_transfer(), for: .normal)
+                    shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
+                    shortcutView.leftShortcutButton.addTarget(self, action: #selector(transfer), for: .touchUpInside)
+                    shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
+                    shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+                }else {
+                    shortcutView.leftShortcutButton.setImage(R.image.ic_send_msg(), for: .normal)
+                    shortcutView.leftShortcutButton.removeTarget(nil, action: nil, for: .allEvents)
+                    shortcutView.leftShortcutButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+                    shortcutView.sendMessageButton.isHidden = true
+                }
+                
             }
-            shortcutView.sendMessageButton.removeTarget(nil, action: nil, for: .allEvents)
-            shortcutView.sendMessageButton.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+      
             shortcutView.toggleSizeButton.removeTarget(nil, action: nil, for: .allEvents)
             shortcutView.toggleSizeButton.addTarget(self, action: #selector(toggleSize), for: .touchUpInside)
             centerStackView.addArrangedSubview(shortcutView)
@@ -851,6 +870,14 @@ extension UserProfileViewController {
                 groups.append(callGroup)
             }
             
+            var hasExinOne = false
+            let apps = UserDAO.shared.getAppUsers()
+            for app in apps {
+                if(app.identityNumber == "7000101276") {
+                    hasExinOne = true
+                }
+            }
+            
             let editAliasAndBotRelatedGroup: [ProfileMenuItem] = {
                 var group = [ProfileMenuItem]()
                 if user.isBot && !user.isSelfBot {
@@ -859,7 +886,7 @@ extension UserProfileViewController {
                                                  style: [],
                                                  action: #selector(showDeveloper)))
                 }
-                if(UserDAO.shared.getUser(identityNumber: "7000101276") != nil) {
+                if(hasExinOne) {
                     group.append(ProfileMenuItem(title: R.string.localizable.transactions(),
                                                  subtitle: nil,
                                                  style: [],
