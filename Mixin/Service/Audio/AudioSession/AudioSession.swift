@@ -4,6 +4,33 @@ import MixinServices
 
 class AudioSession {
     
+    enum InterruptionReason {
+        
+        case `default`
+        
+        // According to `AVAudioSessionInterruptionReasonAppWasSuspended` in AVAudioSessionTypes.h
+        // from iOS 16.0 SDK, no interruption notification will be send during app suspension.
+        // `appWasSuspended` here is kept to be compatible with elder versions of iOS. The
+        // whole `InterruptionReason` could be removed after deployment target is set to iOS 16
+        case appWasSuspended
+        
+        case builtInMicMuted
+        
+        init(reason: AVAudioSession.InterruptionReason) {
+            switch reason {
+            case .default:
+                self = .default
+            case .appWasSuspended:
+                self = .appWasSuspended
+            case .builtInMicMuted:
+                self = .builtInMicMuted
+            @unknown default:
+                self = .default
+            }
+        }
+        
+    }
+    
     enum Error: Swift.Error {
         case insufficientPriority(AudioSessionClientPriority)
     }
@@ -42,10 +69,10 @@ class AudioSession {
                 throw Error.insufficientPriority(currentClient.priority)
             } else {
                 if Thread.isMainThread {
-                    currentClient.audioSessionDidBeganInterruption(self)
+                    currentClient.audioSessionDidBeganInterruption(self, reason: .default)
                 } else {
                     DispatchQueue.main.sync {
-                        currentClient.audioSessionDidBeganInterruption(self)
+                        currentClient.audioSessionDidBeganInterruption(self, reason: .default)
                     }
                 }
             }
@@ -88,8 +115,26 @@ class AudioSession {
         }
         switch type {
         case .began:
-            currentClient?.audioSessionDidBeganInterruption(self)
+            let reason: AudioSession.InterruptionReason
+            if #available(iOS 14.5, *) {
+                if let rawValue = notification.userInfo?[AVAudioSessionInterruptionReasonKey] as? AVAudioSession.InterruptionReason.RawValue {
+                    let avReason = AVAudioSession.InterruptionReason(rawValue: rawValue) ?? .default
+                    reason = AudioSession.InterruptionReason(reason: avReason)
+                } else {
+                    reason = .default
+                }
+            } else {
+                let wasSuspended = notification.userInfo?[AVAudioSessionInterruptionWasSuspendedKey] as? Bool ?? false
+                if wasSuspended {
+                    reason = .appWasSuspended
+                } else {
+                    reason = .default
+                }
+            }
+            Logger.general.debug(category: "AudioSession", message: "Began interruption with reason: \(reason)")
+            currentClient?.audioSessionDidBeganInterruption(self, reason: reason)
         case .ended:
+            Logger.general.debug(category: "AudioSession", message: "Interruption ended")
             currentClient?.audioSessionDidEndInterruption(self)
         @unknown default:
             break

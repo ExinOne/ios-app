@@ -81,8 +81,8 @@ class LoginVerificationCodeViewController: VerificationCodeViewController {
         switch result {
         case let .success(account):
             guard
-                !account.pin_token.isEmpty,
-                let remotePublicKey = Data(base64Encoded: account.pin_token),
+                !account.pinToken.isEmpty,
+                let remotePublicKey = Data(base64Encoded: account.pinToken),
                 let pinToken = AgreementCalculator.agreement(publicKey: remotePublicKey, privateKey: key.x25519Representation)
             else {
                 DispatchQueue.main.async {
@@ -90,7 +90,7 @@ class LoginVerificationCodeViewController: VerificationCodeViewController {
                 }
                 return
             }
-            AppGroupKeychain.sessionSecret = key.rfc8032Representation
+            AppGroupKeychain.sessionSecret = key.rawRepresentation
             AppGroupKeychain.pinToken = pinToken
             LoginManager.shared.setAccount(account, updateUserTable: false)
             if AppGroupUserDefaults.User.localVersion == AppGroupUserDefaults.User.uninitializedVersion {
@@ -109,7 +109,7 @@ class LoginVerificationCodeViewController: VerificationCodeViewController {
                 AppGroupUserDefaults.User.localVersion = AppGroupUserDefaults.User.version
             }
             
-            if account.full_name.isEmpty {
+            if account.fullName.isEmpty {
                 reporter.report(event: .signUp)
             } else if HomeViewController.showChangePhoneNumberTips {
                 reporter.report(event: .login, userInfo: ["source": "emergency"])
@@ -128,7 +128,7 @@ class LoginVerificationCodeViewController: VerificationCodeViewController {
                 AppGroupUserDefaults.User.isLogoutByServer = false
                 UserDAO.shared.updateAccount(account: account)
                 DispatchQueue.main.sync {
-                    if account.full_name.isEmpty {
+                    if account.fullName.isEmpty {
                         let vc = UsernameViewController()
                         self.navigationController?.pushViewController(vc, animated: true)
                     } else {

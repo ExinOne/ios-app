@@ -1,11 +1,12 @@
 import Foundation
+import CryptoKit
 
 enum RequestSigning {
     
     static var edDSAPrivateKey: Ed25519PrivateKey? {
         if let cached = cachedEdDSAPrivateKey {
             return cachedEdDSAPrivateKey
-        } else if let secret = AppGroupKeychain.sessionSecret, let key = Ed25519PrivateKey(rfc8032Representation: secret) {
+        } else if let secret = AppGroupKeychain.sessionSecret, let key = try? Ed25519PrivateKey(rawRepresentation: secret) {
             cachedEdDSAPrivateKey = key
             return key
         } else {
@@ -34,8 +35,8 @@ extension RequestSigning {
     private static let baseHeaders: [String: String] = [
         "Content-Type": "application/json",
         "Accept-Language": Locale.current.languageCode ?? "en",
-        "Mixin-Device-Id": Keychain.shared.getDeviceId(),
-        "User-Agent": "Mixin/\(Bundle.main.shortVersion) (iOS \(UIDevice.current.systemVersion); \(Machine.current.name); \(Locale.current.languageCode ?? "")-\(Locale.current.regionCode ?? ""))"
+        "Mixin-Device-Id": Device.current.id,
+        "User-Agent": "Mixin/\(Bundle.main.shortVersion) (iOS \(UIDevice.current.systemVersion); \(Device.current.machineName); \(Locale.current.languageCode ?? "")-\(Locale.current.regionCode ?? ""))"
     ]
     
     private static var cachedEdDSAPrivateKey: Ed25519PrivateKey?
@@ -49,12 +50,12 @@ extension RequestSigning {
         }
         
         let date = Date()
-        let claims = Jwt.Claims(uid: account.user_id,
-                                sid: account.session_id,
+        let claims = Jwt.Claims(uid: account.userID,
+                                sid: account.sessionID,
                                 iat: date,
                                 exp: date.addingTimeInterval(30 * secondsPerMinute),
                                 jti: requestId,
-                                sig: sig.sha256(),
+                                sig: sig,
                                 scp: "FULL")
         
         let token: String
@@ -96,19 +97,23 @@ extension RequestSigning {
             uri.removeSubrange(start...end)
         }
         
-        var sig = ""
+        var string = ""
         if let method = request.httpMethod {
-            sig += method
+            string += method
         }
         if !uri.hasPrefix("/") {
-            sig += "/"
+            string += "/"
         }
-        sig += uri
+        string += uri
         if let body = request.httpBody, let content = String(data: body, encoding: .utf8), content.count > 0 {
-            sig += content
+            string += content
         }
         
-        return sig
+        guard let data = string.data(using: .utf8) else {
+            return nil
+        }
+        let hash = SHA256.hash(data: data).hexEncodedString()
+        return hash
     }
     
 }

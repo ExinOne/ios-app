@@ -13,10 +13,22 @@ class DiagnoseViewController: SettingsTableViewController {
         SettingsSection(rows: [
             SettingsRow(title: R.string.localizable.clear_unused_cache(), accessory: .disclosure),
         ]),
+        SettingsSection(rows: [
+            SettingsRow(title: "Expiration Availability", accessory: .none),
+        ]),
+        SettingsSection(rows: [
+            SettingsRow(title: "Delete Spotlight Index", accessory: .none),
+        ]),
     ])
     
     override func viewDidLoad() {
         super.viewDidLoad()
+#if DEBUG
+        let tipSection = SettingsSection(rows: [
+            SettingsRow(title: "TIP", accessory: .disclosure),
+        ])
+        dataSource.insertSection(tipSection, at: dataSource.sections.count, animation: .none)
+#endif
         dataSource.tableViewDelegate = self
         dataSource.tableView = tableView
         NotificationCenter.default.addObserver(self,
@@ -49,6 +61,25 @@ extension DiagnoseViewController: UITableViewDelegate {
             let container = ContainerViewController.instance(viewController: AttachmentDiagnosticViewController(),
                                                              title: R.string.localizable.clear_unused_cache())
             navigationController?.pushViewController(container, animated: true)
+        case (3, 0):
+            let hud = Hud()
+            hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
+            ExpiredMessageManager.shared.isQueueAvailable { isAvailable in
+                hud.set(style: isAvailable ? .notification : .error, text: "")
+                hud.scheduleAutoHidden()
+            }
+        case (4, 0):
+            if SpotlightManager.isAvailable {
+                SpotlightManager.shared.deleteAllIndexedItems()
+                showAutoHiddenHud(style: .notification, text: R.string.localizable.done())
+            } else {
+                showAutoHiddenHud(style: .error, text: "Not Available")
+            }
+#if DEBUG
+        case (5, 0):
+            let container = ContainerViewController.instance(viewController: TIPDiagnosticViewController(), title: "TIP")
+            navigationController?.pushViewController(container, animated: true)
+#endif
         default:
             break
         }

@@ -18,23 +18,23 @@ class DeleteAccountAbortWindow: BottomSheetView {
         timer = nil
     }
     
-    override func dismissPopupControllerAnimated() {
+    override func dismissPopupController(animated: Bool) {
         guard canDismiss else {
             return
         }
-        super.dismissPopupControllerAnimated()
+        super.dismissPopupController(animated: animated)
     }
     
     @IBAction func continueAction(_ sender: Any) {
         canDismiss = true
         completion?(false)
-        dismissPopupControllerAnimated()
+        dismissPopupController(animated: true)
     }
     
     @IBAction func cancelAction(_ sender: Any) {
         canDismiss = true
         completion?(true)
-        dismissPopupControllerAnimated()
+        dismissPopupController(animated: true)
     }
     
     class func instance() -> DeleteAccountAbortWindow {
@@ -43,7 +43,7 @@ class DeleteAccountAbortWindow: BottomSheetView {
     
     func render(deactivatedAt: String, completion: @escaping CompletionHandler) {
         self.completion = completion
-        let formatted = DateFormatter.deleteAccountFormatter.string(from: deactivatedAt.toUTCDate())
+        let formatted = DateFormatter.deleteAccount.string(from: deactivatedAt.toUTCDate())
         label.text = R.string.localizable.landing_delete_content(formatted)
         continueButton.setTitle("\(R.string.localizable.continue())(\(self.countDown))", for: .normal)
         continueButton.isEnabled = false

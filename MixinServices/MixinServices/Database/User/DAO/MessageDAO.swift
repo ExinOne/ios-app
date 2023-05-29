@@ -139,10 +139,20 @@ public final class MessageDAO: UserDatabaseDAO {
             SELECT m.id, em.expire_in, em.expire_at
             FROM messages m
             LEFT JOIN expired_messages em ON m.id = em.message_id
-            WHERE m.conversation_id = ? AND status = ? AND user_id != ?
+            WHERE m.conversation_id = ? AND m.status = ? AND m.user_id != ? AND m.created_at >= ifnull(
+                (
+                    SELECT m.created_at
+                    FROM conversations c
+                    LEFT JOIN messages m ON c.last_read_message_id = m.id
+                    WHERE c.conversation_id = ?
+                ),
+                (
+                    ''
+                )
+            )
             ORDER BY m.created_at ASC
         """
-        return db.select(with: sql, arguments: [conversationId, MessageStatus.DELIVERED.rawValue, myUserId])
+        return db.select(with: sql, arguments: [conversationId, MessageStatus.DELIVERED.rawValue, myUserId, conversationId])
     }
     
     public func deleteMediaMessages(conversationId: String, categories: [MessageCategory]) {
@@ -154,6 +164,7 @@ public final class MessageDAO: UserDatabaseDAO {
                 .filter(condition)
                 .fetchAll(db)
             try Message.filter(condition).deleteAll(db)
+            try ConversationDAO.shared.updateLastMessageIdOnDeleteMessage(conversationId: conversationId, database: db)
             try PinMessageDAO.shared.delete(messageIds: messageIds, conversationId: conversationId, from: db)
             try clearPinMessageContent(quoteMessageIds: messageIds, conversationId: conversationId, from: db)
         }
@@ -252,7 +263,7 @@ public final class MessageDAO: UserDatabaseDAO {
             }
             
             if !isAppExtension {
-                db.afterNextTransactionCommit { (_) in
+                db.afterNextTransaction { (_) in
                     for message in readMessages {
                         let change = ConversationChange(conversationId: message.conversationId, action: .updateMessageStatus(messageId: message.messageId, newStatus: .READ))
                         NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: change)
@@ -273,18 +284,17 @@ public final class MessageDAO: UserDatabaseDAO {
         UNUserNotificationCenter.current().removeNotifications(withIdentifiers: mentionMessageIds)
     }
     
-    @discardableResult
-    public func updateMessageStatus(messageId: String, status: String, from: String, updateUnseen: Bool = false) -> Bool {
+    public func updateMessageStatus(messageId: String, status: String, from: String) {
         guard let oldMessage: Message = db.select(where: Message.column(of: .messageId) == messageId) else {
-            return false
+            return
         }
         guard oldMessage.status != MessageStatus.FAILED.rawValue else {
             let error = MixinServicesError.badMessageData(id: messageId, status: status, from: from)
             reporter.report(error: error)
-            return false
+            return
         }
         guard MessageStatus.getOrder(messageStatus: status) > MessageStatus.getOrder(messageStatus: oldMessage.status) else {
-            return false
+            return
         }
         
         let conversationId = oldMessage.conversationId
@@ -301,31 +311,17 @@ public final class MessageDAO: UserDatabaseDAO {
             }
         }
         
-        if updateUnseen {
-            db.write { (db) in
-                try Message
-                    .filter(Message.column(of: .messageId) == messageId)
-                    .updateAll(db, [Message.column(of: .status).set(to: status)])
-                try updateUnseenMessageCount(database: db, conversationId: conversationId)
-                if let completion = completion {
-                    db.afterNextTransactionCommit(completion)
-                }
+        db.write { db in
+            try Message
+                .filter(Message.column(of: .messageId) == messageId)
+                .updateAll(db, [Message.column(of: .status).set(to: status)])
+            if status == MessageStatus.SENT.rawValue {
+                try ExpiredMessageDAO.shared.updateExpireAt(for: messageId, database: db, postNotification: true)
             }
-        } else {
-            db.write { db in
-                try Message
-                    .filter(Message.column(of: .messageId) == messageId)
-                    .updateAll(db, [Message.column(of: .status).set(to: status)])
-                if status == MessageStatus.SENT.rawValue {
-                    try ExpiredMessageDAO.shared.updateExpireAt(for: messageId, database: db, postNotification: true)
-                }
-                if let completion = completion {
-                    db.afterNextTransactionCommit(completion)
-                }
+            if let completion = completion {
+                db.afterNextTransaction(onCommit: completion)
             }
         }
-        
-        return true
     }
     
     public func updateUnseenMessageCount(database: GRDB.Database, conversationId: String) throws {
@@ -430,16 +426,26 @@ public final class MessageDAO: UserDatabaseDAO {
         guard hasUnreadMessage(conversationId: conversationId) else {
             return nil
         }
-        let statuses = [
-            MessageStatus.SENDING.rawValue,
-            MessageStatus.DELIVERED.rawValue,
-            MessageStatus.SENT.rawValue,
-            MessageStatus.READ.rawValue
-        ]
-        let myLastMessage: Message? = db.select(where: Message.column(of: .conversationId) == conversationId
-                                                     && statuses.contains(Message.column(of: .status))
-                                                     && Message.column(of: .userId) == myUserId,
-                                                order: [Message.column(of: .createdAt).desc])
+        let myLastMessage: Message? = {
+            let sql = """
+            SELECT *
+            FROM messages INDEXED BY index_messages_pick
+            WHERE conversation_id = ?
+                AND status IN (?, ?, ?, ?)
+                AND user_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+            let arguments: StatementArguments = [
+                conversationId,
+                MessageStatus.SENDING.rawValue,
+                MessageStatus.DELIVERED.rawValue,
+                MessageStatus.SENT.rawValue,
+                MessageStatus.READ.rawValue,
+                myUserId
+            ]
+            return db.select(with: sql, arguments: arguments)
+        }()
         let lastReadCondition: SQLSpecificExpressible
         if let myLastMessage = myLastMessage {
             lastReadCondition = Message.column(of: .conversationId) == conversationId
@@ -627,6 +633,10 @@ public final class MessageDAO: UserDatabaseDAO {
         } else {
             try message.save(database)
         }
+        try ConversationDAO.shared.updateLastMessageIdOnInsertMessage(conversationId: message.conversationId,
+                                                                      messageId: message.messageId,
+                                                                      createdAt: message.createdAt,
+                                                                      database: database)
         if expireIn != 0 && !message.category.hasPrefix("SYSTEM_") {
             let expireAt: Int64?
             if message.status == MessageStatus.SENT.rawValue || message.status == MessageStatus.READ.rawValue {
@@ -645,7 +655,7 @@ public final class MessageDAO: UserDatabaseDAO {
         }
         try MessageDAO.shared.updateUnseenMessageCount(database: database, conversationId: message.conversationId)
         
-        database.afterNextTransactionCommit { (_) in
+        database.afterNextTransaction { (_) in
             // Dispatch to global queue to prevent deadlock
             // Inside the block there's a request to access reading pool, embedding it inside write
             // may causes deadlock
@@ -755,7 +765,7 @@ public final class MessageDAO: UserDatabaseDAO {
         }
         
         let messageIds = quoteMessageIds + [messageId]
-        database.afterNextTransactionCommit { (_) in
+        database.afterNextTransaction { (_) in
             for messageId in messageIds {
                 let change = ConversationChange(conversationId: conversationId,
                                                 action: .recallMessage(messageId: messageId))
@@ -787,6 +797,9 @@ public final class MessageDAO: UserDatabaseDAO {
         deleteCount = try Message
             .filter(Message.column(of: .messageId) == id)
             .deleteAll(database)
+        if deleteCount > 0, let conversationId = conversationId {
+            try ConversationDAO.shared.updateLastMessageIdOnDeleteMessage(conversationId: conversationId, messageId: id, database: database)
+        }
         try MessageMention
             .filter(MessageMention.column(of: .messageId) == id)
             .deleteAll(database)
@@ -944,7 +957,6 @@ extension MessageDAO {
         let assignments = [
             Message.column(of: .stickerId).set(to: stickerData.stickerId),
             Message.column(of: .status).set(to: status),
-            Message.column(of: .albumId).set(to: stickerData.albumId)
         ]
         updateRedecryptMessage(assignments: assignments,
                                messageId: messageId,
@@ -998,7 +1010,7 @@ extension MessageDAO {
             }
             return pinMessageIds
         }
-        database.afterNextTransactionCommit { db in
+        database.afterNextTransaction { db in
             for id in ids {
                 let updateChange = ConversationChange(conversationId: conversationId, action: .updateMessage(messageId: id))
                 NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: updateChange)

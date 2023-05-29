@@ -1,6 +1,5 @@
 import Foundation
 import Alamofire
-import Gzip
 
 public class WebSocketService {
     
@@ -18,7 +17,7 @@ public class WebSocketService {
         return socket?.isConnected ?? false
     }
     
-    private let queue = Queue(label: "one.mixin.services.queue.websocket")
+    private let queue = Queue(label: "one.mixin.services.queue.websocket", qos: .userInitiated)
     private let messageQueue = DispatchQueue(label: "one.mixin.services.queue.websocket.message")
     
     private var host: String?
@@ -244,7 +243,7 @@ extension WebSocketService: WebSocketProviderDelegate {
                 handler(.failure(error))
             }
             if case .unauthorized = error, message.action == BlazeMessageAction.error.rawValue, !AppGroupUserDefaults.Account.isClockSkewed {
-                LoginManager.shared.logout(from: "WebSocketService")
+                LoginManager.shared.logout(reason: "WS access unauthroized")
             }
         } else {
             if let handler = messageHandlers[message.id] {

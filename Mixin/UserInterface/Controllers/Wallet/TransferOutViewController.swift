@@ -31,13 +31,13 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
     
     private let placeHolderFont = UIFont.preferredFont(forTextStyle: .callout)
     private let amountFont = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: 17, weight: .semibold))
+    private let maxMemoDataCount = 200
     
     private var availableAssets = [AssetItem]()
     private var opponent: Opponent!
     private var asset: AssetItem?
     private var targetUser: UserItem?
-    private var targetAddress: Address?
-    private var chainAsset: AssetItem?
+    private var feeAsset: AssetItem?
     private var isInputAssetAmount = true
     private var adjustBottomConstraintWhenKeyboardFrameChanges = true
     
@@ -60,12 +60,15 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
             container?.setSubtitle(subtitle: user.isCreatedByMessenger ? user.identityNumber : user.userId)
             container?.titleLabel.text = R.string.localizable.send_to_title() + " " + user.fullName
         case .address(let address):
-            targetAddress = address
             opponentImageView.image = R.image.wallet.ic_transaction_external_large()
             container?.titleLabel.text = R.string.localizable.send_to_title() + " " + address.label
             container?.setSubtitle(subtitle: address.fullAddress.toSimpleKey())
             memoView.isHidden = true
             reloadTransactionFeeHint(addressId: address.addressId)
+            NotificationCenter.default.addObserver(self,
+                                                   selector: #selector(reloadAddress),
+                                                   name: AddressDAO.addressDidChangeNotification,
+                                                   object: nil)
         }
         
         if self.asset != nil {
@@ -75,13 +78,18 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
                                                    selector: #selector(fetchAvailableAssets),
                                                    name: AssetDAO.assetsDidChangeNotification,
                                                    object: nil)
-            ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob())
+            NotificationCenter.default.addObserver(self,
+                                                   selector: #selector(fetchAvailableAssets),
+                                                   name: ChainDAO.chainsDidChangeNotification,
+                                                   object: nil)
+            ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob(request: .allAssets))
             fetchAvailableAssets()
         }
         
         amountTextField.adjustsFontForContentSizeCategory = true
         amountTextField.becomeFirstResponder()
         amountTextField.delegate = self
+        memoTextField.delegate = self
         
         NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
             guard let self = self, self.payWindowIfLoaded == nil else {
@@ -103,7 +111,7 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
     }
     
     override func layout(for keyboardFrame: CGRect) {
-        let keyboardHeight = view.frame.height - keyboardFrame.origin.y
+        let keyboardHeight = view.bounds.height - keyboardFrame.origin.y
         continueWrapperBottomConstraint.constant = keyboardHeight
         scrollView.contentInset.bottom = keyboardHeight + continueWrapperView.frame.height
         scrollView.verticalScrollIndicatorInsets.bottom = keyboardHeight
@@ -186,7 +194,7 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
         
         adjustBottomConstraintWhenKeyboardFrameChanges = false
 
-        let chainAsset = self.chainAsset
+        let feeAsset = self.feeAsset
         let traceId = self.traceId
         let payWindow = PayWindow.instance()
         payWindow.onDismiss = { [weak self] in
@@ -197,7 +205,7 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
         switch opponent! {
         case .contact(let user):
             DispatchQueue.global().async { [weak self] in
-                let action: PayWindow.PinAction = .transfer(trackId: traceId, user: user, fromWeb: false)
+                let action: PayWindow.PinAction = .transfer(trackId: traceId, user: user, fromWeb: false, returnTo: nil)
                 PayWindow.checkPay(traceId: traceId, asset: asset, action: action, opponentId: user.userId, amount: amount, fiatMoneyAmount: fiatMoneyAmount, memo: memo, fromWeb: false) { (canPay, errorMsg) in
                     DispatchQueue.main.async {
                         guard let weakSelf = self else {
@@ -217,11 +225,11 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
             }
         case .address(let address):
             DispatchQueue.global().async { [weak self] in
-                guard let chainAsset = chainAsset ?? AssetDAO.shared.getAsset(assetId: asset.chainId) else {
+                guard let feeAsset = feeAsset ?? AssetDAO.shared.getAsset(assetId: address.feeAssetId) else {
                     return
                 }
 
-                let action: PayWindow.PinAction = .withdraw(trackId: traceId, address: address, chainAsset: chainAsset, fromWeb: false)
+                let action: PayWindow.PinAction = .withdraw(trackId: traceId, address: address, feeAsset: feeAsset, fromWeb: false)
                 PayWindow.checkPay(traceId: traceId, asset: asset, action: action, destination: address.destination, tag: address.tag, addressId: address.addressId, amount: amount, fiatMoneyAmount: fiatMoneyAmount, memo: memo, fromWeb: false) { (canPay, errorMsg) in
                     DispatchQueue.main.async {
                         guard let weakSelf = self else {
@@ -302,6 +310,23 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
         }
     }
     
+    @objc private func reloadAddress() {
+        if case let .address(address) = opponent {
+            DispatchQueue.global().async { [weak self] in
+                guard let address = AddressDAO.shared.getAddress(addressId: address.addressId) else {
+                    return
+                }
+                DispatchQueue.main.async {
+                    guard let self = self else {
+                        return
+                    }
+                    self.opponent = .address(address)
+                    self.fillFeeHint(address: address, onFinished: nil)
+                }
+            }
+        }
+    }
+    
     private func updateAssetUI() {
         guard let asset = self.asset else {
             return
@@ -316,54 +341,65 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
     }
     
     private func reloadTransactionFeeHint(addressId: String) {
-        displayFeeHint(loading: true)
+        continueButton.isBusy = true
+        DispatchQueue.global().async { [weak self] in
+            if let address = AddressDAO.shared.getAddress(addressId: addressId), !address.feeAssetId.isEmpty {
+                self?.fillFeeHint(address: address) {
+                    self?.reloadFeeFromRemote(addressId: address.addressId)
+                }
+            } else {
+                self?.reloadFeeFromRemote(addressId: addressId)
+            }
+        }
+    }
+    
+    private func reloadFeeFromRemote(addressId: String) {
         WithdrawalAPI.address(addressId: addressId) { [weak self](result) in
             guard let weakSelf = self else {
                 return
             }
             switch result {
             case let .success(address):
+                DispatchQueue.global().async {
+                    AddressDAO.shared.insertOrUpdateAddress(addresses: [address])
+                }
                 if case .address = weakSelf.opponent {
                     weakSelf.opponent = .address(address)
                 }
-                weakSelf.fillFeeHint(address: address)
+                weakSelf.fillFeeHint(address: address, onFinished: nil)
             case .failure:
                 DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: {
-                    self?.reloadTransactionFeeHint(addressId: addressId)
+                    self?.reloadFeeFromRemote(addressId: addressId)
                 })
             }
         }
     }
     
-    private func displayFeeHint(loading: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            self?.transcationFeeHintView.isHidden = loading
-        }
-    }
-    
-    private func fillFeeHint(address: Address) {
+    private func fillFeeHint(address: Address, onFinished: (() -> Void)?) {
+        let asset = self.asset
         DispatchQueue.global().async { [weak self] in
-            guard
-                let asset = AssetDAO.shared.getAsset(assetId: address.assetId),
-                let chainAsset = AssetDAO.shared.getAsset(assetId: asset.chainId)
-            else {
-                self?.transactionFeeHintLabel.text = ""
-                self?.displayFeeHint(loading: false)
+            guard let feeAsset = AssetDAO.shared.getAsset(assetId: address.feeAssetId) else {
+                DispatchQueue.main.async {
+                    guard let self else {
+                        return
+                    }
+                    self.transactionFeeHintLabel.text = ""
+                    self.continueButton.isBusy = false
+                }
+                onFinished?()
                 return
             }
-            self?.chainAsset = chainAsset
-            
             var hint: String
             var highlightRanges = [NSRange]()
 
-            let feeRepresentation = address.fee + " " + chainAsset.symbol
+            let feeRepresentation = address.fee + " " + feeAsset.symbol
             let feeHint = R.string.localizable.network_fee(feeRepresentation)
             hint = feeHint
             let range = (hint as NSString).range(of: feeRepresentation)
             highlightRanges.append(range)
             
-            if address.dust.doubleValue > 0 {
-                let dustRepresentation = address.dust + " " + chainAsset.symbol
+            if let asset, address.dust.doubleValue > 0 {
+                let dustRepresentation = address.dust + " " + asset.symbol
                 let dustHint = R.string.localizable.withdrawal_minimum_withdrawal() + dustRepresentation
                 hint += "\n" + dustHint
                 let range = (hint as NSString).range(of: dustRepresentation, options: .backwards)
@@ -371,7 +407,7 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
             }
             
             if address.reserve.doubleValue > 0 {
-                let reserveRepresentation = address.reserve + " " + chainAsset.symbol
+                let reserveRepresentation = address.reserve + " " + feeAsset.symbol
                 let reserveHint = R.string.localizable.withdrawal_minimum_reserve() + reserveRepresentation
                 hint += "\n" + reserveHint
                 let range = (hint as NSString).range(of: reserveRepresentation, options: .backwards)
@@ -385,11 +421,12 @@ class TransferOutViewController: KeyboardBasedLayoutViewController {
                 attributedHint.addAttribute(.foregroundColor, value: UIColor.text, range: range)
             }
             DispatchQueue.main.async {
-                guard let weakSelf = self else {
-                    return
+                if let self {
+                    self.feeAsset = feeAsset
+                    self.transactionFeeHintLabel.attributedText = attributedHint
+                    self.continueButton.isBusy = false
                 }
-                weakSelf.transactionFeeHintLabel.attributedText = attributedHint
-                weakSelf.displayFeeHint(loading: false)
+                onFinished?()
             }
         }
     }
@@ -452,29 +489,36 @@ extension TransferOutViewController: ContainerViewControllerDelegate {
 extension TransferOutViewController: UITextFieldDelegate {
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        guard textField == amountTextField else {
-            return true
-        }
         let newText = ((textField.text ?? "") as NSString).replacingCharacters(in: range, with: string)
-        if newText.isEmpty {
-            return true
-        } else if newText.isNumeric {
-            let components = newText.components(separatedBy: currentDecimalSeparator)
-            if isInputAssetAmount {
-                return components.count == 1 || components[1].count <= 8
+        switch textField {
+        case amountTextField:
+            if newText.isEmpty {
+                return true
+            } else if newText.isNumeric {
+                let components = newText.components(separatedBy: currentDecimalSeparator)
+                if isInputAssetAmount {
+                    return components.count == 1 || components[1].count <= 8
+                } else {
+                    return components.count == 1 || components[1].count <= 2
+                }
             } else {
-                return components.count == 1 || components[1].count <= 2
+                return false
             }
-        } else {
-            return false
+        case memoTextField:
+            return newText.utf8.count <= maxMemoDataCount
+        default:
+            return true
         }
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == amountTextField {
+        switch textField {
+        case amountTextField:
             memoTextField.becomeFirstResponder()
-        } else if textField == memoTextField {
+        case memoTextField:
             continueAction(textField)
+        default:
+            break
         }
         return false
     }

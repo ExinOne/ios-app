@@ -129,18 +129,21 @@ open class AttachmentDownloadJob: AttachmentLoadingJob {
                 }
                 thumbnail?.saveToFile(path: thumbnailURL)
             }
+            let isShareable: Bool?
+            if let content = owner.content, let extra = AttachmentExtra.decode(from: content) {
+                isShareable = extra.isShareable
+            } else {
+                isShareable = true
+            }
             let content: String? = {
                 guard let response = attachResponse else {
                     return nil
                 }
-                guard let createdAt = response.createdAt else {
+                let extra = AttachmentExtra(attachmentId: response.attachmentId, createdAt: response.createdAt, isShareable: isShareable)
+                guard let data = try? JSONEncoder.default.encode(extra) else {
                     return nil
                 }
-                let extra = AttachmentExtra(attachmentId: response.attachmentId, createdAt: createdAt)
-                guard let json = try? JSONEncoder.default.encode(extra) else {
-                    return nil
-                }
-                return json.base64EncodedString()
+                return String(data: data, encoding: .utf8)
             }()
             updateMediaMessage(mediaUrl: fileName, status: .DONE, content: content)
             let userInfo = [
@@ -243,7 +246,8 @@ extension AttachmentDownloadJob {
         guard owner.category != MessageCategory.MESSAGE_RECALL.rawValue else {
             return nil
         }
-        guard let attachmentId = owner.content, !attachmentId.isEmpty else {
+        guard let attachmentId = owner.attachmentId, !attachmentId.isEmpty else {
+            Logger.general.error(category: "AttachmentDownloadJob", message: "Message has no attachmentId: \(owner.content)")
             return nil
         }
         guard UUID(uuidString: attachmentId) != nil else {

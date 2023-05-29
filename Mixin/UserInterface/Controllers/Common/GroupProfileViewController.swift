@@ -18,8 +18,8 @@ final class GroupProfileViewController: ProfileViewController {
     private let conversation: ConversationItem
     private let response: ConversationResponse?
     private let codeId: String?
-    private let isMember: Bool
-    private let participantsCount: Int?
+    private var isMember: Bool
+    private var participantsCount: Int?
     
     private lazy var notMemberPaddingView = NotMemberPaddingView()
     
@@ -56,6 +56,10 @@ final class GroupProfileViewController: ProfileViewController {
         reloadData()
         reloadCircles(conversationId: conversationId, userId: nil)
         updatePreferredContentSizeHeight(size: size)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(participantDidChange(_:)),
+                                               name: ParticipantDAO.participantDidChangeNotification,
+                                               object: nil)
     }
     
     override func updateMuteInterval(inSeconds interval: Int64) {
@@ -182,6 +186,9 @@ extension GroupProfileViewController {
                     DispatchQueue.global().async {
                         ConversationDAO.shared.exitGroup(conversationId: conversationId)
                         DispatchQueue.main.async {
+                            if let count = self?.participantsCount {
+                                self?.participantsCount = count - 1
+                            }
                             self?.reloadData()
                         }
                     }
@@ -236,6 +243,31 @@ extension GroupProfileViewController {
         let controller = ExpiredMessageViewController.instance(conversationId: conversationId, expireIn: conversation.expireIn)
         dismissAndPush(controller)
     }
+    
+    @objc func participantDidChange(_ notification: Notification) {
+        guard let conversationId = notification.userInfo?[ParticipantDAO.UserInfoKey.conversationId] as? String else {
+            return
+        }
+        guard conversationId == self.conversationId else {
+            return
+        }
+        DispatchQueue.global().async { [weak self] in
+            let count = ParticipantDAO.shared.getParticipantCount(conversationId: conversationId)
+            let isAdmin = ParticipantDAO.shared.isAdmin(conversationId: conversationId, userId: myUserId)
+            let isParticipant = ParticipantDAO.shared.userId(myUserId, isParticipantOfConversationId: conversationId)
+            DispatchQueue.main.async {
+                guard let self = self else {
+                    return
+                }
+                self.isAdmin = isAdmin
+                self.isMember = isParticipant
+                self.participantsCount = count
+                self.updateSubtitle()
+                self.updateMenuItems()
+            }
+        }
+    }
+    
 }
 
 // MARK: - Private works
@@ -391,6 +423,13 @@ extension GroupProfileViewController {
                                 action: #selector(editAnnouncement))
             ])
         }
+        let chatBackgroundGroup = [
+            ProfileMenuItem(title: R.string.localizable.chat_background(),
+                            subtitle: nil,
+                            style: [],
+                            action: #selector(changeChatBackground))
+        ]
+        groups.append(chatBackgroundGroup)
         
         if isMember {
             if conversation.isMuted {

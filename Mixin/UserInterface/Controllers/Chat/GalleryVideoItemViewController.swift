@@ -382,7 +382,7 @@ extension GalleryVideoItemViewController: AudioSessionClient {
         .playback
     }
     
-    func audioSessionDidBeganInterruption(_ audioSession: AudioSession) {
+    func audioSessionDidBeganInterruption(_ audioSession: AudioSession, reason: AudioSession.InterruptionReason) {
         pauseAction(audioSession)
         controlView.set(playControlsHidden: false, otherControlsHidden: false, animated: true)
     }
@@ -425,6 +425,9 @@ extension GalleryVideoItemViewController: AVPictureInPictureControllerDelegate {
             removeFromParent()
         }
         view.alpha = 1
+        if #available(iOS 16.0, *) {
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
     }
     
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
@@ -592,7 +595,11 @@ extension GalleryVideoItemViewController {
         let cmTime = CMTime(seconds: time, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         player.seek(to: cmTime) { [weak self] (_) in
             DispatchQueue.main.async {
-                self?.isSeeking = false
+                guard let self else {
+                    return
+                }
+                self.isSeeking = false
+                self.playerDidReachEnd = abs(duration - time) < 0.01
             }
         }
     }
@@ -622,8 +629,14 @@ extension GalleryVideoItemViewController {
     
     private func executeInPortraitOrientation(_ work: @escaping () -> Void) {
         if UIApplication.shared.isLandscape {
-            let portrait = Int(UIInterfaceOrientation.portrait.rawValue)
-            UIDevice.current.setValue(portrait, forKey: "orientation")
+            if #available(iOS 16.0, *) {
+                if let windowScene = view.window?.windowScene {
+                    windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+                }
+            } else {
+                let portrait = Int(UIInterfaceOrientation.portrait.rawValue)
+                UIDevice.current.setValue(portrait, forKey: "orientation")
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.33, execute: work)
         } else {
             work()
@@ -667,10 +680,6 @@ extension GalleryVideoItemViewController {
     }
     
     private func load(playableAsset asset: AVURLAsset, playAfterLoaded: Bool) {
-        guard asset.isPlayable else {
-            // TODO: UI Update
-            return
-        }
         removeAllObservers()
         
         let item = AVPlayerItem(asset: asset)

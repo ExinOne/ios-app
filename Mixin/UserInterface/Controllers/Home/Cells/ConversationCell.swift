@@ -36,7 +36,11 @@ class ConversationCell: ModernSelectedBackgroundCell {
             avatarView.setGroupImage(with: item.iconUrl)
         }
         nameLabel.text = item.getConversationName()
-        timeLabel.text = item.createdAt.toUTCDate().timeAgo()
+        if item.createdAt.isEmpty {
+            timeLabel.text = ""
+        } else {
+            timeLabel.text = item.createdAt.toUTCDate().timeAgo()
+        }
 
         if item.ownerIsVerified {
             verifiedImageView.image = #imageLiteral(resourceName: "ic_user_verified")
@@ -195,7 +199,9 @@ class ConversationCell: ModernSelectedBackgroundCell {
             unreadLabel.text = "\(item.unseenMessageCount)"
         } else {
             unreadLabel.isHidden = true
-            unreadLabel.alpha = 0 // XXX: Sometimes unread label shows for no reason, even if isHidden is alreay true
+            // XXX: Sometimes unread label shows for no reason, even if `isHidden` is alreay `true`
+            unreadLabel.alpha = 0
+            unreadLabel.text = nil
         }
         mentionLabel.isHidden = !hasUnreadMention
     }
@@ -226,8 +232,8 @@ class ConversationCell: ModernSelectedBackgroundCell {
     
     private func setContentLabelFontItalic(_ isItalic: Bool) {
         contentLabel.font = isItalic
-            ? MessageFontSet.recalledConversationContent.scaled
-            : MessageFontSet.normalConversationContent.scaled
+            ? ConversationFontSet.recalledContent.scaled
+            : ConversationFontSet.normalContent.scaled
     }
     
 }

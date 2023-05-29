@@ -24,17 +24,15 @@ Mixin Core Services.
   s.static_framework = true
 
   s.source_files = 'MixinServices/Foundation/**/*', 'MixinServices/Crypto/**/*', 'MixinServices/Database/**/*', 'MixinServices/Services/**/*'
+  s.vendored_frameworks = 'MixinServices/XKCP_SimpleFIPS202.xcframework', 'MixinServices/tip.xcframework'
 
   s.dependency 'AppCenter'
   s.dependency 'Alamofire'
   s.dependency 'SDWebImage'
-  s.dependency 'GzipSwift'
   s.dependency 'Zip'
   s.dependency 'libsignal-protocol-c'
   s.dependency 'SocketRocket'
-  s.dependency 'GRDB.swift/SQLCipher'
-  s.dependency 'SQLCipher', '~> 4.0'
-  s.dependency 'BoringSSL'
+  s.dependency 'GRDB.swift'
   s.dependency 'Sodium'
 
   s.test_spec 'Tests' do |tests|

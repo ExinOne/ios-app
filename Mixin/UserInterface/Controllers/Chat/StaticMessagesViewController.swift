@@ -5,20 +5,20 @@ class StaticMessagesViewController: UIViewController {
     
     @IBOutlet weak var contentView: UIView!
     @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var backgroundImageView: UIImageView!
+    @IBOutlet weak var wallpaperImageView: WallpaperImageView!
     @IBOutlet weak var tableView: ConversationTableView!
     
     @IBOutlet weak var contentViewHeightConstraint: NSLayoutConstraint!
     @IBOutlet weak var showContentConstraint: NSLayoutConstraint!
     @IBOutlet weak var hideContentConstraint: NSLayoutConstraint!
     
+    let conversationId: String
     let queue = DispatchQueue(label: "one.mixin.messenger.StaticMessagesViewController")
     let factory = ViewModelFactory()
     
     var dates: [String] = []
     var viewModels: [String: [MessageViewModel]] = [:]
     
-    private let conversationId: String
     private let audioManager: StaticAudioMessagePlayingManager
     
     private var didPlayAudioMessage = false
@@ -43,6 +43,7 @@ class StaticMessagesViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black.withAlphaComponent(0)
         contentView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        wallpaperImageView.wallpaper = Wallpaper.wallpaper(for: .conversation(conversationId))
         audioManager.delegate = self
         
         tableView.backgroundColor = .clear
@@ -69,20 +70,8 @@ class StaticMessagesViewController: UIViewController {
                            object: nil)
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        guard let image = backgroundImageView.image else {
-            return
-        }
-        let isBackgroundImageUndersized = backgroundImageView.frame.width > image.size.width
-            || backgroundImageView.frame.height > image.size.height
-        if isBackgroundImageUndersized {
-            backgroundImageView.contentMode = .scaleAspectFill
-        }
-    }
-    
     @IBAction func dismissAction(_ sender: Any) {
-        dismissAsChild(completion: nil)
+        dismissAsChild(animated: true, completion: nil)
     }
     
     func attachmentURL(withFilename filename: String) -> URL? {
@@ -143,13 +132,13 @@ class StaticMessagesViewController: UIViewController {
         })
     }
     
-    func dismissAsChild(completion: (() -> Void)?) {
+    func dismissAsChild(animated: Bool, completion: (() -> Void)?) {
         if didPlayAudioMessage {
             audioManager.stop()
         }
         showContentConstraint.priority = .defaultLow
         hideContentConstraint.priority = .defaultHigh
-        UIView.animate(withDuration: 0.5, delay: 0, options: .overdampedCurve) {
+        UIView.animate(withDuration: animated ? 0.5 : 0, delay: 0, options: .overdampedCurve) {
             self.view.layoutIfNeeded()
             self.view.backgroundColor = .black.withAlphaComponent(0)
         } completion: { _ in

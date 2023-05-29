@@ -8,11 +8,14 @@ class DatabaseUpgradeViewController: UIViewController {
             || AppGroupUserDefaults.User.needsUpgradeInMainApp
     }
     
-    class func instance() -> DatabaseUpgradeViewController {
-        return R.storyboard.home.database()!
+    class func instance(isUsernameJustInitialized: Bool) -> DatabaseUpgradeViewController {
+        let controller = R.storyboard.home.database()!
+        controller.isUsernameJustInitialized = isUsernameJustInitialized
+        return controller
     }
     
     private var isUpgrading = false
+    private var isUsernameJustInitialized = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,7 +51,7 @@ class DatabaseUpgradeViewController: UIViewController {
             }
             
             if localVersion < 4 {
-                ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob())
+                ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob(request: .allAssets))
             }
             if localVersion < 18 {
                 AppGroupUserDefaults.User.hasRecoverMedia = true
@@ -71,6 +74,11 @@ class DatabaseUpgradeViewController: UIViewController {
             if localVersion < 30 {
                 ConcurrentJobQueue.shared.addJob(job: RefreshAlbumJob())
             }
+            if localVersion < 31 {
+                if let id = Keychain.shared.removeDeviceID() {
+                    AppGroupKeychain.deviceID = id
+                }
+            }
             
             AppGroupUserDefaults.User.needsRebuildDatabase = false
             AppGroupUserDefaults.User.localVersion = AppGroupUserDefaults.User.version
@@ -89,7 +97,7 @@ class DatabaseUpgradeViewController: UIViewController {
     }
     
     private func dismiss() {
-        AppDelegate.current.mainWindow.rootViewController = makeInitialViewController()
+        AppDelegate.current.mainWindow.rootViewController = makeInitialViewController(isUsernameJustInitialized: isUsernameJustInitialized)
     }
     
     @objc private func applicationDidBecomeActive(_ notification: Notification) {

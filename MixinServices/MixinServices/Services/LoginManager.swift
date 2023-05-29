@@ -2,15 +2,15 @@ import Foundation
 import Intents
 
 public var myUserId: String {
-    LoginManager.shared.account?.user_id ?? ""
+    LoginManager.shared.account?.userID ?? ""
 }
 
 public var myIdentityNumber: String {
-    LoginManager.shared.account?.identity_number ?? "00000"
+    LoginManager.shared.account?.identityNumber ?? "00000"
 }
 
 public var myFullname: String {
-    LoginManager.shared.account?.full_name ?? ""
+    LoginManager.shared.account?.fullName ?? ""
 }
 
 public final class LoginManager {
@@ -54,7 +54,7 @@ public final class LoginManager {
         
         if !isAppExtension && _account != nil && !_isLoggedIn {
             DispatchQueue.global().async {
-                LoginManager.shared.logout(from: "LoginManager")
+                LoginManager.shared.logout(reason: "No valid account")
             }
         }
     }
@@ -95,11 +95,12 @@ public final class LoginManager {
         }
     }
     
-    public func logout(from reason: String) {
+    public func logout(reason: String) {
         guard account != nil else {
             return
         }
 
+        Logger.general.error(category: "LoginManager", message: "Logout because: \(reason), isAppExtension: \(isAppExtension)")
         if !isAppExtension {
             AppGroupUserDefaults.User.isLogoutByServer = true
         }
@@ -110,14 +111,13 @@ public final class LoginManager {
         pthread_rwlock_unlock(&lock)
 
         if !isAppExtension {
-            Logger.general.error(category: "LoginManager", message: "Logout because: \(reason)")
             AppGroupUserDefaults.Account.serializedAccount = nil
             Queue.main.autoSync {
                 INInteraction.deleteAll(completion: nil)
                 Keychain.shared.clearPIN()
                 WebSocketService.shared.disconnect()
                 AppGroupUserDefaults.Account.clearAll()
-                AppGroupKeychain.removeAllItems()
+                AppGroupKeychain.removeItemsForCurrentSession()
                 RequestSigning.removeCachedKey()
                 SignalDatabase.current.erase()
                 PropertiesDAO.shared.removeValue(forKey: .iterator)

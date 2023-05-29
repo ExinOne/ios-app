@@ -26,7 +26,7 @@ public class MixinService {
     }
 
     public func checkSessionSenderKey(conversationId: String) throws {
-        var participants = ParticipantSessionDAO.shared.getNotSendSessionParticipants(conversationId: conversationId, sessionId: LoginManager.shared.account?.session_id ?? "")
+        var participants = ParticipantSessionDAO.shared.getNotSendSessionParticipants(conversationId: conversationId, sessionId: LoginManager.shared.account?.sessionID ?? "")
         guard participants.count > 0 else {
             return
         }
@@ -185,7 +185,7 @@ public class MixinService {
     }
 
     func sendNoKeyMessage(conversationId: String, recipientId: String) {
-        let plainData = PlainJsonMessagePayload(action: PlainDataAction.NO_KEY.rawValue, messageId: nil, messages: nil, ackMessages: nil)
+        let plainData = PlainJsonMessagePayload(action: PlainDataAction.NO_KEY.rawValue, messages: nil, ackMessages: nil)
         let encoded = (try? JSONEncoder.default.encode(plainData))?.base64EncodedString() ?? ""
         let params = BlazeMessageParam(conversationId: conversationId, recipientId: recipientId, category: MessageCategory.PLAIN_JSON.rawValue, data: encoded, status: MessageStatus.SENDING.rawValue, messageId: UUID().uuidString.lowercased())
         let blazeMessage = BlazeMessage(params: params, action: BlazeMessageAction.createMessage.rawValue)

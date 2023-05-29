@@ -5,6 +5,7 @@ class MobileNumberViewController: ContinueButtonViewController {
     
     @IBOutlet weak var contentStackView: UIStackView!
     @IBOutlet weak var titleWrapperStackView: UIStackView!
+    @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var textField: UITextField!
     @IBOutlet weak var callingCodeButton: UIButton!
     
@@ -30,6 +31,10 @@ class MobileNumberViewController: ContinueButtonViewController {
         updateCallingCodeButtonCaption()
         textField.delegate = self
         textField.becomeFirstResponder()
+        
+        // UIButton with image and title failed to calculate intrinsicContentSize if bold text is turned on in iOS Display Settings
+        // Set `lineBreakMode` to `byClipping` as a workaround. Confirmed on iOS 16.1
+        callingCodeButton.titleLabel?.lineBreakMode = .byClipping
     }
     
     override func viewWillAppear(_ animated: Bool) {

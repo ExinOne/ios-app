@@ -6,7 +6,13 @@ import MixinServices
 final class GalleryImageItemViewController: GalleryItemViewController {
     
     let scrollView = UIScrollView()
-    let imageView = SDAnimatedImageView()
+    let imageView: SDAnimatedImageView = {
+        if #available(iOS 16.0, *), LiveTextImageView.isImageAnalyzerSupported {
+            return LiveTextImageView(frame: .zero)
+        } else {
+            return SDAnimatedImageView()
+        }
+    }()
     
     private(set) var detectedUrl: URL?
     
@@ -52,7 +58,32 @@ final class GalleryImageItemViewController: GalleryItemViewController {
     }
     
     override var supportedActions: Action {
-        [.forward, .saveToLibrary]
+        if let item = item {
+            let isTranscriptPreviewPresented = UIApplication
+                .currentConversationViewController()?
+                .children
+                .contains(where: { $0 is TranscriptPreviewViewController }) ?? false
+            if isTranscriptPreviewPresented {
+                if item.url == nil {
+                    return [.forward]
+                } else {
+                    return [.forward, .saveToLibrary, .share]
+                }
+            } else {
+                if item.url == nil {
+                    return [.forward, .showInChat]
+                } else {
+                    let conversation = UIApplication.homeNavigationController?.viewControllers.compactMap({ $0 as? ConversationViewController }).last
+                    if let id = conversation?.conversationId, id == item.conversationId {
+                        return [.forward, .saveToLibrary, .share, .showInChat]
+                    } else {
+                        return [.forward, .saveToLibrary, .share]
+                    }
+                }
+            }
+        } else {
+            return []
+        }
     }
     
     override var canPerformInteractiveDismissal: Bool {
@@ -143,6 +174,7 @@ final class GalleryImageItemViewController: GalleryItemViewController {
                 }
                 self.detectQRCode(for: item, image: image)
                 self.keepDisplayWakingUpIfNeeded(image: image)
+                self.imageView.startImageLiveTextAnalysisIfNeeded()
             }
         }
         
@@ -182,6 +214,14 @@ final class GalleryImageItemViewController: GalleryItemViewController {
                 }
             }
         })
+    }
+    
+    override func share() {
+        guard let url = item?.url else {
+            return
+        }
+        let controller = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        present(controller, animated: true, completion: nil)
     }
     
     override func layout(mediaStatus: MediaStatus) {

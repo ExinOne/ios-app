@@ -75,6 +75,8 @@ final class UserProfileViewController: ProfileViewController {
     
     override func viewDidLoad() {
         size = isMe ? .unavailable : .compressed
+        closeButton.isHidden = parent != nil
+        titleViewHeightConstraint.constant = isMe ? 48 : 70
         super.viewDidLoad()
         reloadData()
         if user.isCreatedByMessenger {
@@ -88,6 +90,7 @@ final class UserProfileViewController: ProfileViewController {
             view.addGestureRecognizer(recognizer)
             NotificationCenter.default.addObserver(self, selector: #selector(willHideMenu(_:)), name: UIMenuController.willHideMenuNotification, object: nil)
             NotificationCenter.default.addObserver(self, selector: #selector(accountDidChange(_:)), name: LoginManager.accountDidChangeNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(favoriteAppsDidChange), name: FavoriteAppsDAO.favoriteAppsDidChangeNotification, object: nil)
         } else {
             resizeRecognizer.isEnabled = false
         }
@@ -130,7 +133,6 @@ final class UserProfileViewController: ProfileViewController {
     
         let backgroundView = UIVisualEffectView(effect: nil)
         backgroundView.frame = window.bounds
-        backgroundView.isUserInteractionEnabled = false
         window.addSubview(backgroundView)
         avatarPreviewBackgroundView = backgroundView
              
@@ -155,8 +157,14 @@ final class UserProfileViewController: ProfileViewController {
         imageView.alpha = 0
         backgroundView.contentView.addSubview(imageView)
         avatarPreviewImageView = imageView
-        view.isUserInteractionEnabled = false
-        hideContentConstraint.priority = .defaultHigh
+        if parent != nil {
+            let recognizer = UITapGestureRecognizer(target: self, action: #selector(dismissAvatarAction))
+            backgroundView.addGestureRecognizer(recognizer)
+        } else {
+            backgroundView.isUserInteractionEnabled = false
+            view.isUserInteractionEnabled = false
+            hideContentConstraint.priority = .defaultHigh
+        }
         UIView.animate(withDuration: 0.5, delay: 0, options: .overdampedCurve) {
             self.view.layoutIfNeeded()
             let width = window.bounds.width - 28 * 2
@@ -204,7 +212,7 @@ final class UserProfileViewController: ProfileViewController {
     }
     
     @objc func accountDidChange(_ notification: Notification) {
-        guard let account = LoginManager.shared.account, account.user_id == user.userId else {
+        guard let account = LoginManager.shared.account, account.userID == user.userId else {
             return
         }
         self.user = UserItem.createUser(from: account)
@@ -218,8 +226,8 @@ final class UserProfileViewController: ProfileViewController {
         becomeFirstResponder()
         subtitleLabel.highlightIdentityNumber = true
         if let highlightedRect = subtitleLabel.highlightedRect {
-            UIMenuController.shared.showMenu(from: subtitleLabel, rect: highlightedRect)
             AppDelegate.current.mainWindow.addDismissMenuResponder()
+            UIMenuController.shared.showMenu(from: subtitleLabel, rect: highlightedRect)
         }
     }
     
@@ -278,7 +286,11 @@ extension UserProfileViewController {
     
     @objc func editFavoriteApps() {
         let vc = EditSharedAppsViewController.instance()
-        dismissAndPush(vc)
+        if parent != nil {
+            navigationController?.pushViewController(vc, animated: true)
+        } else {
+            dismissAndPush(vc)
+        }
     }
     
     @objc func addContact() {
@@ -286,7 +298,7 @@ extension UserProfileViewController {
         UserAPI.addFriend(userId: user.userId, fullName: user.fullName) { [weak self] (result) in
             switch result {
             case let .success(response):
-                self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: true)
+                self?.handle(userResponse: response)
             case let .failure(error):
                 showAutoHiddenHud(style: .error, text: error.localizedDescription)
             }
@@ -306,26 +318,6 @@ extension UserProfileViewController {
         dismiss(animated: true) {
             UIApplication.homeNavigationController?.pushViewController(withBackRoot: vc)
         }
-    }
-    
-    @objc func showMyQrCode() {
-        guard let account = LoginManager.shared.account else {
-            return
-        }
-        let window = QrcodeWindow.instance()
-        window.render(title: R.string.localizable.my_qr_code(),
-                      description: R.string.localizable.scan_code_add_me(),
-                      account: account)
-        window.presentPopupControllerAnimated()
-    }
-    
-    @objc func showMyMoneyReceivingCode() {
-        guard let account = LoginManager.shared.account else {
-            return
-        }
-        let window = QrcodeWindow.instance()
-        window.renderMoneyReceivingCode(account: account)
-        window.presentPopupControllerAnimated()
     }
     
     @objc func changeAvatarWithCamera() {
@@ -355,16 +347,27 @@ extension UserProfileViewController {
     
     @objc func editMyBiography() {
         let vc = BiographyViewController.instance(user: user)
-        dismissAndPush(vc)
+        if parent != nil {
+            navigationController?.pushViewController(vc, animated: true)
+        } else {
+            dismissAndPush(vc)
+        }
     }
     
     @objc func changeNumber() {
-        if LoginManager.shared.account?.has_pin ?? false {
+        switch TIP.status {
+        case .ready, .needsMigrate:
             let vc = VerifyPinNavigationController(rootViewController: ChangeNumberVerifyPinViewController())
-            dismissAndPresent(vc)
-        } else {
-            let vc = WalletPasswordViewController.instance(dismissTarget: .changePhone)
-            dismissAndPush(vc)
+            if parent != nil {
+                present(vc, animated: true)
+            } else {
+                dismissAndPresent(vc)
+            }
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: .changePhone)
+            present(tip, animated: true)
+        case .unknown:
+            break
         }
     }
     
@@ -394,13 +397,16 @@ extension UserProfileViewController {
     }
     
     @objc func transfer() {
-        let viewController: UIViewController
-        if LoginManager.shared.account?.has_pin ?? false {
-            viewController = TransferOutViewController.instance(asset: nil, type: .contact(user))
-        } else {
-            viewController = WalletPasswordViewController.instance(dismissTarget: .transfer(user: user))
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            let viewController = TransferOutViewController.instance(asset: nil, type: .contact(user))
+            dismissAndPush(viewController)
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: .transfer(user: user))
+            present(tip, animated: true)
+        case .unknown:
+            break
         }
-        dismissAndPush(viewController)
     }
     
     @objc func editAlias() {
@@ -411,7 +417,7 @@ extension UserProfileViewController {
             UserAPI.remarkFriend(userId: userId, full_name: name) { [weak self] (result) in
                 switch result {
                 case let .success(response):
-                    self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: true)
+                    self?.handle(userResponse: response)
                     hud.set(style: .notification, text: R.string.localizable.changed())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
@@ -489,7 +495,7 @@ extension UserProfileViewController {
             UserAPI.removeFriend(userId: userId, completion: { [weak self] (result) in
                 switch result {
                 case let .success(response):
-                    self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: true)
+                    self?.handle(userResponse: response)
                     hud.set(style: .notification, text: R.string.localizable.deleted())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
@@ -511,7 +517,7 @@ extension UserProfileViewController {
             UserAPI.blockUser(userId: userId) { [weak self] (result) in
                 switch result {
                 case let .success(response):
-                    self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: false)
+                    self?.handle(userResponse: response)
                     hud.set(style: .notification, text: R.string.localizable.blocked())
                 case let .failure(error):
                     hud.set(style: .error, text: error.localizedDescription)
@@ -530,7 +536,7 @@ extension UserProfileViewController {
         UserAPI.unblockUser(userId: user.userId) { [weak self] (result) in
             switch result {
             case let .success(response):
-                self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: false)
+                self?.handle(userResponse: response)
                 hud.set(style: .notification, text: R.string.localizable.changed())
             case let .failure(error):
                 hud.set(style: .error, text: error.localizedDescription)
@@ -550,7 +556,7 @@ extension UserProfileViewController {
             DispatchQueue.global().async {
                 switch UserAPI.reportUser(userId: userId) {
                 case let .success(user):
-                    UserDAO.shared.updateUsers(users: [user], sendNotificationAfterFinished: false)
+                    UserDAO.shared.updateUsers(users: [user])
                     DispatchQueue.main.async {
                         hud.set(style: .notification, text: R.string.localizable.user_is_reported())
                         hud.scheduleAutoHidden()
@@ -594,6 +600,25 @@ extension UserProfileViewController {
                 }
             }
         }
+    }
+    
+    @objc private func dismissAvatarAction() {
+        guard let imageView = avatarPreviewImageView, let backgroundView = avatarPreviewBackgroundView else {
+            return
+        }
+        UIView.animate(withDuration: 0.3) {
+            imageView.frame.origin.y = AppDelegate.current.mainWindow.bounds.height
+            backgroundView.effect = nil
+            for view in backgroundView.contentView.subviews {
+                view.alpha = 0
+            }
+        } completion: { _ in
+            backgroundView.removeFromSuperview()
+        }
+    }
+    
+    @objc private func favoriteAppsDidChange() {
+        reloadFavoriteApps(userId: user.userId, fromRemote: false)
     }
     
 }
@@ -714,14 +739,6 @@ extension UserProfileViewController {
         
         if isMe {
             let groups = [
-                [ProfileMenuItem(title: R.string.localizable.my_qr_code(),
-                                 subtitle: nil,
-                                 style: [],
-                                 action: #selector(showMyQrCode)),
-                 ProfileMenuItem(title: R.string.localizable.receive_money(),
-                                 subtitle: nil,
-                                 style: [],
-                                 action: #selector(showMyMoneyReceivingCode))],
                 [ProfileMenuItem(title: R.string.localizable.edit_name(),
                                  subtitle: nil,
                                  style: [],
@@ -779,6 +796,13 @@ extension UserProfileViewController {
                                 action: #selector(searchConversation))
             ]
             groups.append(sharedMediaAndSearchGroup)
+            let chatBackgroundGroup = [
+                ProfileMenuItem(title: R.string.localizable.chat_background(),
+                                subtitle: nil,
+                                style: [],
+                                action: #selector(changeChatBackground))
+            ]
+            groups.append(chatBackgroundGroup)
             
             let muteAndTransactionGroup: [ProfileMenuItem] = {
                 var group: [ProfileMenuItem]
@@ -907,7 +931,7 @@ extension UserProfileViewController {
                 guard case let .success(response) = result else {
                     return
                 }
-                self?.handle(userResponse: response, postContactDidChangeNotificationOnSuccess: false)
+                self?.handle(userResponse: response)
             }
         }
     }
@@ -946,7 +970,7 @@ extension UserProfileViewController {
         }
     }
     
-    private func handle(userResponse: UserResponse, postContactDidChangeNotificationOnSuccess: Bool) {
+    private func handle(userResponse: UserResponse) {
         user = UserItem.createUser(from: userResponse)
         if let animator = sizeAnimator {
             animator.addCompletion { _ in
@@ -955,7 +979,7 @@ extension UserProfileViewController {
         } else {
             reloadData()
         }
-        UserDAO.shared.updateUsers(users: [userResponse], notifyContact: postContactDidChangeNotificationOnSuccess)
+        UserDAO.shared.updateUsers(users: [userResponse])
     }
     
     private func updateDeveloper() {
@@ -968,7 +992,7 @@ extension UserProfileViewController {
             if developer == nil {
                 switch UserAPI.showUser(userId: creatorId) {
                 case let .success(user):
-                    UserDAO.shared.updateUsers(users: [user], sendNotificationAfterFinished: false)
+                    UserDAO.shared.updateUsers(users: [user])
                     developer = UserItem.createUser(from: user)
                 case let .failure(error):
                     showAutoHiddenHud(style: .error, text: error.localizedDescription)

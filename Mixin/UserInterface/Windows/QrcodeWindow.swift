@@ -1,5 +1,4 @@
 import UIKit
-import Photos
 import MixinServices
 
 class QrcodeWindow: BottomSheetView {
@@ -10,7 +9,6 @@ class QrcodeWindow: BottomSheetView {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var descriptionLabel: UILabel!
     @IBOutlet weak var receiveMoneyImageView: UIImageView!
-    
     @IBOutlet weak var qrcodeView: UIView!
     
     var isShowingMyQrCode = false
@@ -32,7 +30,7 @@ class QrcodeWindow: BottomSheetView {
     func render(title: String, description: String, account: Account) {
         render(title: R.string.localizable.my_qr_code(),
                description: R.string.localizable.scan_code_add_me(),
-               qrcode: account.code_url,
+               qrcode: account.codeURL,
                qrcodeForegroundColor: .systemTint)
         avatarImageView.isHidden = false
         assetIconView.isHidden = true
@@ -44,7 +42,7 @@ class QrcodeWindow: BottomSheetView {
     func renderMoneyReceivingCode(account: Account) {
         render(title: R.string.localizable.receive_money(),
                description: R.string.localizable.transfer_qrcode_prompt(),
-               qrcode: "mixin://transfer/\(account.user_id)",
+               qrcode: "mixin://transfer/\(account.userID)",
                qrcodeForegroundColor: .black)
         avatarImageView.isHidden = false
         assetIconView.isHidden = true
@@ -72,37 +70,19 @@ class QrcodeWindow: BottomSheetView {
     @IBAction func dismissAction(_ sender: Any) {
         dismissView()
     }
-    
-    @IBAction func saveAction(_ sender: Any) {
-        PHPhotoLibrary.checkAuthorization { [weak self](authorized) in
-            guard let weakSelf = self else {
-                return
-            }
-            if authorized {
-                weakSelf.performSavingToLibrary()
-            } else {
-                weakSelf.dismissPopupControllerAnimated()
-            }
-        }
+        
+    @IBAction func scanAction(_ sender: Any) {
+        dismissPopupController(animated: false)
+        UIApplication.homeViewController?.showCamera(asQrCodeScanner: true)
     }
     
-    private func performSavingToLibrary() {
+    @IBAction func shareAction(_ sender: Any) {
         let renderer = UIGraphicsImageRenderer(bounds: qrcodeView.bounds)
         let image = renderer.image { (context) in
             qrcodeView.layer.render(in: context.cgContext)
         }
-        PHPhotoLibrary.shared().performChanges({
-            PHAssetChangeRequest.creationRequestForAsset(from: image)
-        }, completionHandler: { [weak self](success, error) in
-            DispatchQueue.main.async {
-                self?.dismissPopupControllerAnimated()
-                if success {
-                    showAutoHiddenHud(style: .notification, text: R.string.localizable.saved())
-                } else {
-                    showAutoHiddenHud(style: .notification, text: R.string.localizable.operation_failed())
-                }
-            }
-        })
+        let controller = UIActivityViewController(activityItems: [image], applicationActivities: nil)
+        AppDelegate.current.mainWindow.rootViewController?.present(controller, animated: true)
     }
     
     class func instance() -> QrcodeWindow {

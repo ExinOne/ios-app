@@ -33,9 +33,6 @@ open class Database {
             let message: String
         }
         GRDB.Database.logError = { (code, message) in
-            guard code.primaryResultCode != .SQLITE_NOTICE else {
-                return
-            }
             if code.primaryResultCode == .SQLITE_ERROR {
                 if message.hasPrefix("no such table: grdb_migrations") {
                     return
@@ -71,7 +68,7 @@ open class Database {
         do {
             return try pool.read(reader)
         } catch {
-            markDatabaseNeedsRebuildIfNeeded(error: error)
+            handleDatabaseError(error)
             throw error
         }
     }
@@ -82,7 +79,7 @@ open class Database {
             try pool.write(updates)
             return true
         } catch {
-            markDatabaseNeedsRebuildIfNeeded(error: error)
+            handleDatabaseError(error)
             return false
         }
     }
@@ -91,7 +88,7 @@ open class Database {
         do {
             return try pool.write(updates)
         } catch {
-            markDatabaseNeedsRebuildIfNeeded(error: error)
+            handleDatabaseError(error)
             throw error
         }
     }
@@ -130,8 +127,13 @@ open class Database {
         }
     }
     
-    private func markDatabaseNeedsRebuildIfNeeded(error: Error) {
+    private func handleDatabaseError(_ error: Error) {
+        reporter.report(error: error)
+        Logger.database.error(category: "Database", message: "\(error)")
         guard let error = error as? GRDB.DatabaseError else {
+            return
+        }
+        guard error.resultCode != .SQLITE_INTERRUPT else {
             return
         }
         guard let message = error.message, message.hasPrefix("no such table:"), !message.hasPrefix("no such table: grdb_migrations") else {
@@ -341,7 +343,7 @@ extension Database {
         write { (db) in
             try record.save(db)
             if let completion = completion {
-                db.afterNextTransactionCommit(completion)
+                db.afterNextTransaction(onCommit: completion)
             }
         }
     }
@@ -357,7 +359,7 @@ extension Database {
         return write { (db) -> Void in
             try records.save(db)
             if let completion = completion {
-                db.afterNextTransactionCommit(completion)
+                db.afterNextTransaction(onCommit: completion)
             }
         }
     }
@@ -373,7 +375,7 @@ extension Database {
         write { (db) in
             try record.filter(condition).updateAll(db, assignments)
             if let completion = completion {
-                db.afterNextTransactionCommit(completion)
+                db.afterNextTransaction(onCommit: completion)
             }
         }
     }
@@ -394,12 +396,12 @@ extension Database {
             try writeAndReturnError { (db) -> Void in
                 numberOfChanges = try record.filter(condition).deleteAll(db)
                 if let completion = completion {
-                    db.afterNextTransactionCommit(completion)
+                    db.afterNextTransaction(onCommit: completion)
                 }
             }
             return numberOfChanges
         } catch {
-            markDatabaseNeedsRebuildIfNeeded(error: error)
+            handleDatabaseError(error)
             return 0
         }
     }

@@ -16,9 +16,6 @@ class KeyboardBasedLayoutViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if !viewHasAppeared {
-            AppDelegate.current.mainWindow.endEditing(true)
-        }
         super.viewWillAppear(animated)
         viewIsDisappearing = false
     }
@@ -56,12 +53,20 @@ class KeyboardBasedLayoutViewController: UIViewController {
     }
     
     private func askForLayout(for keyboardFrame: CGRect) {
+        UIView.performWithoutAnimation(view.layoutIfNeeded)
         let frame = view.convert(keyboardFrame, from: UIScreen.main.coordinateSpace)
+        let sanitizedFrame: CGRect
+        if frame.origin.x > 0 {
+            sanitizedFrame = frame
+        } else {
+            // Fix layout on iPhone 13 Pro with iOS 15.7.1
+            sanitizedFrame = CGRect(x: 0, y: view.bounds.height - frame.height, width: frame.width, height: frame.height)
+        }
         if viewHasAppeared {
-            layout(for: frame)
+            layout(for: sanitizedFrame)
         } else {
             UIView.performWithoutAnimation {
-                layout(for: frame)
+                layout(for: sanitizedFrame)
             }
         }
     }

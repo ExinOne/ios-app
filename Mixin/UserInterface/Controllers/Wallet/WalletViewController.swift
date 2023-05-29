@@ -11,23 +11,22 @@ class WalletViewController: UIViewController, MixinNavigationAnimating {
     
     private var searchCenterYConstraint: NSLayoutConstraint?
     private var searchViewController: WalletSearchViewController?
-    
+    private var lastSelectedAction: TransferActionView.Action?
+
     private var isSearchViewControllerPreloaded = false
     private var assets = [AssetItem]()
+    private var sendableAssets = [AssetItem]()
     
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
     
     class func presentWallet() {
-        guard let account = LoginManager.shared.account else {
-            return
-        }
         guard let navigationController = UIApplication.homeNavigationController else {
             return
         }
-
-        if account.has_pin {
+        switch TIP.status {
+        case .ready, .needsMigrate:
             let shouldValidatePin: Bool
             if let date = AppGroupUserDefaults.Wallet.lastPinVerifiedDate {
                 shouldValidatePin = -date.timeIntervalSinceNow > AppGroupUserDefaults.Wallet.periodicPinVerificationInterval
@@ -45,13 +44,17 @@ class WalletViewController: UIViewController, MixinNavigationAnimating {
             } else {
                 navigationController.pushViewController(withBackRoot: wallet)
             }
-        } else {
-            navigationController.pushViewController(withBackRoot: WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: .wallet))
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: .wallet)
+            navigationController.present(tip, animated: true)
+        case .unknown:
+            break
         }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableHeaderView.transferActionView.delegate = self
         updateTableViewContentInset()
         tableView.register(R.nib.assetCell)
         tableView.tableFooterView = UIView()
@@ -60,10 +63,11 @@ class WalletViewController: UIViewController, MixinNavigationAnimating {
         tableView.reloadData()
         updateTableHeaderVisualEffect()
         NotificationCenter.default.addObserver(self, selector: #selector(fetchAssets), name: AssetDAO.assetsDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(fetchAssets), name: ChainDAO.chainsDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(fetchAssets), name: AppGroupUserDefaults.Wallet.assetVisibilityDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateTableHeaderVisualEffect), name: UIApplication.significantTimeChangeNotification, object: nil)
         fetchAssets()
-        ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob())
+        ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob(request: .allAssets))
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -162,6 +166,7 @@ extension WalletViewController: UITableViewDataSource {
 extension WalletViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
         let vc = AssetViewController.instance(asset: assets[indexPath.row])
         navigationController?.pushViewController(vc, animated: true)
     }
@@ -172,6 +177,56 @@ extension WalletViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         true
+    }
+    
+}
+
+extension WalletViewController: TransferActionViewDelegate {
+    
+    func transferActionView(_ view: TransferActionView, didSelect action: TransferActionView.Action) {
+        lastSelectedAction = action
+        let controller = TransferSearchViewController()
+        controller.delegate = self
+        switch action {
+        case .send:
+            controller.showEmptyHintIfNeeded = true
+            controller.searchResultsFromServer = false
+            controller.assets = assets.filter { $0.balance != "0" }
+            controller.sendableAssets = sendableAssets
+        case .receive:
+            controller.showEmptyHintIfNeeded = false
+            controller.searchResultsFromServer = true
+            controller.assets = assets
+        }
+        present(controller, animated: true, completion: nil)
+    }
+    
+}
+
+extension WalletViewController: TransferSearchViewControllerDelegate {
+    
+    func transferSearchViewController(_ viewController: TransferSearchViewController, didSelectAsset asset: AssetItem) {
+        guard let action = lastSelectedAction else {
+            return
+        }
+        let controller: UIViewController
+        switch action {
+        case .send:
+            controller = AssetViewController.instance(asset: asset, performSendOnAppear: true)
+        case .receive:
+            if asset.isDepositSupported {
+                controller = DepositViewController.instance(asset: asset)
+            } else {
+                controller = DepositNotSupportedViewController.instance(asset: asset)
+            }
+        }
+        navigationController?.pushViewController(controller, animated: true)
+    }
+    
+    func transferSearchViewControllerDidSelectDeposit(_ viewController: TransferSearchViewController) {
+        lastSelectedAction = .receive
+        viewController.searchResultsFromServer = true
+        viewController.reloadAssets(assets)
     }
     
 }
@@ -206,18 +261,19 @@ extension WalletViewController {
     
     @objc private func fetchAssets() {
         DispatchQueue.global().async { [weak self] in
-            let hiddenAssets = AppGroupUserDefaults.Wallet.hiddenAssetIds
-            let assets = AssetDAO.shared.getAssets().filter({ (asset) -> Bool in
-                return hiddenAssets[asset.assetId] == nil
-            })
+            let allAssets = AssetDAO.shared.getAssets()
+            let hiddenAssetIds = AppGroupUserDefaults.Wallet.hiddenAssetIds
+            let assets = allAssets.filter { hiddenAssetIds[$0.assetId] == nil }
+            let sendableAssets = allAssets.filter { $0.balance != "0" }
             DispatchQueue.main.async {
-                guard let weakSelf = self else {
+                guard let self = self else {
                     return
                 }
-                weakSelf.assets = assets
-                weakSelf.tableHeaderView.render(assets: assets)
-                weakSelf.tableHeaderView.sizeToFit()
-                weakSelf.tableView.reloadData()
+                self.assets = assets
+                self.sendableAssets = sendableAssets
+                self.tableHeaderView.render(assets: assets)
+                self.tableHeaderView.sizeToFit()
+                self.tableView.reloadData()
             }
         }
     }

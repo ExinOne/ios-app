@@ -12,18 +12,24 @@ public final class AssetDAO: UserDatabaseDAO {
     public static let assetsDidChangeNotification = NSNotification.Name("one.mixin.services.AssetDAO.assetsDidChange")
     
     private static let sqlQueryTable = """
-    SELECT a.asset_id, a.type, a.symbol, a.name, a.icon_url, a.balance, a.destination, a.tag,
-        a.price_btc, a.price_usd, a.change_usd, a.chain_id, a.confirmations, a.asset_key, a.reserve,
-        chain.icon_url as chain_icon_url, chain.name as chain_name, chain.symbol as chain_symbol
+    SELECT a.asset_id, a.type, a.symbol, a.name, a.icon_url, a.balance, a.destination, a.tag, a.price_btc,
+        a.price_usd, a.change_usd, a.chain_id, a.confirmations, a.asset_key, a.reserve, a.deposit_entries,
+        c.icon_url as chainIconUrl, c.name as chainName, c.symbol as chainSymbol, c.chain_id as chainId, c.threshold as chainThreshold
     FROM assets a
-    LEFT JOIN assets chain ON a.chain_id = chain.asset_id
+    LEFT JOIN chains c ON a.chain_id = c.chain_id
     """
-    private static let sqlOrder = "a.balance * a.price_usd DESC, a.price_usd DESC, cast(a.balance AS REAL) DESC, a.name DESC"
+    private static let sqlOrder = "a.balance * a.price_usd DESC, cast(a.balance AS REAL) DESC, cast(a.price_usd AS REAL) DESC, a.name ASC, a.rowid DESC"
     private static let sqlQuery = "\(sqlQueryTable) ORDER BY \(sqlOrder)"
     private static let sqlQueryAvailable = "\(sqlQueryTable) WHERE a.balance > 0 ORDER BY \(sqlOrder) LIMIT 1"
     private static let sqlQueryAvailableList = "\(sqlQueryTable) WHERE a.balance > 0 ORDER BY \(sqlOrder)"
     
     private static let sqlQueryById = "\(sqlQueryTable) WHERE a.asset_id = ?"
+    
+    public func getAssetIdByAssetKey(_ assetKey: String) -> String? {
+        db.select(column: Asset.column(of: .assetId),
+                  from: Asset.self,
+                  where: Asset.column(of: .assetKey).collating(.caseInsensitiveCompare) == assetKey)
+    }
     
     public func getAsset(assetId: String) -> AssetItem? {
         db.select(with: AssetDAO.sqlQueryById, arguments: [assetId])

@@ -22,7 +22,7 @@ class AddPeopleViewController: KeyboardBasedLayoutViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if let id = LoginManager.shared.account?.identity_number {
+        if let id = LoginManager.shared.account?.identityNumber {
             myIdLabel.text = R.string.localizable.my_mixin_id(id)
         }
         searchButton.isEnabled = false
@@ -73,7 +73,7 @@ class AddPeopleViewController: KeyboardBasedLayoutViewController {
     
     class func instance() -> UIViewController {
         let vc = R.storyboard.contact.add_people()!
-        return ContainerViewController.instance(viewController: vc, title: R.string.localizable.add_contact())
+        return ContainerViewController.instance(viewController: vc, title: R.string.localizable.search_contacts())
     }
     
     private func isLegalKeyword(_ keyword: String) -> Bool {

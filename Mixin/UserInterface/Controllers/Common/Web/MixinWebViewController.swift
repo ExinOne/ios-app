@@ -46,7 +46,8 @@ class MixinWebViewController: WebViewController {
         loadingFailureViewIfLoaded = view
         return view
     }()
-    
+    private lazy var clipSwitcher = UIApplication.homeContainerViewController?.clipSwitcher
+
     private weak var loadingFailureViewIfLoaded: UIView?
     
     private var isMessageHandlerAdded = true
@@ -188,6 +189,43 @@ class MixinWebViewController: WebViewController {
         isMessageHandlerAdded = false
     }
     
+    func minimizeWithAnimation(completion: (() -> Void)? = nil) {
+        guard
+            let switcher = clipSwitcher, !switcher.isMaximumLimitReached,
+            let controller = UIApplication.homeContainerViewController?.minimizedClipSwitcherViewController
+        else {
+            completion?()
+            return
+        }
+        isBeingDismissedAsChild = true
+        CATransaction.begin()
+        let fromPath = UIBezierPath(roundedRect: view.bounds, cornerRadius: contentViewCornerRadius)
+        let dx = controller.horizontalContentMargin / 2
+        let dy = controller.verticalContentMargin / 2
+        let toRect = controller.view.frame.insetBy(dx: dx, dy: dy)
+        let toPath = UIBezierPath(roundedRect: toRect, cornerRadius: toRect.size.height / 2)
+        let basicAniamtion = CABasicAnimation(keyPath: "path")
+        basicAniamtion.duration = 0.3
+        basicAniamtion.fromValue = fromPath.cgPath
+        basicAniamtion.toValue = toPath.cgPath
+        basicAniamtion.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = toPath.cgPath
+        view.layer.mask = maskLayer
+        CATransaction.setCompletionBlock {
+            self.willMove(toParent: nil)
+            self.view.layer.mask = nil
+            self.view.removeFromSuperview()
+            self.removeFromParent()
+            self.clipSwitcher?.appendClip(with: self)
+            completion?()
+            self.isBeingDismissedAsChild = false
+            self.popupDidDismissAsChild()
+        }
+        maskLayer.add(basicAniamtion, forKey: "pathAnimation")
+        CATransaction.commit()
+    }
+    
 }
 
 extension MixinWebViewController: WKNavigationDelegate {
@@ -197,22 +235,23 @@ extension MixinWebViewController: WKNavigationDelegate {
             decisionHandler(.cancel)
             return
         }
-        if isViewLoaded && parent != nil && (UrlWindow.checkUrl(url: url, webContext: context) || UrlWindow.checkPayUrl(url: url.absoluteString)) {
+        if isViewLoaded && parent != nil && (UrlWindow.checkUrl(url: url, webContext: context) || UrlWindow.checkPayment(string: url.absoluteString)) {
             decisionHandler(.cancel)
         } else if "file" == url.scheme {
             decisionHandler(.allow)
         } else if ["http", "https"].contains(url.scheme?.lowercased() ?? "") {
             decisionHandler(.allow)
-        } else if parent != nil && UIApplication.shared.canOpenURL(url) {
+        } else if parent != nil {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
             decisionHandler(.cancel)
         } else if parent == nil, let url = MixinURL(url: url), case .codes(let code) = url {
+            // Call `AuthorizeAPI.authorize` with an empty scope will cancel the auth request
+            // Cancel the request when webview is not visible, mostly because user has chosen to close it
             UserAPI.codes(codeId: code) { (result) in
                 switch result {
                 case let .success(code):
                     if let auth = code.authorization {
-                        let request = AuthorizationRequest(authorizationId: auth.authorizationId, scopes: [])
-                        AuthorizeAPI.authorize(authorization: request) { _ in }
+                        AuthorizeAPI.authorize(authorizationId: auth.authorizationId, scopes: [], pin: nil) { _ in }
                     }
                 case .failure:
                     break
@@ -327,19 +366,17 @@ extension MixinWebViewController: WebMoreMenuControllerDelegate {
                     shareUrlAction(currentUrl: url)
                 }
             case .float:
-                if let switcher = UIApplication.homeContainerViewController?.clipSwitcher {
-                    if switcher.clips.count < ClipSwitcher.maxNumber {
-                        dismissAsChild(animated: true) {
-                            switcher.appendClip(with: self)
-                        }
-                    } else {
+                if let switcher = clipSwitcher {
+                    if switcher.isMaximumLimitReached {
                         let text = R.string.localizable.floats_allows_up_to_count(ClipSwitcher.maxNumber)
                         showAutoHiddenHud(style: .error, text: text)
+                    } else {
+                        minimizeWithAnimation()
                     }
                 }
             case .cancelFloat:
                 if let clip = associatedClip,
-                   let switcher = UIApplication.homeContainerViewController?.clipSwitcher,
+                   let switcher = clipSwitcher,
                    let index = switcher.clips.firstIndex(of: clip) {
                     switcher.removeClip(at: index)
                 }

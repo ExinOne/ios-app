@@ -4,10 +4,10 @@ import SnapKit
 class ContinueButtonViewController: KeyboardBasedLayoutViewController {
     
     let continueButton = BusyButton()
+    let keyboardLayoutGuide = UILayoutGuide()
     
     var keyboardLayoutGuideHeightConstraint: NSLayoutConstraint!
     
-    private let keyboardLayoutGuide = UILayoutGuide()
     private let continueButtonLength: CGFloat = 44
     private let continueButtonMargin: CGFloat = 20
     
@@ -42,7 +42,6 @@ class ContinueButtonViewController: KeyboardBasedLayoutViewController {
     }
     
     override func layout(for keyboardFrame: CGRect) {
-        UIView.performWithoutAnimation(view.layoutIfNeeded)
         let height = view.frame.height - keyboardFrame.origin.y
         if height > keyboardLayoutGuideHeightConstraint.constant {
             keyboardLayoutGuideHeightConstraint.constant = height

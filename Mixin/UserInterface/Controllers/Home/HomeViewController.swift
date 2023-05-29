@@ -120,10 +120,10 @@ class HomeViewController: UIViewController {
             appActions.append(nil)
         }
         updateHomeApps()
-        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange(_:)), name: MixinServices.conversationDidChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange(_:)), name: MessageDAO.didInsertMessageNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange(_:)), name: MessageDAO.didRedecryptMessageNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange(_:)), name: UserDAO.userDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange), name: MixinServices.conversationDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange), name: MessageDAO.didInsertMessageNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(dataDidChange), name: MessageDAO.didRedecryptMessageNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(usersDidChange(_:)), name: UserDAO.usersDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reloadAccount), name: LoginManager.accountDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appDidChange(_:)), name: UserDAO.correspondingAppDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(circleConversationDidChange(_:)), name: CircleConversationDAO.circleConversationsDidChangeNotification, object: nil)
@@ -135,6 +135,7 @@ class HomeViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(circleNameDidChange), name: AppGroupUserDefaults.User.circleNameDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateHomeApps), name: AppGroupUserDefaults.User.homeAppIdsDidChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateDesktopButtonHidden), name: AppGroupUserDefaults.Account.extensionSessionDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateBulletinView), name: TIP.didUpdateNotification, object: nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             NotificationManager.shared.registerForRemoteNotificationsIfAuthorized()
             CallService.shared.registerForPushKitNotificationsIfAvailable()
@@ -147,6 +148,9 @@ class HomeViewController: UIViewController {
             }
             initializeFTSIfNeeded()
             refreshExternalSchemesIfNeeded()
+            if SpotlightManager.isAvailable {
+                SpotlightManager.shared.indexIfNeeded()
+            }
         }
         UIApplication.homeContainerViewController?.clipSwitcher.loadClipsFromPreviousSession()
     }
@@ -166,7 +170,7 @@ class HomeViewController: UIViewController {
         #endif
         if HomeViewController.showChangePhoneNumberTips {
             HomeViewController.showChangePhoneNumberTips = false
-            let alert = UIAlertController(title: R.string.localizable.change_emergency_contact(), message: nil, preferredStyle: .alert)
+            let alert = UIAlertController(title: R.string.localizable.setting_emergency_change_mobile(), message: nil, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: R.string.localizable.later(), style: .cancel, handler: nil))
             alert.addAction(UIAlertAction(title: R.string.localizable.change(), style: .default, handler: { (_) in
                 let vc = VerifyPinNavigationController(rootViewController: ChangeNumberVerifyPinViewController())
@@ -215,7 +219,7 @@ class HomeViewController: UIViewController {
     }
     
     @IBAction func contactsAction(_ sender: Any) {
-        navigationController?.pushViewController(ContactViewController.instance(), animated: true)
+        navigationController?.pushViewController(UserCenterViewController.instance(), animated: true)
     }
     
     @IBAction func guideAction(_ sender: Any) {
@@ -223,7 +227,7 @@ class HomeViewController: UIViewController {
             let editor = CircleEditorViewController.instance(name: name, circleId: circleId, isNewCreatedCircle: false)
             present(editor, animated: true, completion: nil)
         } else {
-            let vc = ContactViewController.instance()
+            let vc = ContactViewController.instance(showAddContactButton: false)
             navigationController?.pushViewController(vc, animated: true)
         }
     }
@@ -235,8 +239,11 @@ class HomeViewController: UIViewController {
         case .emergencyContact:
             let vc = EmergencyContactViewController.instance()
             navigationController?.pushViewController(vc, animated: true)
-//        case .initializePIN:
-//            WalletViewController.presentWallet()
+        case .initializePIN:
+            WalletViewController.presentWallet()
+        case .migrateToTIP:
+            let tip = TIPNavigationViewController(intent: .migrate, destination: nil)
+            present(tip, animated: true)
         case .none:
             break
         }
@@ -248,8 +255,10 @@ class HomeViewController: UIViewController {
             AppGroupUserDefaults.notificationBulletinDismissalDate = Date()
         case .emergencyContact:
             AppGroupUserDefaults.User.emergencyContactBulletinDismissalDate = Date()
-//        case .initializePIN:
-//            AppGroupUserDefaults.User.initializePINBulletinDismissalDate = Date()
+        case .initializePIN:
+            AppGroupUserDefaults.User.initializePINBulletinDismissalDate = Date()
+        case .migrateToTIP:
+            return
         case .none:
             break
         }
@@ -283,14 +292,14 @@ class HomeViewController: UIViewController {
         vc.presentAsChild(of: self)
     }
     
-    @objc func applicationDidBecomeActive(_ sender: Notification) {
+    @objc private func applicationDidBecomeActive(_ sender: Notification) {
         updateBulletinView()
         fetchConversations()
         initializeFTSIfNeeded()
         refreshExternalSchemesIfNeeded()
     }
     
-    @objc func dataDidChange(_ sender: Notification) {
+    @objc private func dataDidChange() {
         guard view?.isVisibleInScreen ?? false else {
             needRefresh = true
             return
@@ -298,7 +307,14 @@ class HomeViewController: UIViewController {
         fetchConversations()
     }
     
-    @objc func reloadAccount() {
+    @objc private func usersDidChange(_ sender: Notification) {
+        guard let users = sender.userInfo?[UserDAO.UserInfoKey.users] as? [UserResponse], users.count == 1 else {
+            return
+        }
+        dataDidChange()
+    }
+    
+    @objc private func reloadAccount() {
         guard let account = LoginManager.shared.account else {
             return
         }
@@ -308,13 +324,13 @@ class HomeViewController: UIViewController {
         }
         DispatchQueue.main.async {
             self.myAvatarImageView.setImage(with: account)
-            if self.bulletinContent == .emergencyContact && account.has_emergency_contact {
+            if self.bulletinContent == .emergencyContact && account.hasEmergencyContact {
                 self.bulletinContent = nil
             }
         }
     }
 
-    @objc func appDidChange(_ notification: Notification) {
+    @objc private func appDidChange(_ notification: Notification) {
         guard let app = notification.userInfo?[UserDAO.UserInfoKey.app] as? App else {
             return
         }
@@ -324,7 +340,7 @@ class HomeViewController: UIViewController {
         updateHomeApps()
     }
     
-    @objc func circleConversationDidChange(_ notification: Notification) {
+    @objc private func circleConversationDidChange(_ notification: Notification) {
         guard let circleId = notification.userInfo?[CircleConversationDAO.circleIdUserInfoKey] as? String else {
             return
         }
@@ -334,17 +350,17 @@ class HomeViewController: UIViewController {
         setNeedsRefresh()
     }
     
-    @objc func webSocketDidConnect(_ notification: Notification) {
+    @objc private func webSocketDidConnect(_ notification: Notification) {
         connectingView.stopAnimating()
         titleButton.setTitle(topLeftTitle, for: .normal)
     }
     
-    @objc func webSocketDidDisconnect(_ notification: Notification) {
+    @objc private func webSocketDidDisconnect(_ notification: Notification) {
         connectingView.startAnimating()
         titleButton.setTitle(R.string.localizable.in_connecting(), for: .normal)
     }
     
-    @objc func syncStatusChange(_ notification: Notification) {
+    @objc private func syncStatusChange(_ notification: Notification) {
         guard let progress = notification.userInfo?[ReceiveMessageService.UserInfoKey.progress] as? Int else {
             return
         }
@@ -364,7 +380,7 @@ class HomeViewController: UIViewController {
         }
     }
     
-    @objc func groupConversationParticipantDidChange(_ notification: Notification) {
+    @objc private func groupConversationParticipantDidChange(_ notification: Notification) {
         guard let conversationId = notification.userInfo?[ReceiveMessageService.UserInfoKey.conversationId] as? String else {
             return
         }
@@ -383,15 +399,15 @@ class HomeViewController: UIViewController {
         view.endEditing(true)
     }
     
-    @objc func circleNameDidChange() {
+    @objc private func circleNameDidChange() {
         titleButton.setTitle(topLeftTitle, for: .normal)
     }
     
-    @objc func homeAppAction(_ button: UIButton) {
+    @objc private func homeAppAction(_ button: UIButton) {
         appActions[button.tag]?()
     }
     
-    @objc func updateHomeApps() {
+    @objc private func updateHomeApps() {
         func action(for app: HomeApp) -> (() -> Void) {
             switch app {
             case .embedded(let app):
@@ -831,82 +847,79 @@ extension HomeViewController {
         }
     }
     
-    private func updateBulletinView() {
-        func isDate(_ date: Date?, fallsInto interval: TimeInterval) -> Bool {
-            if let date = date {
-                return -date.timeIntervalSinceNow < interval
-            } else {
-                return false
+    @objc private func updateBulletinView() {
+        Task {
+            func isDate(_ date: Date?, fallsInto interval: TimeInterval) -> Bool {
+                if let date = date {
+                    return -date.timeIntervalSinceNow < interval
+                } else {
+                    return false
+                }
             }
-        }
-        
-        let userJustDismissedNotificationBulletin = isDate(AppGroupUserDefaults.notificationBulletinDismissalDate, fallsInto: BulletinDetectInterval.notificationAuthorization)
-        let checkNotificationSettings = !userJustDismissedNotificationBulletin
-        
-        let hasPIN = LoginManager.shared.account?.has_pin ?? false
-        let userJustDismissedInitializePINBulletin = isDate(AppGroupUserDefaults.User.initializePINBulletinDismissalDate, fallsInto: BulletinDetectInterval.initializePIN)
-        let checkIsPinInitialized = !hasPIN && !userJustDismissedInitializePINBulletin
-        
-        let checkWalletBalanceForEmergencyContactBulletin: Bool
-        let userJustDismissedEmergencyContactBulletin = isDate(AppGroupUserDefaults.User.emergencyContactBulletinDismissalDate, fallsInto: BulletinDetectInterval.emergencyContact)
-        let justConfirmedUserHasInsufficientBalanceForEmergencyContactBulletin = isDate(insufficientBalanceForEmergencyContactBulletinConfirmedDate, fallsInto: insufficientBalanceForEmergencyContactBulletinReconfirmInterval)
-        if bulletinContent == .notification
-            || userJustDismissedEmergencyContactBulletin
-            || justConfirmedUserHasInsufficientBalanceForEmergencyContactBulletin
-            || (LoginManager.shared.account?.has_emergency_contact ?? false)
-        {
-            checkWalletBalanceForEmergencyContactBulletin = false
-        } else {
-            checkWalletBalanceForEmergencyContactBulletin = true
-        }
-        
-        guard checkNotificationSettings || checkIsPinInitialized || checkWalletBalanceForEmergencyContactBulletin else {
-            return
-        }
-        
-        func show(content: BulletinContent?) {
-            bulletinContentView.content = content
-            bulletinContent = content
-            if view.window != nil {
-                view.layoutIfNeeded()
+            
+            var content: BulletinContent?
+            
+            let userJustDismissedNotificationBulletin = isDate(AppGroupUserDefaults.notificationBulletinDismissalDate, fallsInto: BulletinDetectInterval.notificationAuthorization)
+            if !userJustDismissedNotificationBulletin, await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .denied {
+                content = .notification
             }
-        }
-        
-        func showEmergencyContactBulletinIfNeeded() {
-            DispatchQueue.global().async {
-                let balance = AssetDAO.shared.getTotalUSDBalance()
-                DispatchQueue.main.async {
-                    if balance > self.emergencyContactAlertingUSDBalance {
-                        show(content: .emergencyContact)
+            
+            if content == nil {
+                switch TIP.status {
+                case .needsInitialize:
+                    let userJustDismissedInitializePINBulletin = isDate(AppGroupUserDefaults.User.initializePINBulletinDismissalDate, fallsInto: BulletinDetectInterval.initializePIN)
+                    if !userJustDismissedInitializePINBulletin {
+                        content = .initializePIN
+                    }
+                case .needsMigrate:
+                    break
+                case .ready, .unknown:
+                    break
+                }
+            }
+
+            if content == nil {
+                let checkWalletBalance = await MainActor.run {
+                    if LoginManager.shared.account?.hasEmergencyContact ?? false {
+                        // User has emergency contact set
+                        return false
+                    } else if isDate(AppGroupUserDefaults.User.emergencyContactBulletinDismissalDate, fallsInto: BulletinDetectInterval.emergencyContact) {
+                        // User just dismissed the bulletin of emergency contact
+                        return false
+                    } else if isDate(insufficientBalanceForEmergencyContactBulletinConfirmedDate, fallsInto: insufficientBalanceForEmergencyContactBulletinReconfirmInterval) {
+                        // Just confirmed user doesn't have enough money
+                        return false
                     } else {
-                        self.insufficientBalanceForEmergencyContactBulletinConfirmedDate = Date()
+                        return true
+                    }
+                }
+                if checkWalletBalance {
+                    let isRichEnough: Bool = await withCheckedContinuation { continuation in
+                        DispatchQueue.global().async {
+                            let balance = AssetDAO.shared.getTotalUSDBalance()
+                            DispatchQueue.main.async {
+                                if balance > self.emergencyContactAlertingUSDBalance {
+                                    continuation.resume(returning: true)
+                                } else {
+                                    self.insufficientBalanceForEmergencyContactBulletinConfirmedDate = Date()
+                                    continuation.resume(returning: false)
+                                }
+                            }
+                        }
+                    }
+                    if isRichEnough {
+                        content = .emergencyContact
                     }
                 }
             }
-        }
-        
-        if checkNotificationSettings {
-            UNUserNotificationCenter.current().getNotificationSettings { (settings) in
-                DispatchQueue.main.async {
-                    if settings.authorizationStatus == .denied {
-                        show(content: .notification)
-                    }
-//                    else if checkIsPinInitialized {
-//                        show(content: .initializePIN)
-//                    }
-                    else if checkWalletBalanceForEmergencyContactBulletin {
-                        showEmergencyContactBulletinIfNeeded()
-                    } else {
-                        show(content: nil)
-                    }
+            
+            await MainActor.run {
+                bulletinContentView.content = content
+                bulletinContent = content
+                if view.window != nil {
+                    view.layoutIfNeeded()
                 }
             }
-        }
-//        else if checkIsPinInitialized {
-//            show(content: .initializePIN)
-//        }
-        else if checkWalletBalanceForEmergencyContactBulletin {
-            showEmergencyContactBulletinIfNeeded()
         }
     }
     

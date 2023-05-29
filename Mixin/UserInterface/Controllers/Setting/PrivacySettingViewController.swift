@@ -29,14 +29,14 @@ final class PrivacySettingViewController: SettingsTableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        if biometryType != .none {
+        if BiometryType.lockScreen != .none {
             dataSource.insertSection(screenLockSection, at: 2, animation: .none)
         }
         dataSource.tableViewDelegate = self
         dataSource.tableView = tableView
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(updateBlockedUserCell),
-                                               name: UserDAO.userDidChangeNotification,
+                                               name: UserDAO.usersDidChangeNotification,
                                                object: nil)
         updateBlockedUserCell()
         NotificationCenter.default.addObserver(self,
@@ -105,11 +105,7 @@ extension PrivacySettingViewController: UITableViewDelegate {
                 vc = PhoneContactsSettingViewController.instance()
             }
         default:
-            if LoginManager.shared.account?.has_pin ?? false {
-                vc = ScreenLockSettingViewController.instance()
-            } else {
-                vc = WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil)
-            }
+            vc = ScreenLockSettingViewController.instance()
         }
         navigationController?.pushViewController(vc, animated: true)
     }

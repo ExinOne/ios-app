@@ -29,6 +29,7 @@ class MinimizedClipSwitcherViewController: HomeOverlayViewController {
             button.addTarget(switcher, action: action, for: .touchUpInside)
         }
         panningController.delegate = self
+        view.alpha = 0
     }
     
     override func updateViewSize() {
@@ -54,11 +55,7 @@ class MinimizedClipSwitcherViewController: HomeOverlayViewController {
         }
         var animations: [() -> Void] = []
         let contentViewFrameBefore = contentView.frame
-        let hasNoIconBefore = visibleIconViews.count == 0
         if visibleIconViews.count < maxNumberOfVisibleClips {
-            if hasNoIconBefore, let superview = view.superview {
-                view.frame.origin.x = superview.bounds.width
-            }
             let iconView = insertIconView(with: clip)
             iconView.center = iconCenter(for: visibleIconViews.count - 1, in: visibleIconViews.count)
             visibleIconViews.append(iconView)
@@ -122,11 +119,12 @@ class MinimizedClipSwitcherViewController: HomeOverlayViewController {
         
         if visibleIconViews.count == 1 {
             let layout = {
-                if let superview = self.view.superview {
-                    self.view.frame.origin.x = superview.bounds.width
-                }
+                self.view.alpha = 0
             }
             let completion = {
+                guard index < self.visibleIconViews.count else {
+                    return
+                }
                 self.visibleIconViews[index].removeFromSuperview()
                 self.visibleIconViews.remove(at: index)
             }
@@ -239,12 +237,12 @@ class MinimizedClipSwitcherViewController: HomeOverlayViewController {
         }
         
         updateAllIconsCenter()
+        updateViewSize()
+        panningController.stickViewToParentEdge(horizontalVelocity: 0, animated: false)
         if visibleIconViews.count + additionalPlaceholders.count == 0 {
             view.alpha = 0
         } else {
             view.alpha = 1
-            updateViewSize()
-            panningController.stickViewToParentEdge(horizontalVelocity: 0, animated: false)
         }
     }
     

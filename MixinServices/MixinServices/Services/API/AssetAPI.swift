@@ -42,6 +42,11 @@ public final class AssetAPI: MixinAPI {
         static let top = "/network/assets/top?kind=NORMAL"
         
         static let fiats = "/fiats"
+        
+        static let chains = "/network/chains"
+        static func chain(chainId: String) -> String {
+            "/network/chains/" + chainId
+        }
     }
     
     public static func assets(completion: @escaping (MixinAPI.Result<[Asset]>) -> Void) {
@@ -59,6 +64,11 @@ public final class AssetAPI: MixinAPI {
     public static func asset(assetId: String) -> MixinAPI.Result<Asset> {
         return request(method: .get, path: Path.assets(assetId: assetId))
     }
+    
+    public static func assetPrecision(assetId: String) -> MixinAPI.Result<AssetPrecisionResponse> {
+        return request(method: .get, path: Path.assets(assetId: assetId))
+    }
+    
     public static func snapshots(limit: Int, offset: String? = nil, assetId: String? = nil, opponentId: String? = nil, destination: String? = nil, tag: String? = nil) -> MixinAPI.Result<[Snapshot]> {
         assert(limit <= 500)
         return request(method: .get, path: Path.snapshots(limit: limit, offset: offset, assetId: assetId, opponentId: opponentId, destination: destination, tag: tag))
@@ -97,6 +107,18 @@ public final class AssetAPI: MixinAPI {
     
     public static func ticker(asset: String, offset: String, completion: @escaping (MixinAPI.Result<TickerResponse>) -> Void) {
         request(method: .get, path: "/ticker?asset=\(asset)&offset=\(offset)", completion: completion)
+    }
+    
+    public static func chains(completion: @escaping (MixinAPI.Result<[Chain]>) -> Void) {
+        request(method: .get, path: Path.chains, completion: completion)
+    }
+    
+    public static func chain(chainId: String, completion: @escaping (MixinAPI.Result<Chain>) -> Void) {
+        request(method: .get, path: Path.chain(chainId: chainId), completion: completion)
+    }
+    
+    public static func chain(chainId: String) -> MixinAPI.Result<Chain> {
+        return request(method: .get, path: Path.chain(chainId: chainId))
     }
     
 }

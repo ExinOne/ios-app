@@ -1,0 +1,7 @@
+"CFBundleDisplayName" = "JustChat";
+"NSContactsUsageDescription" = "JustChat sincroniza tu libreta de direcciones con los servidores de JustChat para ayudarte a conectarse con otros usuarios de JustChat.";
+"NSCameraUsageDescription" = "JustChat usa la cámara para configurar la foto de perfil y enviar una foto a tu contacto en el chat";
+"NSPhotoLibraryUsageDescription" = "JustChat usa la biblioteca de fotos para configurar la foto de perfil y enviar una foto a tu contacto en el chat";
+"NSMicrophoneUsageDescription" = "JustChat usa tu micrófono para grabar mensajes de voz para compartir con tus contactos";
+"NSFaceIDUsageDescription" = "JustChat usa Face ID para autorizar el pago";
+"NSLocationWhenInUseUsageDescription" = "Activa los servicios de ubicación para enviar tu ubicación actual o lugares cercanos en una conversación";

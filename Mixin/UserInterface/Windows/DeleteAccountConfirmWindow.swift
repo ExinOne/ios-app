@@ -30,7 +30,7 @@ final class DeleteAccountConfirmWindow: BottomSheetView {
         textLabel.detectLinks = false
         
         let thirtyDaysLater = Date().addingTimeInterval(30 * .day)
-        let date = DateFormatter.deleteAccountFormatter.string(from: thirtyDaysLater)
+        let date = DateFormatter.deleteAccount.string(from: thirtyDaysLater)
         let hint = R.string.localizable.setting_delete_account_pin_content(date)
         textLabel.text = hint
 //        textLabel.delegate = self
@@ -56,7 +56,7 @@ final class DeleteAccountConfirmWindow: BottomSheetView {
     }
     
     @IBAction func closeAction(_ sender: Any) {
-        dismissPopupControllerAnimated()
+        dismissPopupController(animated: true)
     }
     
     class func instance(context: VerifyNumberContext) -> DeleteAccountConfirmWindow {
@@ -92,7 +92,7 @@ extension DeleteAccountConfirmWindow: PinFieldDelegate {
             }
             switch result {
             case .success:
-                LoginManager.shared.logout(from: "DeleteAccount")
+                LoginManager.shared.logout(reason: "DeleteAccount")
             case let .failure(error):
                 weakSelf.pinField.clear()
                 PINVerificationFailureHandler.handle(error: error) { [weak self] (description) in

@@ -13,6 +13,7 @@ class ProfileViewController: ResizablePopupViewController {
     @IBOutlet weak var subtitleLabel: IdentityNumberLabel!
     @IBOutlet weak var centerStackView: UIStackView!
     @IBOutlet weak var menuStackView: UIStackView!
+    @IBOutlet weak var closeButton: UIButton!
     
     @IBOutlet weak var hideContentConstraint: NSLayoutConstraint!
     @IBOutlet weak var titleViewHeightConstraint: NSLayoutConstraint!
@@ -211,6 +212,11 @@ extension ProfileViewController: CoreTextLabelDelegate {
 
 // MARK: - Actions
 extension ProfileViewController {
+    
+    @objc func changeChatBackground() {
+        let controller = PreviewWallpaperViewController.instance(scope: .conversation(conversationId))
+        dismissAndPush(controller)
+    }
     
     @objc func toggleSize(_ sender: UIButton) {
         size = size.opposite

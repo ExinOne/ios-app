@@ -70,6 +70,15 @@ extension AnimatedStickerView {
                               context: context)
     }
     
+    func load(url: String?, persistent: Bool) {
+        guard let url = url, let u = URL(string: url) else {
+            return
+        }
+        imageView.sd_setImage(with: u,
+                              placeholderImage: nil,
+                              context: stickerLoadContext(persistent: persistent))
+    }
+    
     func load(image: UIImage?, contentMode: UIView.ContentMode) {
         imageView.image = image
         imageView.contentMode = contentMode

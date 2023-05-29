@@ -78,7 +78,7 @@ class AvatarImageView: UIView {
     }
     
     func setImage(with user: Account) {
-        setImage(with: user.avatar_url, userId: user.user_id, name: user.full_name)
+        setImage(with: user.avatarURL, userId: user.userID, name: user.fullName)
     }
     
     func setImage(with user: User) {
@@ -111,6 +111,17 @@ class AvatarImageView: UIView {
         let index = userId.positiveHashCode() % UIColor.avatarBackgroundColors.count
         imageView.image = nil
         imageView.backgroundColorIgnoringSystemSettings = UIColor.avatarBackgroundColors[index]
+        if let firstLetter = name.first {
+            titleLabel.text = String([firstLetter]).uppercased()
+        } else {
+            titleLabel.text = nil
+        }
+    }
+    
+    func setImage(name: String) {
+        imageView.image = nil
+        imageView.backgroundColorIgnoringSystemSettings = R.color.background_secondary()!
+        titleLabel.textColor = R.color.text_desc()
         if let firstLetter = name.first {
             titleLabel.text = String([firstLetter]).uppercased()
         } else {

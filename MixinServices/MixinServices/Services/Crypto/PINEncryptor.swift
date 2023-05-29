@@ -9,20 +9,63 @@ enum PINEncryptor {
         case missingPINToken
         case ivGeneration
         case encryption(Swift.Error)
+        case legacyPINAfterTIPSet
     }
     
     private static let queue = DispatchQueue(label: "one.mixin.service.PINEncryptor")
 
-    static func encrypt<Response>(pin: String, onFailure: @escaping (MixinAPI.Result<Response>) -> Void, onSuccess: @escaping (String) -> Void) {
-        queue.async {
-            switch encrypt(pin: pin) {
-            case .success(let encrypted):
-                onSuccess(encrypted)
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    onFailure(.failure(.pinEncryption(error)))
+    static func encrypt<Response>(
+        pin: String,
+        tipBody: @escaping () throws -> Data,
+        onFailure: @escaping (MixinAPI.Result<Response>) -> Void,
+        onSuccess: @escaping (String) -> Void
+    ) {
+        switch TIP.status {
+        case .unknown, .needsInitialize:
+            Logger.tip.error(category: "PINEncryptor", message: "Invalid status: \(TIP.status)")
+            assertionFailure("Invalid TIP status")
+        case .needsMigrate:
+            queue.async {
+                switch encrypt(pin: pin) {
+                case .success(let encrypted):
+                    onSuccess(encrypted)
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        onFailure(.failure(.pinEncryption(error)))
+                    }
                 }
             }
+        case .ready:
+            Task {
+                do {
+                    let pinToken: Data
+                    if let token = AppGroupKeychain.pinToken {
+                        pinToken = token
+                    } else if let encoded = AppGroupUserDefaults.Account.pinToken, let token = Data(base64Encoded: encoded) {
+                        pinToken = token
+                    } else {
+                        throw Error.missingPINToken
+                    }
+                    guard let pinData = pin.data(using: .utf8) else {
+                        throw Error.invalidPIN
+                    }
+                    let body = try tipBody()
+                    let encrypted = try await TIP.encryptTIPPIN(pin: pin, pinToken: pinToken, target: body)
+                    await MainActor.run {
+                        onSuccess(encrypted)
+                    }
+                } catch {
+                    await MainActor.run {
+                        Logger.tip.error(category: "PINEncryptor", message: "Failed to encrypt: \(error)")
+                        if let error = error as? MixinAPIError {
+                            onFailure(.failure(error))
+                        } else {
+                            onFailure(.failure(.pinEncryption(error)))
+                        }
+                    }
+                }
+            }
+
         }
     }
     
@@ -43,7 +86,7 @@ enum PINEncryptor {
         }
         
         let time = UInt64(Date().timeIntervalSince1970)
-        let timeData = withUnsafeBytes(of: time.littleEndian, { Data($0) })
+        let timeData = time.data(endianness: .little)
         
         var iterator: UInt64 = 0
         PropertiesDAO.shared.updateValue(forKey: .iterator, type: UInt64.self) { databaseValue in
@@ -61,13 +104,13 @@ enum PINEncryptor {
             AppGroupUserDefaults.Crypto.iterator = nextIterator
             return nextIterator
         }
-        let iteratorData = withUnsafeBytes(of: iterator.littleEndian, { Data($0) })
+        let iteratorData = iterator.data(endianness: .little)
         Logger.general.info(category: "PIN", message: "Encrypt with it: \(iterator)")
         
         let plain = pinData + timeData + iteratorData
         do {
-            let encrypted = try AESCryptor.encrypt(plain, with: pinToken, iv: iv, padding: .pkcs7)
-            let base64Encoded = (iv + encrypted).base64URLEncodedString()
+            let encrypted = try AESCryptor.encrypt(plain, with: pinToken)
+            let base64Encoded = encrypted.base64RawURLEncodedString()
             return .success(base64Encoded)
         } catch {
             return .failure(.encryption(error))

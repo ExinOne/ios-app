@@ -1,0 +1,7 @@
+"CFBundleDisplayName" = "JustChat";
+"NSContactsUsageDescription" = "JustChat синхронизирует вашу адресную книгу с серверами JustChat, чтобы помочь вам связаться с другими пользователями JustChat.";
+"NSCameraUsageDescription" = "JustChat использует камеру для установки фотографии профиля и отправки фотографии контакту в чате.";
+"NSPhotoLibraryUsageDescription" = "JustChat использует библиотеку фотографий для установки фотографии профиля и отправки фотографии контакту в чате.";
+"NSMicrophoneUsageDescription" = "JustChat использует ваш микрофон для записи голосовых сообщений, которыми можно поделиться с вашими контактами.";
+"NSFaceIDUsageDescription" = "JustChat использует Face ID для авторизации платежа";
+"NSLocationWhenInUseUsageDescription" = "Включите службы определения местоположения, чтобы передавать в разговоре ваше текущее местоположение или близлежащие места.";

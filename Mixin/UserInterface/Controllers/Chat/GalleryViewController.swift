@@ -195,6 +195,7 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
                 vc.playAction(self)
             }
         })
+        setNeedsUpdateOfSupportedInterfaceOrientationsIfNeeded()
     }
     
     func show(itemViewController viewController: GalleryItemViewController) {
@@ -220,6 +221,7 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
             viewController.isFocused = true
             viewControllerToHide?.view.alpha = 1
         })
+        setNeedsUpdateOfSupportedInterfaceOrientationsIfNeeded()
     }
     
     func dismiss(transitionViewInitialOffsetY: CGFloat, completion: (() -> Void)? = nil) {
@@ -312,6 +314,27 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
         }
     }
     
+    func showInChat() {
+        guard let messageId = currentItemViewController?.item?.messageId else {
+            return
+        }
+        guard let conversationController = UIApplication.homeNavigationController?.viewControllers.first(where: { $0 is ConversationViewController }) as? ConversationViewController else {
+            return
+        }
+        let sharedMedia = UIApplication.homeNavigationController?.viewControllers
+            .compactMap({ $0 as? ContainerViewController })
+            .compactMap({ $0.viewController as? SharedMediaViewController })
+            .first
+        if let sharedMedia {
+            sharedMedia.navigationController?.popViewController(animated: false)
+        } else if let pinMessagesPreview = conversationController.children.first(where: { $0 is PinMessagesPreviewViewController }) as? PinMessagesPreviewViewController {
+            pinMessagesPreview.dismissAsChild(animated: false, completion: nil)
+        }
+        dismiss(transitionViewInitialOffsetY: 0) {
+            conversationController.scrollToMessage(messageId: messageId)
+        }
+    }
+    
     @objc func panAction(_ recognizer: UIPanGestureRecognizer) {
         let translation = recognizer.translation(in: view)
         let progress = min(1, max(0, translation.y / (view.bounds.height / 3)))
@@ -351,6 +374,11 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
             return
         }
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        if itemViewController.supportedActions.contains(.share) {
+            alert.addAction(UIAlertAction(title: R.string.localizable.share(), style: .default, handler: { (_) in
+                itemViewController.share()
+            }))
+        }
         if itemViewController.supportedActions.contains(.forward) {
             alert.addAction(UIAlertAction(title: R.string.localizable.forward(), style: .default, handler: { (_) in
                 self.forward()
@@ -367,16 +395,24 @@ final class GalleryViewController: UIViewController, GalleryAnimatable {
         }
         if let url = (itemViewController as? GalleryImageItemViewController)?.detectedUrl {
             alert.addAction(UIAlertAction(title: R.string.localizable.scan_qr_code(), style: .default, handler: { (_) in
-                if UrlWindow.checkExternalScheme(url: url.absoluteString) {
-                    return
+                self.dismiss(transitionViewInitialOffsetY: 0) {
+                    UrlWindow.checkQrCodeDetection(string: url.absoluteString, clearNavigationStack: false)
                 }
-                if !UrlWindow.checkUrl(url: url, clearNavigationStack: false) {
-                    RecognizeWindow.instance().presentWindow(text: url.absoluteString)
-                }
+            }))
+        }
+        if itemViewController.supportedActions.contains(.showInChat) {
+            alert.addAction(UIAlertAction(title: R.string.localizable.show_in_chat(), style: .default, handler: { (_) in
+                self.showInChat()
             }))
         }
         alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
+    }
+    
+    private func setNeedsUpdateOfSupportedInterfaceOrientationsIfNeeded() {
+        if #available(iOS 16.0, *) {
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        }
     }
     
 }
@@ -393,6 +429,7 @@ extension GalleryViewController: UIPageViewControllerDelegate {
         if let focus = focus {
             focus.isFocused = true
         }
+        setNeedsUpdateOfSupportedInterfaceOrientationsIfNeeded()
     }
     
 }

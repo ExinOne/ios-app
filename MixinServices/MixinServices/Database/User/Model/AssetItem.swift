@@ -3,7 +3,7 @@ import GRDB
 
 public final class AssetItem: Asset, NumberStringLocalizable {
     
-    public let chain: ChainInfo?
+    public var chain: Chain?
     
     public lazy var localizedBalance = localizedNumberString(balance)
     
@@ -26,7 +26,7 @@ public final class AssetItem: Asset, NumberStringLocalizable {
         return CurrencyFormatter.localizedString(from: usdChange, format: .fiatMoney, sign: .whenNegative) ?? "0\(currentDecimalSeparator)00"
     }()
     
-    public init(asset: Asset, chain: ChainInfo?) {
+    public init(asset: Asset, chain: Chain) {
         self.chain = chain
         super.init(assetId: asset.assetId,
                    type: asset.type,
@@ -42,45 +42,24 @@ public final class AssetItem: Asset, NumberStringLocalizable {
                    chainId: asset.chainId,
                    confirmations: asset.confirmations,
                    assetKey: asset.assetKey,
-                   reserve: asset.reserve)
+                   reserve: asset.reserve,
+                   depositEntries: asset.depositEntries)
     }
     
     required init(from decoder: Decoder) throws {
         // GRDB does not support singleValueContainer
         // Decode it in nasty way
-        if let container = try? decoder.container(keyedBy: ChainInfo.CodingKeys.self),
+        if let container = try? decoder.container(keyedBy: Chain.JoinQueryCodingKeys.self),
            let iconUrl = try? container.decodeIfPresent(String.self, forKey: .iconUrl),
            let name = try? container.decodeIfPresent(String.self, forKey: .name),
-           let symbol = try? container.decodeIfPresent(String.self, forKey: .symbol) {
-            self.chain = ChainInfo(iconUrl: iconUrl, name: name, symbol: symbol)
+           let symbol = try? container.decodeIfPresent(String.self, forKey: .symbol),
+           let chainId = try? container.decodeIfPresent(String.self, forKey: .chainId),
+           let threshold = try? container.decodeIfPresent(Int.self, forKey: .threshold) {
+            self.chain = Chain(chainId: chainId, name: name, symbol: symbol, iconUrl: iconUrl, threshold: threshold)
         } else {
             self.chain = nil
         }
         try super.init(from: decoder)
-    }
-    
-}
-
-extension AssetItem {
-    
-    public struct ChainInfo: Codable {
-        
-        public enum CodingKeys: String, CodingKey {
-            case iconUrl = "chain_icon_url"
-            case name = "chain_name"
-            case symbol = "chain_symbol"
-        }
-        
-        public let iconUrl: String
-        public let name: String
-        public let symbol: String
-        
-        public init(iconUrl: String, name: String, symbol: String) {
-            self.iconUrl = iconUrl
-            self.name = name
-            self.symbol = symbol
-        }
-        
     }
     
 }
@@ -102,9 +81,63 @@ extension AssetItem {
                           chainId: "43d61dcd-e413-450d-80b8-101d5e903357",
                           confirmations: 100,
                           assetKey: "0xa974c709cfb4566686553a20790685a47aceaa33",
-                          reserve: "0")
-        let info = ChainInfo(iconUrl: "https://images.mixin.one/zVDjOxNTQvVsA8h2B4ZVxuHoCF3DJszufYKWpd9duXUSbSapoZadC7_13cnWBqg0EmwmRcKGbJaUpA8wFfpgZA=s128", name: "Ether", symbol: "ETH")
-        return AssetItem(asset: asset, chain: info)
+                          reserve: "0",
+                          depositEntries: [])
+        let chain = Chain(chainId: asset.chainId,
+                          name: "Ether",
+                          symbol: "ETH",
+                          iconUrl: "https://images.mixin.one/zVDjOxNTQvVsA8h2B4ZVxuHoCF3DJszufYKWpd9duXUSbSapoZadC7_13cnWBqg0EmwmRcKGbJaUpA8wFfpgZA=s128",
+                          threshold: 0)
+        return AssetItem(asset: asset, chain: chain)
     }()
+    
+}
+
+extension AssetItem {
+    
+    public var depositNetworkName: String? {
+        switch chainId {
+        case "43d61dcd-e413-450d-80b8-101d5e903357":
+            return "Ethereum (ERC-20)"
+        case "cbc77539-0a20-4666-8c8a-4ded62b36f0a":
+            return "Avalanche X-Chain"
+        case "17f78d7c-ed96-40ff-980c-5dc62fecbc85":
+            return "BNB Beacon Chain (BEP-2)"
+        case "1949e683-6a08-49e2-b087-d6b72398588f":
+            return "BNB Smart Chain (BEP-20)"
+        case "25dabac5-056a-48ff-b9f9-f67395dc407c":
+            return assetKey.isDigitsOnly ? "Tron (TRC-10)" : "Tron (TRC-20)"
+        case "05891083-63d2-4f3d-bfbe-d14d7fb9b25a":
+            return "BitShares"
+        default:
+            return chain?.name
+        }
+    }
+    
+    public var chainTag: String? {
+        // Show chain tag for BNB on BEP-2/BEP-20
+        if chainId == "17f78d7c-ed96-40ff-980c-5dc62fecbc85" {
+            return "BEP-2"
+        } else if chainId == "1949e683-6a08-49e2-b087-d6b72398588f" {
+            return "BEP-20"
+        } else if chainId == "a0ffd769-5850-4b48-9651-d2ae44a3e64d" {
+            return "MVM"
+        } else if assetId == chainId {
+            return nil
+        } else {
+            switch chainId {
+            case "43d61dcd-e413-450d-80b8-101d5e903357":
+                return "ERC-20"
+            case "25dabac5-056a-48ff-b9f9-f67395dc407c":
+                return assetKey.isDigitsOnly ? "TRC-10" : "TRC-20"
+            case "6cfe566e-4aad-470b-8c9a-2fd35b49c68d":
+                return "EOS"
+            case "b7938396-3f94-4e0a-9179-d3440718156f":
+                return "Polygon"
+            default:
+                return nil
+            }
+        }
+    }
     
 }

@@ -10,7 +10,6 @@ final class PinMessagesPreviewViewController: StaticMessagesViewController {
     weak var delegate: PinMessagesPreviewViewControllerDelegate?
     
     private let isGroup: Bool
-    private let conversationId: String
     private let unpinAllButtonHeight: CGFloat = 50
     private let additionalBottomInsetWhenUnpinAllIsAvailable: CGFloat = 20
     
@@ -28,7 +27,6 @@ final class PinMessagesPreviewViewController: StaticMessagesViewController {
     private weak var bottomBarViewIfAdded: UIView?
     
     init(conversationId: String, isGroup: Bool) {
-        self.conversationId = conversationId
         self.isGroup = isGroup
         super.init(conversationId: conversationId, audioManager: StaticAudioMessagePlayingManager())
     }
@@ -136,7 +134,7 @@ extension PinMessagesPreviewViewController {
         controller.addAction(UIAlertAction(title: R.string.localizable.unpin(), style: .default) { _ in
             self.ignoresPinMessageChangeNotification = true
             SendMessageService.shared.sendPinMessages(items: self.pinnedMessageItems, conversationId: self.conversationId, action: .unpin)
-            self.dismissAsChild(completion: nil)
+            self.dismissAsChild(animated: true, completion: nil)
         })
         present(controller, animated: true, completion: nil)
     }
@@ -165,7 +163,7 @@ extension PinMessagesPreviewViewController {
         queue.async {
             guard PinMessageDAO.shared.hasMessage(conversationId: conversationId) else {
                 DispatchQueue.main.async {
-                    self.dismissAsChild(completion: nil)
+                    self.dismissAsChild(animated: true, completion: nil)
                 }
                 return
             }

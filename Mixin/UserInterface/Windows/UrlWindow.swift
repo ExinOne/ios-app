@@ -5,6 +5,10 @@ import MixinServices
 
 class UrlWindow {
     
+    enum SyncError: Error {
+        case invalidAddress
+    }
+    
     class func checkUrl(
         url: URL,
         webContext: MixinWebViewController.Context? = nil,
@@ -17,7 +21,12 @@ class UrlWindow {
             case let .codes(code):
                 result = checkCodesUrl(code, clearNavigationStack: clearNavigationStack, webContext: webContext)
             case .pay:
-                result = checkPayUrl(url: url.absoluteString, query: url.getKeyVals())
+                if let transfer = try? InternalTransfer(string: url.absoluteString) {
+                    performInternalTransfer(transfer)
+                    result = true
+                } else {
+                    result = false
+                }
             case .withdrawal:
                 result = checkWithdrawal(url: url)
             case .address:
@@ -35,7 +44,7 @@ class UrlWindow {
             case let .send(context):
                 result = checkSendUrl(sharingContext: context, webContext: webContext)
             case let .device(id, publicKey):
-                LoginConfirmWindow.instance(id: id, publicKey: publicKey).presentView()
+                checkDevice(id: id, publicKey: publicKey)
                 result = true
             case .upgradeDesktop:
                 UIApplication.currentActivity()?.alert(R.string.localizable.desktop_upgrade())
@@ -395,16 +404,34 @@ class UrlWindow {
         return true
     }
 
+    class func checkDevice(id: String, publicKey: String) {
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            LoginConfirmWindow.instance().render(id: id, publicKey: publicKey).presentView()
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+        case .unknown:
+            break
+        }
+    }
+    
     class func checkWithdrawal(url: URL) -> Bool {
-        guard LoginManager.shared.account?.has_pin ?? false else {
-            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            return true
+        case .unknown:
             return true
         }
         let query = url.getKeyVals()
         guard let assetId = query["asset"], let amount = query["amount"], let traceId = query["trace"], let addressId = query["address"] else {
             return false
         }
-        guard !assetId.isEmpty && UUID(uuidString: assetId) != nil && !traceId.isEmpty && UUID(uuidString: traceId) != nil && !addressId.isEmpty && UUID(uuidString: addressId) != nil && !amount.isEmpty else {
+        guard !assetId.isEmpty && UUID(uuidString: assetId) != nil && !traceId.isEmpty && UUID(uuidString: traceId) != nil && !addressId.isEmpty && UUID(uuidString: addressId) != nil && !amount.isEmpty && AmountFormatter.isValid(amount) else {
             return false
         }
         var memo = query["memo"]
@@ -416,16 +443,18 @@ class UrlWindow {
         hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
         DispatchQueue.global().async {
             guard let asset = syncAsset(assetId: assetId, hud: hud) else {
-                return
-            }
-            guard let chainAsset = syncAsset(assetId: asset.chainId, hud: hud) else {
+                Logger.general.error(category: "UrlWindow", message: "Failed to sync asset for url: \(url.absoluteString)")
                 return
             }
             guard let address = syncAddress(addressId: addressId, hud: hud) else {
                 return
             }
-
-            let action: PayWindow.PinAction = .withdraw(trackId: traceId, address: address, chainAsset: chainAsset, fromWeb: true)
+            guard let feeAsset = syncAsset(assetId: address.feeAssetId, hud: hud) else {
+                Logger.general.error(category: "UrlWindow", message: "Failed to sync fee asset for url: \(url.absoluteString)")
+                return
+            }
+            
+            let action: PayWindow.PinAction = .withdraw(trackId: traceId, address: address, feeAsset: feeAsset, fromWeb: true)
             PayWindow.checkPay(traceId: traceId, asset: asset, action: action, destination: address.destination, tag: address.tag, addressId: address.addressId, amount: amount, memo: memo ?? "", fromWeb: true) { (canPay, errorMsg) in
 
                 DispatchQueue.main.async {
@@ -433,6 +462,7 @@ class UrlWindow {
                         hud.hide()
                         PayWindow.instance().render(asset: asset, action: action, amount: amount, memo: memo ?? "").presentPopupControllerAnimated()
                     } else if let error = errorMsg {
+                        Logger.general.error(category: "UrlWindow", message: "Unable to pay for url: \(url.absoluteString)")
                         hud.set(style: .error, text: error)
                         hud.scheduleAutoHidden()
                     } else {
@@ -445,54 +475,77 @@ class UrlWindow {
         return true
     }
 
-    class func checkPayUrl(url: String) -> Bool {
-        guard ["bitcoin:", "bitcoincash:", "bitcoinsv:", "ethereum:", "litecoin:", "dash:", "ripple:", "zcash:", "horizen:", "monero:", "binancecoin:", "stellar:", "dogecoin:", "mobilecoin:"].contains(where: url.lowercased().hasPrefix) else {
-            return false
+    class func checkQrCodeDetection(string: String, clearNavigationStack: Bool = true) {
+        if checkPayment(string: string) {
+            return
         }
-        guard let components = URLComponents(string: url) else {
-            return false
+        if checkExternalScheme(url: string) {
+            return
         }
-        return checkPayUrl(url: url, query: components.getKeyVals())
+        if let url = URL(string: string), checkUrl(url: url, clearNavigationStack: clearNavigationStack) {
+            return
+        }
+        RecognizeWindow.instance().presentWindow(text: string)
     }
-
-    class func checkPayUrl(url: String, query: [String: String]) -> Bool {
-        guard LoginManager.shared.account?.has_pin ?? false else {
-            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
+    
+    class func checkPayment(string: String) -> Bool {
+        do {
+            let transfer = try InternalTransfer(string: string)
+            performInternalTransfer(transfer)
             return true
-        }
-        guard let recipientId = query["recipient"]?.lowercased(), let assetId = query["asset"]?.lowercased(), let amount = query["amount"] else {
-            Logger.general.error(category: "PayURL", message: "Invalid URL: \(url)")
+        } catch TransferLinkError.notTransferLink {
+            do {
+                let transfer = try ExternalTransfer(string: string)
+                performExternalTransfer(transfer)
+                return true
+            } catch TransferLinkError.notTransferLink {
+                return false
+            } catch TransferLinkError.assetNotFound {
+                Logger.general.error(category: "URLWindow", message: "Asset not found: \(string)")
+                showAutoHiddenHud(style: .error, text: R.string.localizable.asset_not_found())
+                return true
+            } catch {
+                Logger.general.error(category: "URLWindow", message: "Invalid payment: \(string)")
+                showAutoHiddenHud(style: .error, text: R.string.localizable.invalid_payment_link())
+                return true
+            }
+        } catch {
+            Logger.general.error(category: "URLWindow", message: "Invalid payment: \(string)")
             showAutoHiddenHud(style: .error, text: R.string.localizable.invalid_payment_link())
             return true
         }
-        guard !recipientId.isEmpty && UUID(uuidString: recipientId) != nil && !assetId.isEmpty && UUID(uuidString: assetId) != nil && !amount.isEmpty && amount.isGenericNumber else {
-            Logger.general.error(category: "PayURL", message: "Invalid URL: \(url)")
-            showAutoHiddenHud(style: .error, text: R.string.localizable.invalid_payment_link())
-            return true
+    }
+    
+    class func performInternalTransfer(_ transfer: InternalTransfer) {
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            return
+        case .unknown:
+            return
         }
-
-        let traceId = query["trace"].uuidString ?? UUID().uuidString.lowercased()
-        var memo = query["memo"]
-        if let urlDecodeMemo = memo?.removingPercentEncoding {
-            memo = urlDecodeMemo
-        }
-
+        let memo = transfer.memo ?? ""
+        let traceId = transfer.traceID
+        let recipientId = transfer.recipientID
+        let amount = transfer.amount
         let hud = Hud()
         hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
         DispatchQueue.global().async {
-            guard let asset = syncAsset(assetId: assetId, hud: hud) else {
+            guard let asset = syncAsset(assetId: transfer.assetID, hud: hud) else {
                 return
             }
             guard let (user, _) = syncUser(userId: recipientId, hud: hud) else {
                 return
             }
-
-            let action: PayWindow.PinAction = .transfer(trackId: traceId, user: user, fromWeb: true)
-            PayWindow.checkPay(traceId: traceId, asset: asset, action: action, opponentId: recipientId, amount: amount, memo: memo ?? "", fromWeb: true) { (canPay, errorMsg) in
+            let action: PayWindow.PinAction = .transfer(trackId: traceId, user: user, fromWeb: true, returnTo: transfer.returnTo)
+            PayWindow.checkPay(traceId: traceId, asset: asset, action: action, opponentId: recipientId, amount: amount, memo: memo, fromWeb: true) { (canPay, errorMsg) in
                 DispatchQueue.main.async {
                     if canPay {
                         hud.hide()
-                        PayWindow.instance().render(asset: asset, action: action, amount: amount, isAmountLocalized: false, memo: memo ?? "").presentPopupControllerAnimated()
+                        PayWindow.instance().render(asset: asset, action: action, amount: amount, isAmountLocalized: false, memo: memo).presentPopupControllerAnimated()
                     } else if let error = errorMsg {
                         hud.set(style: .error, text: error)
                         hud.scheduleAutoHidden()
@@ -502,12 +555,101 @@ class UrlWindow {
                 }
             }
         }
-        return true
     }
-
+    
+    class func performExternalTransfer(_ transfer: ExternalTransfer) {
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            return
+        case .unknown:
+            return
+        }
+        let hud = Hud()
+        hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
+        DispatchQueue.global().async {
+            let resolvedAmount: String
+            if let amount = transfer.resolvedAmount {
+                resolvedAmount = amount
+            } else {
+                switch AssetAPI.assetPrecision(assetId: transfer.assetID) {
+                case let .success(response):
+                    resolvedAmount = ExternalTransfer.resolve(atomicAmount: transfer.amount, with: response.precision)
+                case let .failure(error):
+                    DispatchQueue.main.async {
+                        hud.set(style: .error, text: error.localizedDescription)
+                        hud.scheduleAutoHidden()
+                    }
+                    return
+                }
+            }
+            if let arbitraryAmount = transfer.arbitraryAmount, arbitraryAmount != resolvedAmount {
+                DispatchQueue.main.async {
+                    hud.set(style: .error, text: R.string.localizable.invalid_payment_link())
+                    hud.scheduleAutoHidden()
+                }
+                return
+            }
+            let assetId = transfer.assetID
+            let memo = transfer.memo ?? ""
+            guard let asset = syncAsset(assetId: assetId, hud: hud) else {
+                Logger.general.error(category: "UrlWindow", message: "Failed to sync asset for url: \(transfer.raw)")
+                hud.hideInMainThread()
+                return
+            }
+            switch ExternalSchemeAPI.checkAddress(assetId: assetId, destination: transfer.destination, tag: nil) {
+            case .success(let response):
+                guard response.tag.isNilOrEmpty, transfer.destination.lowercased() == response.destination.lowercased() else {
+                    DispatchQueue.main.async {
+                        hud.set(style: .error, text: R.string.localizable.invalid_payment_link())
+                        hud.scheduleAutoHidden()
+                    }
+                    return
+                }
+                guard let feeAsset = syncAsset(assetId: response.feeAssetId, hud: hud) else {
+                    Logger.general.error(category: "UrlWindow", message: "Failed to sync fee asset for url: \(transfer.raw)")
+                    hud.hideInMainThread()
+                    return
+                }
+                let destination = response.destination
+                let traceId = UUID().uuidString.lowercased()
+                let addressId = (myUserId + assetId + destination).uuidDigest()
+                let action: PayWindow.PinAction = .externalTransfer(destination: destination, fee: response.fee, feeAsset: feeAsset, addressId: addressId, traceId: traceId)
+                PayWindow.checkPay(traceId: traceId, asset: asset, action: action, destination: destination, tag: nil, addressId: nil, amount: resolvedAmount, memo: memo, fromWeb: true) { (canPay, errorMsg) in
+                    DispatchQueue.main.async {
+                        if canPay {
+                            hud.hide()
+                            PayWindow.instance().render(asset: asset, action: action, amount: resolvedAmount, isAmountLocalized: false, memo: memo).presentPopupControllerAnimated()
+                        } else if let error = errorMsg {
+                            Logger.general.error(category: "UrlWindow", message: "Unable to pay for url: \(transfer.raw)")
+                            hud.set(style: .error, text: error)
+                            hud.scheduleAutoHidden()
+                        } else {
+                            hud.hide()
+                        }
+                    }
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    hud.set(style: .error, text: error.localizedDescription)
+                    hud.scheduleAutoHidden()
+                }
+            }
+        }
+    }
+    
     class func checkAddress(url: URL) -> Bool {
-        guard LoginManager.shared.account?.has_pin ?? false else {
-            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            return true
+        case .unknown:
             return true
         }
         let query = url.getKeyVals()
@@ -522,10 +664,10 @@ class UrlWindow {
                 return
             }
 
-            while asset.destination.isEmpty {
+            while asset.depositEntries.isEmpty {
                 switch AssetAPI.asset(assetId: asset.assetId) {
                 case let .success(remoteAsset):
-                    guard !remoteAsset.destination.isEmpty else {
+                    guard !remoteAsset.depositEntries.isEmpty else {
                         Thread.sleep(forTimeInterval: 2)
                         continue
                     }
@@ -597,30 +739,31 @@ class UrlWindow {
         hud.show(style: .busy, text: "", on: AppDelegate.current.mainWindow)
         
         func presentSendingConfirmation() {
-            guard let conversationId = sharingContext.conversationId, !conversationId.isEmpty, sharingContext.conversationId == UIApplication.currentConversationId() else {
-                hud.hideInMainThread()
-                let vc = MessageReceiverViewController.instance(content: .message(message))
-                UIApplication.homeNavigationController?.pushViewController(vc, animated: true)
-                return
+            func present(action: ExternalSharingConfirmationViewController.Action) {
+                let vc = R.storyboard.chat.external_sharing_confirmation()!
+                vc.modalPresentationStyle = .custom
+                vc.transitioningDelegate = PopupPresentationManager.shared
+                UIApplication.homeContainerViewController?.present(vc, animated: true, completion: nil)
+                vc.load(sharingContext: sharingContext, message: message, webContext: webContext, action: action)
             }
-            
-            DispatchQueue.global().async {
-                guard let conversation = ConversationDAO.shared.getConversation(conversationId: message.conversationId) else {
-                    hud.hideInMainThread()
-                    return
+            if !sharingContext.conversationId.isNilOrEmpty && sharingContext.conversationId == UIApplication.currentConversationId() {
+                DispatchQueue.global().async {
+                    guard let conversation = ConversationDAO.shared.getConversation(conversationId: message.conversationId) else {
+                        hud.hideInMainThread()
+                        return
+                    }
+                    guard let (ownerUser, _) = syncUser(userId: conversation.ownerId, hud: hud) else {
+                        hud.hideInMainThread()
+                        return
+                    }
+                    DispatchQueue.main.async {
+                        hud.hide()
+                        present(action: .send(conversation: conversation, ownerUser: ownerUser))
+                    }
                 }
-                guard let (ownerUser, _) = syncUser(userId: conversation.ownerId, hud: hud) else {
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    hud.hide()
-                    let vc = R.storyboard.chat.external_sharing_confirmation()!
-                    vc.modalPresentationStyle = .custom
-                    vc.transitioningDelegate = PopupPresentationManager.shared
-                    UIApplication.homeContainerViewController?.present(vc, animated: true, completion: nil)
-                    vc.load(sharingContext: sharingContext, message: message, conversation: conversation, ownerUser: ownerUser, webContext: webContext)
-                }
+            } else {
+                hud.hide()
+                present(action: .forward)
             }
         }
         
@@ -665,6 +808,24 @@ class UrlWindow {
                     }
                 }
             }
+        case let .sticker(stickerId, _):
+            DispatchQueue.global().async {
+                let isAdded: Bool
+                if let sticker = StickerDAO.shared.getSticker(stickerId: stickerId), !sticker.assetUrl.isEmpty {
+                    message.mediaUrl = sticker.assetUrl
+                    isAdded = sticker.isAdded
+                } else if case let .success(sticker) = StickerAPI.sticker(stickerId: stickerId), !sticker.assetUrl.isEmpty {
+                    message.mediaUrl = sticker.assetUrl
+                    isAdded = false
+                } else {
+                    hud.hideInMainThread()
+                    return
+                }
+                DispatchQueue.main.async {
+                    sharingContext.content = .sticker(stickerId, isAdded)
+                    presentSendingConfirmation()
+                }
+            }
         default:
             DispatchQueue.main.async {
                 presentSendingConfirmation()
@@ -692,6 +853,21 @@ class UrlWindow {
             return true
         }
         return false
+    }
+    
+    class func checkDeepLinking(url: URL) -> Bool {
+        guard LoginManager.shared.isLoggedIn else {
+            return false
+        }
+        if ScreenLockManager.shared.isLocked {
+            ScreenLockManager.shared.screenLockViewDidHide = {
+                _ = checkUrl(url: url, presentHintOnUnsupportedMixinSchema: false)
+                ScreenLockManager.shared.screenLockViewDidHide = nil
+            }
+            return true
+        } else {
+            return checkUrl(url: url, presentHintOnUnsupportedMixinSchema: false)
+        }
     }
     
 }
@@ -734,29 +910,26 @@ extension UrlWindow {
     }
 
     private static func syncAddress(addressId: String, hud: Hud) -> Address? {
-        var address = AddressDAO.shared.getAddress(addressId: addressId)
-        if address == nil {
-            switch WithdrawalAPI.address(addressId: addressId) {
-            case let .success(remoteAddress):
-                AddressDAO.shared.insertOrUpdateAddress(addresses: [remoteAddress])
-                address = remoteAddress
-            case let .failure(error):
-                DispatchQueue.main.async {
-                    let text = error.localizedDescription(overridingNotFoundDescriptionWith: R.string.localizable.address_not_found())
-                    hud.set(style: .error, text: text)
-                    hud.scheduleAutoHidden()
-                }
-                return nil
+        let address: Address
+        switch WithdrawalAPI.address(addressId: addressId) {
+        case let .success(remoteAddress):
+            AddressDAO.shared.insertOrUpdateAddress(addresses: [remoteAddress])
+            address = remoteAddress
+        case let .failure(error):
+            DispatchQueue.main.async {
+                let text = error.localizedDescription(overridingNotFoundDescriptionWith: R.string.localizable.address_not_found())
+                hud.set(style: .error, text: text)
+                hud.scheduleAutoHidden()
             }
+            return nil
         }
-
-        if address == nil {
+        if address.feeAssetId.isEmpty {
             DispatchQueue.main.async {
                 hud.set(style: .error, text: R.string.localizable.address_not_found())
                 hud.scheduleAutoHidden()
             }
+            reporter.report(error: SyncError.invalidAddress)
         }
-
         return address
     }
     
@@ -766,7 +939,11 @@ extension UrlWindow {
             switch AssetAPI.asset(assetId: assetId) {
             case let .success(assetItem):
                 asset = AssetDAO.shared.saveAsset(asset: assetItem)
+                if asset == nil {
+                    Logger.general.error(category: "UrlWindow", message: "No asset: \(assetId) from local")
+                }
             case let .failure(error):
+                Logger.general.error(category: "UrlWindow", message: "No asset: \(assetId) from remote, error: \(error)")
                 let text = error.localizedDescription(overridingNotFoundDescriptionWith: R.string.localizable.asset_not_found())
                 DispatchQueue.main.async {
                     hud.set(style: .error, text: text)
@@ -775,14 +952,24 @@ extension UrlWindow {
                 return nil
             }
         }
-
+        if let chainId = asset?.chainId {
+            if let chain = ChainDAO.shared.chain(chainId: chainId) {
+                asset?.chain = chain
+            } else if case let .success(chain) = AssetAPI.chain(chainId: chainId) {
+                ChainDAO.shared.insertOrUpdateChains([chain])
+                asset?.chain = chain
+            } else {
+                return nil
+            }
+        } else {
+            return nil
+        }
         if asset == nil {
             DispatchQueue.main.async {
                 hud.set(style: .error, text: R.string.localizable.asset_not_found())
                 hud.scheduleAutoHidden()
             }
         }
-
         return asset
     }
 
@@ -853,11 +1040,15 @@ extension UrlWindow {
     }
     
     private static func presentMultisig(multisig: MultisigResponse, hud: Hud) {
-        guard LoginManager.shared.account?.has_pin ?? false else {
-            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
-            DispatchQueue.main.async {
-                hud.hide()
-            }
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            fallthrough
+        case .unknown:
+            DispatchQueue.main.async(execute: hud.hide)
             return
         }
         DispatchQueue.global().async {
@@ -886,11 +1077,15 @@ extension UrlWindow {
     }
 
     private static func presentPayment(payment: PaymentCodeResponse, hud: Hud) {
-        guard LoginManager.shared.account?.has_pin ?? false else {
-            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
-            DispatchQueue.main.async {
-                hud.hide()
-            }
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            fallthrough
+        case .unknown:
+            DispatchQueue.main.async(execute: hud.hide)
             return
         }
         DispatchQueue.global().async {
@@ -903,10 +1098,22 @@ extension UrlWindow {
 
             let receiverUsers = users.filter { payment.receivers.contains($0.userId) }
             let error = payment.status == PaymentStatus.paid.rawValue ? R.string.localizable.pay_paid() : ""
-
+            
+            let action: PayWindow.PinAction
+            if receiverUsers.isEmpty {
+                DispatchQueue.main.async {
+                    hud.set(style: .error, text: R.string.localizable.invalid_payment_link())
+                    hud.scheduleAutoHidden()
+                }
+                return
+            } else if receiverUsers.count == 1 && payment.threshold == 1 {
+                action = .transfer(trackId: payment.traceId, user: receiverUsers[0], fromWeb: true, returnTo: nil)
+            } else {
+                action = .payment(payment: payment, receivers: receiverUsers)
+            }
             DispatchQueue.main.async {
                 hud.hide()
-                PayWindow.instance().render(asset: asset, action: .payment(payment: payment, receivers: receiverUsers), amount: payment.amount, memo: "", error: error).presentPopupControllerAnimated()
+                PayWindow.instance().render(asset: asset, action: action, amount: payment.amount, memo: "", error: error).presentPopupControllerAnimated()
             }
         }
     }
@@ -925,11 +1132,15 @@ extension UrlWindow {
     }
 
     private static func presentCollectible(collectible: CollectibleResponse, hud: Hud) {
-        guard LoginManager.shared.account?.has_pin ?? false else {
-            UIApplication.homeNavigationController?.pushViewController(WalletPasswordViewController.instance(walletPasswordType: .initPinStep1, dismissTarget: nil), animated: true)
-            DispatchQueue.main.async {
-                hud.hide()
-            }
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            break
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            UIApplication.homeNavigationController?.present(tip, animated: true)
+            fallthrough
+        case .unknown:
+            DispatchQueue.main.async(execute: hud.hide)
             return
         }
         DispatchQueue.global().async {
@@ -968,15 +1179,8 @@ extension UrlWindow {
             hud.hideInMainThread()
             return
         }
-        
-        DispatchQueue.global().async {
-            let assets = AssetDAO.shared.getAvailableAssets()
-
-            DispatchQueue.main.async {
-                hud.hide()
-                AuthorizationWindow.instance().render(authInfo: authorization, assets: assets).presentPopupControllerAnimated()
-            }
-        }
+        hud.hide()
+        AuthorizationWindow.instance().render(authInfo: authorization).presentPopupControllerAnimated()
     }
 
     private static func presentConversation(conversation: ConversationResponse, codeId: String, hud: Hud) {

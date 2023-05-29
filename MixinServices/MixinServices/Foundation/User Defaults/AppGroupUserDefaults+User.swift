@@ -64,9 +64,13 @@ extension AppGroupUserDefaults {
             
             case externalSchemes = "external_schemes"
             case externalSchemesRefreshDate = "external_schemes_refresh_date"
+            
+            case wallpapers = "wallpapers"
+            case chatFontSize = "chat_font_size"
+            case useSystemFont = "use_system_font"
         }
         
-        public static let version = 30
+        public static let version = 31
         public static let uninitializedVersion = -1
         
         public static let didChangeRecentlyUsedAppIdsNotification = Notification.Name(rawValue: "one.mixin.services.recently.used.app.ids.change")
@@ -242,6 +246,23 @@ extension AppGroupUserDefaults {
         
         @Default(namespace: .crypto, key: Key.externalSchemesRefreshDate, defaultValue: .distantPast)
         public static var externalSchemesRefreshDate: Date
+        
+        @Default(namespace: .user, key: Key.wallpapers, defaultValue: [:])
+        public static var wallpapers: [String: String]
+        
+        @RawRepresentableDefault(namespace: .user, key: Key.chatFontSize, defaultValue: .regular)
+        public static var chatFontSize: ChatFontSize {
+            didSet {
+                NotificationCenter.default.post(name: UIContentSizeCategory.didChangeNotification, object: nil)
+            }
+        }
+        
+        @Default(namespace: .user, key: Key.useSystemFont, defaultValue: true)
+        public static var useSystemFont: Bool {
+            didSet {
+                NotificationCenter.default.post(name: UIContentSizeCategory.didChangeNotification, object: nil)
+            }
+        }
         
         public static func insertRecentlyUsedAppId(id: String) {
             let maxNumberOfIds = 12

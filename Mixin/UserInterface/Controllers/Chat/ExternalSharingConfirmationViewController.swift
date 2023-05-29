@@ -5,6 +5,11 @@ import MixinServices
 
 class ExternalSharingConfirmationViewController: UIViewController {
     
+    enum Action {
+        case send(conversation: ConversationItem, ownerUser: UserItem)
+        case forward
+    }
+    
     @IBOutlet weak var backgroundView: UIView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var previewWrapperView: UIView!
@@ -15,8 +20,7 @@ class ExternalSharingConfirmationViewController: UIViewController {
     
     private var sharingContext: ExternalSharingContext!
     private var message: Message!
-    private var conversation: ConversationItem!
-    private var ownerUser: UserItem?
+    private var action: Action!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,21 +35,30 @@ class ExternalSharingConfirmationViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
-    @IBAction func send(_ sender: Any) {
-        guard var message = message, conversation != nil else {
+    @IBAction func performAction(_ sender: Any) {
+        guard var message = message else {
             return
         }
-        message.createdAt = Date().toUTCString()
-        SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: conversation.isGroup())
-        showAutoHiddenHud(style: .notification, text: R.string.localizable.message_sent())
-        dismiss(animated: true, completion: nil)
+        switch action {
+        case let .send(conversation, ownerUser):
+            message.createdAt = Date().toUTCString()
+            SendMessageService.shared.sendMessage(message: message, ownerUser: ownerUser, isGroupMessage: conversation.isGroup())
+            showAutoHiddenHud(style: .notification, text: R.string.localizable.message_sent())
+            dismiss(animated: true, completion: nil)
+        case .forward:
+            dismiss(animated: true) {
+                let vc = MessageReceiverViewController.instance(content: .message(message))
+                UIApplication.homeNavigationController?.pushViewController(vc, animated: true)
+            }
+        case .none:
+            break
+        }
     }
     
-    func load(sharingContext: ExternalSharingContext, message: Message, conversation: ConversationItem, ownerUser: UserItem?, webContext: MixinWebViewController.Context?) {
+    func load(sharingContext: ExternalSharingContext, message: Message, webContext: MixinWebViewController.Context?, action: Action) {
         self.sharingContext = sharingContext
         self.message = message
-        self.conversation = conversation
-        self.ownerUser = ownerUser
+        self.action = action
         
         switch sharingContext.content {
         case .text(let text):
@@ -60,6 +73,8 @@ class ExternalSharingConfirmationViewController: UIViewController {
             loadPreview(forPostMessageWith: text)
         case .appCard(let data):
             loadPreview(for: data)
+        case .sticker(let id, let isAdded):
+            loadStickerPreview(stickerId: id, isAdded: isAdded ?? false)
         }
         
         let localizedContentCategory = sharingContext.content.localizedCategory
@@ -77,6 +92,13 @@ class ExternalSharingConfirmationViewController: UIViewController {
             }
         } else {
             titleLabel.text = R.string.localizable.share_message_description_empty(localizedContentCategory)
+        }
+        
+        switch action {
+        case .forward:
+            sendButton.setTitle(R.string.localizable.forward(), for: .normal)
+        case .send:
+            sendButton.setTitle(R.string.localizable.send(), for: .normal)
         }
     }
     
@@ -278,10 +300,10 @@ extension ExternalSharingConfirmationViewController {
         
         let contentView = CardMessageTitleView()
         contentView.titleLabel.textColor = .text
-        contentView.titleLabel.font = AppCardMessageViewModel.titleFontSet.scaled
+        contentView.titleLabel.font = MessageFontSet.cardTitle.scaled
         contentView.titleLabel.adjustsFontForContentSizeCategory = true
         contentView.subtitleLabel.textColor = .accessoryText
-        contentView.subtitleLabel.font = AppCardMessageViewModel.descriptionFontSet.scaled
+        contentView.subtitleLabel.font = MessageFontSet.cardSubtitle.scaled
         contentView.subtitleLabel.adjustsFontForContentSizeCategory = true
         imageView.addSubview(contentView)
         contentView.snp.makeConstraints { (make) in
@@ -296,6 +318,18 @@ extension ExternalSharingConfirmationViewController {
         contentView.titleLabel.text = appCardData.title
         contentView.subtitleLabel.text = appCardData.description
         
+        sendButton.isEnabled = true
+    }
+    
+    private func loadStickerPreview(stickerId: String, isAdded: Bool) {
+        let stickerView = AnimatedStickerView()
+        stickerView.autoPlayAnimatedImage = true
+        previewWrapperView.addSubview(stickerView)
+        stickerView.snp.makeConstraints { (make) in
+            let inset = UIEdgeInsets(top: 70, left: 70, bottom: 70, right: 70)
+            make.edges.equalToSuperview().inset(inset)
+        }
+        stickerView.load(url: message.mediaUrl, persistent: isAdded)
         sendButton.isEnabled = true
     }
     

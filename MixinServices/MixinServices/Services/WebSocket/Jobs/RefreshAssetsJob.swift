@@ -3,36 +3,40 @@ import UIKit
 
 public class RefreshAssetsJob: AsynchronousJob {
     
-    private let assetId: String?
+    public enum Request {
+        
+        case allAssets
+        case asset(id: String, untilDepositEntriesNotEmpty: Bool)
+        
+        var id: String {
+            switch self {
+            case .allAssets:
+                return "all"
+            case .asset(let id, let untilDepositEntriesNotEmpty):
+                if untilDepositEntriesNotEmpty {
+                    return id + "-uden"
+                } else {
+                    return id
+                }
+            }
+        }
+    }
+    
+    private let request: Request
+    
     private var asset: Asset?
     
-    public init(assetId: String? = nil) {
-        self.assetId = assetId
+    public init(request: Request) {
+        self.request = request
     }
     
     override public func getJobId() -> String {
-        return "refresh-assets-\(assetId ?? "all")"
+        return "refresh-assets-" + request.id
     }
     
     public override func execute() -> Bool {
-        if let assetId = self.assetId {
-            AssetAPI.asset(assetId: assetId) { (result) in
-                switch result {
-                case let .success(asset):
-                    DispatchQueue.global().async {
-                        guard !MixinService.isStopProcessMessages else {
-                            return
-                        }
-                        AssetDAO.shared.insertOrUpdateAssets(assets: [asset])
-                    }
-                    self.asset = asset
-                    self.updateFiats()
-                case let .failure(error):
-                    reporter.report(error: error)
-                    self.finishJob()
-                }
-            }
-        } else {
+        switch request {
+        case .allAssets:
             AssetAPI.assets { (result) in
                 switch result {
                 case let .success(assets):
@@ -50,10 +54,61 @@ public class RefreshAssetsJob: AsynchronousJob {
                                                             where: notExistAssetIds.contains(Asset.column(of: .assetId)))
                             }
                         }
-
                         AssetDAO.shared.insertOrUpdateAssets(assets: assets)
                     }
-                    self.updateFiats()
+                    AssetAPI.chains { result in
+                        switch result {
+                        case let .success(chains):
+                            DispatchQueue.global().async {
+                                guard !MixinService.isStopProcessMessages else {
+                                    return
+                                }
+                                ChainDAO.shared.insertOrUpdateChains(chains)
+                            }
+                        case let .failure(error):
+                            reporter.report(error: error)
+                        }
+                        self.updateFiats()
+                    }
+                case let .failure(error):
+                    reporter.report(error: error)
+                    self.finishJob()
+                }
+            }
+        case .asset(let id, let untilDepositEntriesNotEmpty):
+            AssetAPI.asset(assetId: id) { (result) in
+                switch result {
+                case let .success(asset):
+                    if untilDepositEntriesNotEmpty && asset.depositEntries.isEmpty {
+                        Logger.general.warn(category: "RefreshAssetsJob", message: "Asset: \(id) is returned with an empty deposit_entries")
+                        DispatchQueue.global().asyncAfter(deadline: .now() + 2) {
+                            if !self.isCancelled {
+                                self.execute()
+                            }
+                        }
+                    } else {
+                        DispatchQueue.global().async {
+                            guard !MixinService.isStopProcessMessages else {
+                                return
+                            }
+                            AssetDAO.shared.insertOrUpdateAssets(assets: [asset])
+                        }
+                        self.asset = asset
+                        AssetAPI.chain(chainId: asset.chainId) { result in
+                            switch result {
+                            case let .success(chain):
+                                DispatchQueue.global().async {
+                                    guard !MixinService.isStopProcessMessages else {
+                                        return
+                                    }
+                                    ChainDAO.shared.insertOrUpdateChains([chain])
+                                }
+                            case let .failure(error):
+                                reporter.report(error: error)
+                            }
+                            self.updateFiats()
+                        }
+                    }
                 case let .failure(error):
                     reporter.report(error: error)
                     self.finishJob()
@@ -72,29 +127,39 @@ public class RefreshAssetsJob: AsynchronousJob {
                 }
                 if let asset = self.asset {
                     self.updatePendingDeposits(asset: asset)
-                    return
+                } else {
+                    self.finishJob()
                 }
             case let .failure(error):
                 reporter.report(error: error)
+                self.finishJob()
             }
-            self.finishJob()
         }
     }
 
     private func updatePendingDeposits(asset: Asset) {
-        AssetAPI.pendingDeposits(assetId: asset.assetId, destination: asset.destination, tag: asset.tag) { (result) in
-            switch result {
-            case let .success(deposits):
-                DispatchQueue.global().async {
-                    guard !MixinService.isStopProcessMessages else {
-                        return
+        var finishedEntryCount = 0
+        for entry in asset.depositEntries {
+            AssetAPI.pendingDeposits(assetId: asset.assetId, destination: entry.destination, tag: entry.tag) { (result) in
+                switch result {
+                case let .success(deposits):
+                    DispatchQueue.global().async {
+                        guard !MixinService.isStopProcessMessages else {
+                            return
+                        }
+                        SnapshotDAO.shared.replacePendingDeposits(assetId: asset.assetId, pendingDeposits: deposits)
                     }
-                    SnapshotDAO.shared.replacePendingDeposits(assetId: asset.assetId, pendingDeposits: deposits)
+                    finishedEntryCount += 1
+                    if finishedEntryCount == asset.depositEntries.count {
+                        self.updateSnapshots(assetId: asset.assetId)
+                    }
+                case let .failure(error):
+                    reporter.report(error: error)
+                    finishedEntryCount += 1
+                    if finishedEntryCount == asset.depositEntries.count {
+                        self.updateSnapshots(assetId: asset.assetId)
+                    }
                 }
-                self.updateSnapshots(assetId: asset.assetId)
-            case let .failure(error):
-                reporter.report(error: error)
-                self.finishJob()
             }
         }
     }

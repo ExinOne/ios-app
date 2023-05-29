@@ -71,6 +71,8 @@ class PeerInfoView: UIView, XibDesignable {
             } else {
                 avatarImageView.setImage(with: member.iconUrl, userId: member.userId ?? "", name: member.name)
             }
+        case let result as PhoneContactSearchResult:
+            avatarImageView.setImage(name: result.contact.fullName)
         default:
             break
         }
@@ -104,7 +106,8 @@ class PeerInfoView: UIView, XibDesignable {
         badgeImageView.isHidden = badgeImageView.image == nil
         superscriptLabel.text = nil
         prefixIconImageView.isHidden = true
-        descriptionLabel.isHidden = true
+        descriptionLabel.isHidden = false
+        descriptionLabel.text = user.identityNumber
     }
     
     func render(user: User, userBiographyAsSubtitle: Bool) {
@@ -114,11 +117,11 @@ class PeerInfoView: UIView, XibDesignable {
         badgeImageView.isHidden = badgeImageView.image == nil
         superscriptLabel.text = nil
         prefixIconImageView.isHidden = true
+        descriptionLabel.isHidden = false
         if userBiographyAsSubtitle {
-            descriptionLabel.isHidden = false
             descriptionLabel.text = user.biography
         } else {
-            descriptionLabel.isHidden = true
+            descriptionLabel.text = user.identityNumber
         }
     }
     
@@ -151,6 +154,14 @@ class PeerInfoView: UIView, XibDesignable {
         superscriptLabel.text = nil
         prefixIconImageView.isHidden = true
         descriptionLabel.isHidden = true
+    }
+    
+    func render(phoneContact: PhoneContact) {
+        avatarImageView.setImage(name: phoneContact.fullName)
+        titleLabel.text = phoneContact.fullName
+        descriptionLabel.text = phoneContact.phoneNumber
+        badgeImageView.isHidden = true
+        superscriptLabel.text = nil
     }
     
     private func loadXibAndDefaultProperties() {

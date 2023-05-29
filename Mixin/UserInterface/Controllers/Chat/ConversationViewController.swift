@@ -10,7 +10,7 @@ class ConversationViewController: UIViewController {
     static var allowReportSingleMessage = false
     
     @IBOutlet weak var navigationBarView: UIView!
-    @IBOutlet weak var backgroundImageView: UIImageView!
+    @IBOutlet weak var wallpaperImageView: WallpaperImageView!
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var tableView: ConversationTableView!
     @IBOutlet weak var accessoryButtonsWrapperView: HittestBypassWrapperView!
@@ -285,9 +285,10 @@ class ConversationViewController: UIViewController {
     // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        backgroundImageView.snp.makeConstraints { (make) in
+        wallpaperImageView.snp.makeConstraints { (make) in
             make.height.equalTo(UIScreen.main.bounds.height)
         }
+        wallpaperImageView.wallpaper = Wallpaper.wallpaper(for: .conversation(conversationId))
         tableView.snp.makeConstraints { (make) in
             make.height.equalTo(UIScreen.main.bounds.height)
         }
@@ -360,7 +361,7 @@ class ConversationViewController: UIViewController {
         
         let center = NotificationCenter.default
         center.addObserver(self, selector: #selector(conversationDidChange(_:)), name: MixinServices.conversationDidChangeNotification, object: nil)
-        center.addObserver(self, selector: #selector(userDidChange(_:)), name: UserDAO.userDidChangeNotification, object: nil)
+        center.addObserver(self, selector: #selector(usersDidChange(_:)), name: UserDAO.usersDidChangeNotification, object: nil)
         center.addObserver(self, selector: #selector(participantDidChange(_:)), name: ParticipantDAO.participantDidChangeNotification, object: nil)
         center.addObserver(self, selector: #selector(didAddMessageOutOfBounds(_:)), name: ConversationDataSource.newMessageOutOfVisibleBoundsNotification, object: dataSource)
         center.addObserver(self, selector: #selector(audioMessagePlayingManagerWillPlayNextNode(_:)), name: AudioMessagePlayingManager.willPlayNextNotification, object: AudioMessagePlayingManager.shared)
@@ -371,6 +372,7 @@ class ConversationViewController: UIViewController {
         center.addObserver(self, selector: #selector(pinMessageDidDelete(_:)), name: PinMessageDAO.didDeleteNotification, object: nil)
         center.addObserver(self, selector: #selector(pinMessageBannerDidChange), name: AppGroupUserDefaults.User.pinMessageBannerDidChangeNotification, object: nil)
         center.addObserver(self, selector: #selector(expiredMessageDidDelete(_:)), name: ExpiredMessageDAO.expiredMessageDidDeleteNotification, object: nil)
+        center.addObserver(self, selector: #selector(wallpaperDidChange), name: Wallpaper.wallpaperDidChangeNotification, object: nil)
         
         if dataSource.category == .group {
             updateGroupCallIndicatorViewHidden()
@@ -444,16 +446,6 @@ class ConversationViewController: UIViewController {
     override func viewSafeAreaInsetsDidChange() {
         super.viewSafeAreaInsetsDidChange()
         updateNavigationBarHeightAndTableViewTopInset()
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        let backgroundImageSize = R.image.conversation.bg_chat()!.size
-        let isBackgroundImageUndersized = backgroundImageView.frame.width > backgroundImageSize.width
-            || backgroundImageView.frame.height > backgroundImageSize.height
-        if isBackgroundImageUndersized {
-            backgroundImageView.contentMode = .scaleAspectFill
-        }
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -675,7 +667,7 @@ class ConversationViewController: UIViewController {
             weakSelf.strangerHintView.blockButton.isBusy = false
             switch result {
             case .success(let userResponse):
-                weakSelf.updateOwnerUser(withUserResponse: userResponse, updateDatabase: true)
+                UserDAO.shared.updateUsers(users: [userResponse])
             case let .failure(error):
                 showAutoHiddenHud(style: .error, text: error.localizedDescription)
             }
@@ -694,7 +686,7 @@ class ConversationViewController: UIViewController {
             weakSelf.strangerHintView.addContactButton.isBusy = false
             switch result {
             case .success(let userResponse):
-                weakSelf.updateOwnerUser(withUserResponse: userResponse, updateDatabase: true)
+                UserDAO.shared.updateUsers(users: [userResponse])
             case let .failure(error):
                 showAutoHiddenHud(style: .error, text: error.localizedDescription)
             }
@@ -716,7 +708,7 @@ class ConversationViewController: UIViewController {
                 switch result {
                 case let .success(user):
                     DispatchQueue.global().async {
-                        UserDAO.shared.updateUsers(users: [user], sendNotificationAfterFinished: false)
+                        UserDAO.shared.updateUsers(users: [user])
                     }
                     ConversationAPI.exitConversation(conversationId: conversationId) { result in
                         let exitGroup = {
@@ -1026,15 +1018,21 @@ class ConversationViewController: UIViewController {
         }
     }
     
-    @objc func userDidChange(_ notification: Notification) {
-        if let user = notification.userInfo?[UserDAO.UserInfoKey.user] as? UserItem, user.userId == self.ownerUser?.userId {
-            self.ownerUser = user
-            updateNavigationBar()
-            conversationInputViewController.update(opponentUser: user)
-            updateStrangerActionView()
+    @objc func usersDidChange(_ notification: Notification) {
+        guard
+            let userResponses = notification.userInfo?[UserDAO.UserInfoKey.users] as? [UserResponse],
+            userResponses.count == 1,
+            userResponses[0].userId == ownerUser?.userId
+        else {
+            return
         }
+        let user = UserItem.createUser(from: userResponses[0])
+        ownerUser = user
+        updateNavigationBar()
+        conversationInputViewController.update(opponentUser: user)
+        updateStrangerActionView()
         hideLoading()
-        dataSource?.ownerUser = ownerUser
+        dataSource?.ownerUser = user
         updateInvitationHintView()
         showScamAnnouncementIfNeeded()
     }
@@ -1217,6 +1215,13 @@ class ConversationViewController: UIViewController {
         tableView.reloadData()
     }
     
+    @objc private func wallpaperDidChange(_ notification: Notification) {
+        guard let conversationId = notification.userInfo?[Wallpaper.conversationIdUserInfoKey] as? String, conversationId == self.conversationId else {
+            return
+        }
+        wallpaperImageView.wallpaper = Wallpaper.wallpaper(for: .conversation(conversationId))
+    }
+    
     // MARK: - Interface
     func updateInputWrapper(for preferredContentHeight: CGFloat, animated: Bool) {
         let oldHeight = inputWrapperHeightConstraint.constant
@@ -1279,13 +1284,16 @@ class ConversationViewController: UIViewController {
         guard let user = ownerUser else {
             return
         }
-        let viewController: UIViewController
-        if LoginManager.shared.account?.has_pin ?? false {
-            viewController = TransferOutViewController.instance(asset: nil, type: .contact(user))
-        } else {
-            viewController = WalletPasswordViewController.instance(dismissTarget: .transfer(user: user))
+        switch TIP.status {
+        case .ready, .needsMigrate:
+            let transfer = TransferOutViewController.instance(asset: nil, type: .contact(user))
+            navigationController?.pushViewController(transfer, animated: true)
+        case .needsInitialize:
+            let tip = TIPNavigationViewController(intent: .create, destination: nil)
+            present(tip, animated: true)
+        case .unknown:
+            break
         }
-        navigationController?.pushViewController(viewController, animated: true)
     }
     
     func showLocationPicker() {
@@ -1363,6 +1371,16 @@ class ConversationViewController: UIViewController {
                     }
                 }
             }
+        }
+    }
+    
+    func scrollToMessage(messageId: String) {
+        if let indexPath = dataSource.indexPath(where: { $0.messageId == messageId }) {
+            scheduleCellBackgroundFlash(messageId: messageId)
+            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
+        } else if MessageDAO.shared.hasMessage(id: messageId) {
+            messageIdToFlashAfterAnimationFinished = messageId
+            reloadWithMessageId(messageId, scrollUpwards: true)
         }
     }
     
@@ -1855,7 +1873,7 @@ extension ConversationViewController: PinMessageBannerViewDelegate {
               let quoteMessageId = MessageDAO.shared.quoteMessageId(messageId: id) else {
             return
         }
-        scrollToPinnedMessage(messageId: quoteMessageId)
+        scrollToMessage(messageId: quoteMessageId)
     }
     
 }
@@ -1864,8 +1882,8 @@ extension ConversationViewController: PinMessageBannerViewDelegate {
 extension ConversationViewController: PinMessagesPreviewViewControllerDelegate {
     
     func pinMessagesPreviewViewController(_ controller: PinMessagesPreviewViewController, needsShowMessage messageId: String) {
-        controller.dismissAsChild {
-            self.scrollToPinnedMessage(messageId: messageId)
+        controller.dismissAsChild(animated: true) {
+            self.scrollToMessage(messageId: messageId)
         }
     }
     
@@ -2009,32 +2027,17 @@ extension ConversationViewController {
     private func updateSubtitleAndInputBar() {
         let conversationId = dataSource.conversationId
         dataSource.queue.async { [weak self] in
+            let count = ParticipantDAO.shared.getParticipantCount(conversationId: conversationId)
             let isParticipant = ParticipantDAO.shared.userId(myUserId, isParticipantOfConversationId: conversationId)
-            if isParticipant {
-                let count = ParticipantDAO.shared.getParticipantCount(conversationId: conversationId)
-                DispatchQueue.main.sync {
-                    guard let weakSelf = self else {
-                        return
-                    }
-                    weakSelf.numberOfParticipants = count
-                    weakSelf.isMember = isParticipant
-                    weakSelf.conversationInputViewController.deleteConversationButton.isHidden = true
-                    weakSelf.conversationInputViewController.inputBarView.isHidden = false
-                    weakSelf.subtitleLabel.text = R.string.localizable.participants_count(count > 0 ? "\(count) " : "")
+            DispatchQueue.main.sync {
+                guard let weakSelf = self else {
+                    return
                 }
-            } else {
-                DispatchQueue.main.sync {
-                    guard let weakSelf = self else {
-                        return
-                    }
-                    if let number = weakSelf.numberOfParticipants {
-                        weakSelf.numberOfParticipants = number - 1
-                    }
-                    weakSelf.isMember = isParticipant
-                    weakSelf.conversationInputViewController.deleteConversationButton.isHidden = false
-                    weakSelf.conversationInputViewController.inputBarView.isHidden = false
-                    weakSelf.subtitleLabel.text = R.string.localizable.you_have_left_the_group()
-                }
+                weakSelf.numberOfParticipants = count
+                weakSelf.isMember = isParticipant
+                weakSelf.conversationInputViewController.deleteConversationButton.isHidden = isParticipant
+                weakSelf.conversationInputViewController.inputBarView.isHidden = false
+                weakSelf.subtitleLabel.text = R.string.localizable.participants_count("\(count)")
             }
         }
     }
@@ -2063,17 +2066,6 @@ extension ConversationViewController {
                 }, completion: nil)
             }
         }
-    }
-    
-    private func updateOwnerUser(withUserResponse userResponse: UserResponse, updateDatabase: Bool) {
-        if updateDatabase {
-            UserDAO.shared.updateUsers(users: [userResponse], sendNotificationAfterFinished: false)
-        }
-        let user = UserItem.createUser(from: userResponse)
-        conversationInputViewController.update(opponentUser: user)
-        self.ownerUser = user
-        updateNavigationBar()
-        updateStrangerActionView()
     }
     
     private func updateAccessoryButtons(animated: Bool) {
@@ -2810,6 +2802,13 @@ extension ConversationViewController {
                         let reason = R.string.localizable.live_shareable_false()
                         return .visibleButUnavailable(reason: reason)
                     }
+                } else if viewModel.message.category.hasSuffix("_AUDIO") {
+                    if viewModel.message.isShareable {
+                        return .available
+                    } else {
+                        let reason = R.string.localizable.audio_shareable_false()
+                        return .visibleButUnavailable(reason: reason)
+                    }
                 } else {
                     return .available
                 }
@@ -2818,16 +2817,6 @@ extension ConversationViewController {
             }
         case .delete:
             return actions.contains(.delete) ? .available : .invisible
-        }
-    }
-    
-    private func scrollToPinnedMessage(messageId: String) {
-        if let indexPath = dataSource.indexPath(where: { $0.messageId == messageId }) {
-            scheduleCellBackgroundFlash(messageId: messageId)
-            tableView.scrollToRow(at: indexPath, at: .middle, animated: true)
-        } else if MessageDAO.shared.hasMessage(id: messageId) {
-            messageIdToFlashAfterAnimationFinished = messageId
-            reloadWithMessageId(messageId, scrollUpwards: true)
         }
     }
     

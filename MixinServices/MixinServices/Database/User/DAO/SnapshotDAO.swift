@@ -6,7 +6,7 @@ public final class SnapshotDAO: UserDatabaseDAO {
     public static let snapshotDidChangeNotification = NSNotification.Name("one.mixin.services.SnapshotDAO.snapshotDidChange")
     
     private static let sqlQueryTable = """
-    SELECT s.snapshot_id, s.type, s.asset_id, s.amount, s.opponent_id, s.transaction_hash, s.sender, s.receiver, s.memo, s.confirmations, s.trace_id, s.created_at, a.symbol, u.user_id, u.full_name, u.avatar_url, u.identity_number
+    SELECT s.snapshot_id, s.type, s.asset_id, s.amount, s.opponent_id, s.transaction_hash, s.sender, s.receiver, s.memo, s.confirmations, s.trace_id, s.created_at, a.symbol, u.user_id, u.full_name, u.avatar_url, u.identity_number, s.snapshot_hash, s.opening_balance, s.closing_balance
     FROM snapshots s
     LEFT JOIN users u ON u.user_id = s.opponent_id
     LEFT JOIN assets a ON a.asset_id = s.asset_id
@@ -18,10 +18,11 @@ public final class SnapshotDAO: UserDatabaseDAO {
         var snapshotItem: SnapshotItem?
         db.write { (db) in
             try snapshot.save(db)
-            db.afterNextTransactionCommit { (db) in
+            db.afterNextTransaction { (db) in
                 snapshotItem = try? SnapshotItem.fetchOne(db,
                                                           sql: SnapshotDAO.sqlQueryById,
                                                           arguments: [snapshot.snapshotId])
+                NotificationCenter.default.post(onMainThread: Self.snapshotDidChangeNotification, object: self)
             }
         }
         return snapshotItem
@@ -98,7 +99,7 @@ public final class SnapshotDAO: UserDatabaseDAO {
             try snapshots.save(db)
             
             if let snapshotId = snapshotId {
-                db.afterNextTransactionCommit { (db) in
+                db.afterNextTransaction { (db) in
                     snapshotItem = try? SnapshotItem.fetchOne(db,
                                                               sql: SnapshotDAO.sqlQueryById,
                                                               arguments: [snapshotId])
@@ -131,7 +132,8 @@ extension SnapshotDAO {
         SELECT s.snapshot_id, s.type, s.asset_id, s.amount,
                 s.opponent_id, s.transaction_hash, s.sender, s.receiver,
                 s.memo, s.confirmations, s.trace_id, s.created_at, a.symbol,
-                u.user_id, u.full_name, u.avatar_url, u.identity_number
+                u.user_id, u.full_name, u.avatar_url, u.identity_number,
+                s.snapshot_hash, s.opening_balance, s.closing_balance
         FROM snapshots s
         LEFT JOIN assets a ON s.asset_id = a.asset_id
         LEFT JOIN users u ON s.opponent_id = u.user_id
@@ -175,7 +177,7 @@ extension SnapshotDAO {
         
         let snapshots: [SnapshotItem] = db.select(with: sql, arguments: StatementArguments(arguments))
         for snapshot in snapshots where snapshot.assetSymbol == nil {
-            let job = RefreshAssetsJob(assetId: snapshot.assetId)
+            let job = RefreshAssetsJob(request: .asset(id: snapshot.assetId, untilDepositEntriesNotEmpty: false))
             ConcurrentJobQueue.shared.addJob(job: job)
         }
         return snapshots

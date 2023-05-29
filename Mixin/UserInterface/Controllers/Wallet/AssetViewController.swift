@@ -14,9 +14,17 @@ class AssetViewController: UIViewController {
     
     private(set) var asset: AssetItem!
     private var snapshotDataSource: SnapshotDataSource!
-    
+    private var performSendOnAppear = false
+        
     private lazy var noTransactionFooterView = Bundle.main.loadNibNamed("NoTransactionFooterView", owner: self, options: nil)?.first as! UIView
     private lazy var filterController = AssetFilterViewController.instance(showFilters: true)
+    
+    private weak var job: RefreshAssetsJob?
+    
+    deinit {
+        job?.cancel()
+        NotificationCenter.default.removeObserver(self)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +33,7 @@ class AssetViewController: UIViewController {
         updateTableHeaderFooterView()
         tableHeaderView.render(asset: asset)
         tableHeaderView.sizeToFit()
+        tableHeaderView.transferActionView.delegate = self
         tableView.register(R.nib.snapshotCell)
         tableView.register(AssetHeaderView.self, forHeaderFooterViewReuseIdentifier: ReuseId.header)
         tableView.dataSource = self
@@ -39,11 +48,18 @@ class AssetViewController: UIViewController {
         }
         snapshotDataSource.reloadFromLocal()
         NotificationCenter.default.addObserver(self, selector: #selector(assetsDidChange(_:)), name: AssetDAO.assetsDidChangeNotification, object: nil)
-        ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob(assetId: asset.assetId))
+        NotificationCenter.default.addObserver(self, selector: #selector(chainsDidChange(_:)), name: ChainDAO.chainsDidChangeNotification, object: nil)
+        let job = RefreshAssetsJob(request: .asset(id: asset.assetId, untilDepositEntriesNotEmpty: false))
+        self.job = job
+        ConcurrentJobQueue.shared.addJob(job: job)
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self)
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if performSendOnAppear {
+            performSendOnAppear = false
+            DispatchQueue.main.async(execute: send)
+        }
     }
     
     override func viewSafeAreaInsetsDidChange() {
@@ -61,6 +77,16 @@ class AssetViewController: UIViewController {
         reloadAsset()
     }
     
+    @objc private func chainsDidChange(_ notification: Notification) {
+        guard let id = notification.userInfo?[ChainDAO.UserInfoKey.chainId] as? String else {
+            return
+        }
+        guard id == asset.chainId else {
+            return
+        }
+        reloadAsset()
+    }
+    
     @IBAction func presentFilterWindow(_ sender: Any) {
         filterController.delegate = self
         present(filterController, animated: true, completion: nil)
@@ -71,37 +97,32 @@ class AssetViewController: UIViewController {
         AssetInfoWindow.instance().presentWindow(asset: asset)
     }
     
-    @IBAction func transfer(_ sender: Any) {
-        guard let asset = self.asset else {
-            return
-        }
-        let alc = UIAlertController(title: R.string.localizable.send_to_title(), message: nil, preferredStyle: .actionSheet)
-        alc.addAction(UIAlertAction(title: R.string.localizable.contact(), style: .default, handler: { [weak self] (_) in
-            let vc = TransferReceiverViewController.instance(asset: asset)
-            self?.navigationController?.pushViewController(vc, animated: true)
-        }))
-        alc.addAction(UIAlertAction(title: R.string.localizable.address(), style: .default, handler: { [weak self](_) in
-            let vc = AddressViewController.instance(asset: asset)
-            self?.navigationController?.pushViewController(vc, animated: true)
-        }))
-        alc.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
-        self.present(alc, animated: true, completion: nil)
-    }
-    
-    @IBAction func deposit(_ sender: Any) {
-        guard !tableHeaderView.depositButton.isBusy else {
-            return
-        }
-        let vc = DepositViewController.instance(asset: asset)
-        navigationController?.pushViewController(vc, animated: true)
-    }
-    
-    class func instance(asset: AssetItem) -> UIViewController {
+    class func instance(asset: AssetItem, performSendOnAppear: Bool = false) -> UIViewController {
         let vc = R.storyboard.wallet.asset()!
         vc.asset = asset
+        vc.performSendOnAppear = performSendOnAppear
         vc.snapshotDataSource = SnapshotDataSource(category: .asset(id: asset.assetId))
         let container = ContainerViewController.instance(viewController: vc, title: asset.name)
         return container
+    }
+    
+}
+
+extension AssetViewController: TransferActionViewDelegate {
+    
+    func transferActionView(_ view: TransferActionView, didSelect action: TransferActionView.Action) {
+        switch action {
+        case .send:
+            send()
+        case .receive:
+            let controller: UIViewController
+            if asset.isDepositSupported {
+                controller = DepositViewController.instance(asset: asset)
+            } else {
+                controller = DepositNotSupportedViewController.instance(asset: asset)
+            }
+            navigationController?.pushViewController(controller, animated: true)
+        }
     }
     
 }
@@ -223,6 +244,23 @@ extension AssetViewController: SnapshotCellDelegate {
 
 extension AssetViewController {
     
+    private func send() {
+        guard let asset = self.asset else {
+            return
+        }
+        let alert = UIAlertController(title: R.string.localizable.send_to_title(), message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: R.string.localizable.contact(), style: .default, handler: { [weak self] (_) in
+            let vc = TransferReceiverViewController.instance(asset: asset)
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }))
+        alert.addAction(UIAlertAction(title: R.string.localizable.address(), style: .default, handler: { [weak self](_) in
+            let vc = AddressViewController.instance(asset: asset)
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }))
+        alert.addAction(UIAlertAction(title: R.string.localizable.cancel(), style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
     private func updateTableViewContentInset() {
         if view.safeAreaInsets.bottom < 1 {
             tableView.contentInset.bottom = 10
@@ -237,15 +275,15 @@ extension AssetViewController {
             guard let asset = AssetDAO.shared.getAsset(assetId: assetId) else {
                 return
             }
-            self?.asset = asset
             DispatchQueue.main.sync {
-                guard let weakSelf = self else {
+                guard let self = self else {
                     return
                 }
+                self.asset = asset
                 UIView.performWithoutAnimation {
-                    weakSelf.tableHeaderView.render(asset: asset)
-                    weakSelf.tableHeaderView.sizeToFit()
-                    weakSelf.updateTableHeaderFooterView()
+                    self.tableHeaderView.render(asset: asset)
+                    self.tableHeaderView.sizeToFit()
+                    self.updateTableHeaderFooterView()
                 }
             }
         }

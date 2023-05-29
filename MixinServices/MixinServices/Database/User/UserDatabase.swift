@@ -33,6 +33,7 @@ public final class UserDatabase: Database {
             .init(key: .destination, constraints: "TEXT NOT NULL"),
             .init(key: .label, constraints: "TEXT NOT NULL"),
             .init(key: .tag, constraints: "TEXT"),
+            .init(key: .feeAssetId, constraints: "TEXT NOT NULL DEFAULT ''"),
             .init(key: .fee, constraints: "TEXT NOT NULL"),
             .init(key: .reserve, constraints: "TEXT"),
             .init(key: .dust, constraints: "TEXT"),
@@ -81,6 +82,7 @@ public final class UserDatabase: Database {
             .init(key: .confirmations, constraints: "INTEGER NOT NULL"),
             .init(key: .assetKey, constraints: "TEXT"),
             .init(key: .reserve, constraints: "TEXT"),
+            .init(key: .depositEntries, constraints: "TEXT"),
         ]),
         ColumnMigratableTableDefinition<CircleConversation>(constraints: "PRIMARY KEY(conversation_id, circle_id)", columns: [
             .init(key: .circleId, constraints: "TEXT NOT NULL"),
@@ -207,6 +209,9 @@ public final class UserDatabase: Database {
             .init(key: .confirmations, constraints: "INTEGER"),
             .init(key: .traceId, constraints: "TEXT"),
             .init(key: .createdAt, constraints: "TEXT NOT NULL"),
+            .init(key: .snapshotHash, constraints: "TEXT"),
+            .init(key: .openingBalance, constraints: "TEXT NOT NULL"),
+            .init(key: .closingBalance, constraints: "TEXT NOT NULL"),
         ]),
         ColumnMigratableTableDefinition<StickerRelationship>(constraints: "PRIMARY KEY(album_id, sticker_id)", columns: [
             .init(key: .albumId, constraints: "TEXT NOT NULL"),
@@ -230,7 +235,7 @@ public final class UserDatabase: Database {
             .init(key: .name, constraints: "TEXT NOT NULL"),
             .init(key: .iconUrl, constraints: "TEXT NOT NULL"),
             .init(key: .balance, constraints: "TEXT NOT NULL"),
-            .init(key: .destination, constraints: "TEXT NOT NULL"),
+            .init(key: .destination, constraints: "TEXT"),
             .init(key: .tag, constraints: "TEXT"),
             .init(key: .priceBtc, constraints: "TEXT NOT NULL"),
             .init(key: .priceUsd, constraints: "TEXT NOT NULL"),
@@ -322,21 +327,6 @@ public final class UserDatabase: Database {
             try db.execute(sql: "CREATE INDEX IF NOT EXISTS index_messages_pick ON messages(conversation_id, status, user_id, created_at)")
             
             try db.execute(sql: "CREATE INDEX IF NOT EXISTS message_mentions_conversation_indexs ON message_mentions(conversation_id, has_read)")
-            
-            let lastMessageDelete = """
-            CREATE TRIGGER IF NOT EXISTS conversation_last_message_delete AFTER DELETE ON messages
-            BEGIN
-                UPDATE conversations SET last_message_id = (select id from messages where conversation_id = old.conversation_id order by created_at DESC limit 1) WHERE conversation_id = old.conversation_id;
-            END
-            """
-            let lastMessageUpdate = """
-            CREATE TRIGGER IF NOT EXISTS conversation_last_message_update AFTER INSERT ON messages
-            BEGIN
-                UPDATE conversations SET last_message_id = new.id, last_message_created_at = new.created_at WHERE conversation_id = new.conversation_id;
-            END
-            """
-            try db.execute(sql: lastMessageDelete)
-            try db.execute(sql: lastMessageUpdate)
         }
         
         migrator.registerMigration("fts5_v3_2") { (db) in
@@ -490,6 +480,70 @@ public final class UserDatabase: Database {
             let conversations = try TableInfo.fetchAll(db, sql: "PRAGMA table_info(conversations)")
             if !conversations.map(\.name).contains("expire_in") {
                 try db.execute(sql: "ALTER TABLE conversations ADD COLUMN expire_in INTEGER")
+            }
+        }
+        
+        migrator.registerMigration("deposit_entries") { db in
+            let assets = try TableInfo.fetchAll(db, sql: "PRAGMA table_info(assets)")
+            if !assets.map(\.name).contains("deposit_entries") {
+                try db.execute(sql: "ALTER TABLE assets ADD COLUMN deposit_entries TEXT")
+            }
+        }
+        
+        migrator.registerMigration("deposit_entries_2") { db in
+            let assetsColumns = try TableInfo.fetchAll(db, sql: "PRAGMA table_info(assets)").map(\.name)
+            if !assetsColumns.contains("destination") {
+                try db.execute(sql: "ALTER TABLE assets ADD COLUMN destination TEXT")
+            }
+            if !assetsColumns.contains("tag") {
+                try db.execute(sql: "ALTER TABLE assets ADD COLUMN tag TEXT")
+            }
+            
+            let topAssetsColumns = try TableInfo.fetchAll(db, sql: "PRAGMA table_info(top_assets)").map(\.name)
+            if !topAssetsColumns.contains("destination") {
+                try db.execute(sql: "ALTER TABLE top_assets ADD COLUMN destination TEXT")
+            }
+            if !topAssetsColumns.contains("tag") {
+                try db.execute(sql: "ALTER TABLE top_assets ADD COLUMN tag TEXT")
+            }
+        }
+        
+        migrator.registerMigration("drop_drigger") { db in
+            try db.execute(sql: "DROP TRIGGER IF EXISTS conversation_last_message_update")
+            try db.execute(sql: "DROP TRIGGER IF EXISTS conversation_last_message_delete")
+        }
+        
+        migrator.registerMigration("fee_asset_id") { db in
+            let addresses = try TableInfo.fetchAll(db, sql: "PRAGMA table_info(addresses)")
+            if !addresses.map(\.name).contains("fee_asset_id") {
+                try db.execute(sql: "ALTER TABLE addresses ADD COLUMN fee_asset_id TEXT NOT NULL DEFAULT ''")
+            }
+        }
+        
+        migrator.registerMigration("chains") { db in
+            let sql =  """
+                CREATE TABLE IF NOT EXISTS chains(
+                    chain_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    symbol TEXT NOT NULL,
+                    icon_url TEXT NOT NULL,
+                    threshold INTEGER NOT NULL,
+                    PRIMARY KEY (chain_id)
+                )
+            """
+            try db.execute(sql: sql)
+        }
+        
+        migrator.registerMigration("snapshot") { db in
+            let columns = try TableInfo.fetchAll(db, sql: "PRAGMA table_info(snapshots)").map(\.name)
+            if !columns.contains("snapshot_hash") {
+                try db.execute(sql: "ALTER TABLE snapshots ADD COLUMN snapshot_hash TEXT")
+            }
+            if !columns.contains("opening_balance") {
+                try db.execute(sql: "ALTER TABLE snapshots ADD COLUMN opening_balance TEXT NOT NULL DEFAULT ''")
+            }
+            if !columns.contains("closing_balance") {
+                try db.execute(sql: "ALTER TABLE snapshots ADD COLUMN closing_balance TEXT NOT NULL DEFAULT ''")
             }
         }
         

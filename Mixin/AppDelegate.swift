@@ -39,7 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         configAnalytics()
         pendingShortcutItem = launchOptions?[UIApplication.LaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem
         addObservers()
-        Logger.general.info(category: "AppDelegate", message: "App \(Bundle.main.shortVersion)(\(Bundle.main.bundleVersion)) did finish launching with state: \(UIApplication.shared.applicationStateString)")
+        Logger.general.info(category: "AppDelegate", message: "App \(Bundle.main.shortVersion)(\(Bundle.main.bundleVersion)) did finish launching with state: \(UIApplication.shared.applicationStateString), device: \(Device.current.machineName) \(ProcessInfo.processInfo.operatingSystemVersionString), id: \(Device.current.id)")
         if UIApplication.shared.applicationState == .background {
             MixinService.isStopProcessMessages = false
             WebSocketService.shared.connectIfNeeded()
@@ -131,7 +131,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        AccountAPI.updateSession(deviceToken: deviceToken.toHexString())
+        AccountAPI.updateSession(deviceToken: deviceToken.hexEncodedString())
     }
     
     func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -139,18 +139,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        guard LoginManager.shared.isLoggedIn else {
-            return false
-        }
-        if ScreenLockManager.shared.isLocked {
-            ScreenLockManager.shared.screenLockViewDidHide = {
-                _ = UrlWindow.checkUrl(url: url, presentHintOnUnsupportedMixinSchema: false)
-                ScreenLockManager.shared.screenLockViewDidHide = nil
-            }
-            return true
-        } else {
-            return UrlWindow.checkUrl(url: url, presentHintOnUnsupportedMixinSchema: false)
-        }
+        UrlWindow.checkDeepLinking(url: url)
     }
     
     func applicationProtectedDataDidBecomeAvailable(_ application: UIApplication) {
@@ -186,6 +175,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                                                 completionHandler: completionHandler)
     }
     
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        if SpotlightManager.isAvailable && SpotlightManager.shared.canContinue(activity: userActivity) {
+            SpotlightManager.shared.contiune(activity: userActivity)
+            return true
+        } else if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL {
+            _ = UrlWindow.checkDeepLinking(url: url)
+            return true
+        } else {
+            return false
+        }
+    }
+    
 }
 
 extension AppDelegate {
@@ -213,7 +214,7 @@ extension AppDelegate {
         }
 
         if let date = AppGroupUserDefaults.Crypto.oneTimePrekeyRefreshDate, -date.timeIntervalSinceNow > 3600 * 2 {
-            ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob())
+            ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob(request: .allAssets))
             ConcurrentJobQueue.shared.addJob(job: RefreshOneTimePreKeysJob())
         }
         AppGroupUserDefaults.Crypto.oneTimePrekeyRefreshDate = Date()

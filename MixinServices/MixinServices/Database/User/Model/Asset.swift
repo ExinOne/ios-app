@@ -3,6 +3,18 @@ import GRDB
 
 public class Asset: Codable, DatabaseColumnConvertible, MixinFetchableRecord, MixinEncodableRecord, TableRecord, PersistableRecord {
     
+    public struct DepositEntry: Codable {
+        
+        public let destination: String
+        public let tag: String
+        public let properties: [String]?
+        
+        public var payToWitness: Bool {
+            properties?.contains("P2WPKH_V0") ?? false
+        }
+        
+    }
+    
     public class var databaseTableName: String {
         "assets"
     }
@@ -22,6 +34,15 @@ public class Asset: Codable, DatabaseColumnConvertible, MixinFetchableRecord, Mi
     public let confirmations: Int
     public let assetKey: String
     public let reserve: String
+    public let depositEntries: [DepositEntry]
+    
+    public var preferredDepositEntry: DepositEntry? {
+        if depositEntries.count > 1 {
+            return depositEntries.first(where: \.payToWitness) ?? depositEntries.first
+        } else {
+            return depositEntries.first
+        }
+    }
     
     public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -40,9 +61,10 @@ public class Asset: Codable, DatabaseColumnConvertible, MixinFetchableRecord, Mi
         confirmations = try container.decodeIfPresent(Int.self, forKey: .confirmations) ?? 0
         assetKey = try container.decodeIfPresent(String.self, forKey: .assetKey) ?? ""
         reserve = try container.decodeIfPresent(String.self, forKey: .reserve) ?? ""
+        depositEntries = try container.decodeIfPresent([DepositEntry].self, forKey: .depositEntries) ?? []
     }
     
-    public init(assetId: String, type: String, symbol: String, name: String, iconUrl: String, balance: String, destination: String, tag: String, priceBtc: String, priceUsd: String, changeUsd: String, chainId: String, confirmations: Int, assetKey: String, reserve: String) {
+    public init(assetId: String, type: String, symbol: String, name: String, iconUrl: String, balance: String, destination: String, tag: String, priceBtc: String, priceUsd: String, changeUsd: String, chainId: String, confirmations: Int, assetKey: String, reserve: String, depositEntries: [DepositEntry]) {
         self.assetId = assetId
         self.type = type
         self.symbol = symbol
@@ -58,6 +80,7 @@ public class Asset: Codable, DatabaseColumnConvertible, MixinFetchableRecord, Mi
         self.confirmations = confirmations
         self.assetKey = assetKey
         self.reserve = reserve
+        self.depositEntries = depositEntries
     }
     
     public enum CodingKeys: String, CodingKey {
@@ -76,6 +99,7 @@ public class Asset: Codable, DatabaseColumnConvertible, MixinFetchableRecord, Mi
         case confirmations
         case assetKey = "asset_key"
         case reserve
+        case depositEntries = "deposit_entries"
     }
     
 }
@@ -98,5 +122,19 @@ extension Asset {
     public var isERC20: Bool {
         chainId == "43d61dcd-e413-450d-80b8-101d5e903357"
     }
+    
+}
+
+extension Asset {
+    
+    public var isDepositSupported: Bool {
+        !Self.depositNotSupportedAssetIds.contains(assetId)
+    }
+    
+    private static let depositNotSupportedAssetIds: Set<String> = [
+        "b207bce9-c248-4b8e-b6e3-e357146f3f4c", // MGD
+        "443e1ef5-bc9b-47d3-be77-07f328876c50", // Bytom Classic
+        "815b0b1a-2764-3736-8faa-42d694fa620a", // OMNI USDT
+    ]
     
 }

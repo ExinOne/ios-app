@@ -30,10 +30,9 @@ public final class ConversationDAO: UserDatabaseDAO {
     LEFT JOIN expired_messages em ON c.last_message_id = em.message_id
     INNER JOIN users u1 ON u1.user_id = c.owner_id
     WHERE c.category IS NOT NULL %@
-    ORDER BY c.pin_time DESC, c.last_message_created_at DESC
+    ORDER BY %@c.pin_time DESC, c.last_message_created_at DESC
     """
-    private static let sqlQueryConversationByCoversationId = String(format: sqlQueryConversation, " AND c.conversation_id = ? ")
-    private static let sqlQueryGroupOrStrangerConversationByName = String(format: sqlQueryConversation, " AND ((c.category = 'GROUP' AND c.name LIKE ? ESCAPE '/') OR (c.category = 'CONTACT' AND u1.relationship = 'STRANGER' AND u1.full_name LIKE ? ESCAPE '/'))")
+    private static let sqlQueryConversationByCoversationId = String(format: sqlQueryConversation, " AND c.conversation_id = ? ", "")
     
     public func hasUnreadMessage(outsideCircleWith id: String) -> Bool {
         let sql = """
@@ -167,6 +166,12 @@ public final class ConversationDAO: UserDatabaseDAO {
         }
     }
     
+    public func updateLastReadMessageId(_ messageId: String, conversationId: String, database: GRDB.Database) throws {
+        try Conversation
+            .filter(Conversation.column(of: .conversationId) == conversationId)
+            .updateAll(database, [Conversation.column(of: .lastReadMessageId).set(to: messageId)])
+    }
+    
     public func exitGroup(conversationId: String) {
         db.write { db in
             let assignments = [
@@ -180,11 +185,9 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .filter(ParticipantSession.column(of: .conversationId) == conversationId)
                 .deleteAll(db)
             try Participant
-                .filter(Participant.column(of: .conversationId) == conversationId)
+                .filter(Participant.column(of: .conversationId) == conversationId && Participant.column(of: .userId) == myUserId)
                 .deleteAll(db)
-            try deleteFTSContent(with: conversationId, from: db)
-            try PinMessageDAO.shared.deleteAll(conversationId: conversationId, from: db)
-            db.afterNextTransactionCommit { (_) in
+            db.afterNextTransaction { (_) in
                 NotificationCenter.default.post(onMainThread: ParticipantDAO.participantDidChangeNotification,
                                                 object: self,
                                                 userInfo: [ParticipantDAO.UserInfoKey.conversationId: conversationId])
@@ -197,6 +200,7 @@ public final class ConversationDAO: UserDatabaseDAO {
     
     public func deleteChat(conversationId: String) {
         let mediaUrls = MessageDAO.shared.getMediaUrls(conversationId: conversationId, categories: MessageCategory.allMediaCategories)
+        let shouldCleanUpWallpaper = shouldCleanUpWallpaper(conversationId: conversationId)
         db.write { db in
             let deletedTranscriptIds = try deleteTranscriptChildrenReferenced(by: conversationId, from: db)
             try Message
@@ -216,11 +220,16 @@ public final class ConversationDAO: UserDatabaseDAO {
                 .deleteAll(db)
             try deleteFTSContent(with: conversationId, from: db)
             try PinMessageDAO.shared.deleteAll(conversationId: conversationId, from: db)
-            db.afterNextTransactionCommit { (_) in
+            db.afterNextTransaction { (_) in
                 let job = AttachmentCleanUpJob(conversationId: conversationId,
                                                mediaUrls: mediaUrls,
                                                transcriptIds: deletedTranscriptIds)
                 ConcurrentJobQueue.shared.addJob(job: job)
+                if shouldCleanUpWallpaper {
+                    AppGroupUserDefaults.User.wallpapers[conversationId] = nil
+                    let url = AttachmentContainer.wallpaperURL(for: conversationId)
+                    try? FileManager.default.removeItem(at: url)
+                }
                 NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: nil)
             }
         }
@@ -239,12 +248,18 @@ public final class ConversationDAO: UserDatabaseDAO {
             try MessageMention
                 .filter(MessageMention.column(of: .conversationId) == conversationId)
                 .deleteAll(db)
+            let assignments = [
+                Conversation.column(of: .unseenMessageCount).set(to: 0),
+                Conversation.column(of: .lastMessageId).set(to: nil),
+                Conversation.column(of: .lastMessageCreatedAt).set(to: nil),
+                Conversation.column(of: .lastReadMessageId).set(to: nil)
+            ]
             try Conversation
                 .filter(Conversation.column(of: .conversationId) == conversationId)
-                .updateAll(db, [Conversation.column(of: .unseenMessageCount).set(to: 0)])
+                .updateAll(db, assignments)
             try deleteFTSContent(with: conversationId, from: db)
             try PinMessageDAO.shared.deleteAll(conversationId: conversationId, from: db)
-            db.afterNextTransactionCommit { (_) in
+            db.afterNextTransaction { (_) in
                 let job = AttachmentCleanUpJob(conversationId: conversationId,
                                                mediaUrls: mediaUrls,
                                                transcriptIds: deletedTranscriptIds)
@@ -264,12 +279,14 @@ public final class ConversationDAO: UserDatabaseDAO {
     }
     
     public func getGroupOrStrangerConversation(withNameLike keyword: String, limit: Int?) -> [ConversationItem] {
-        var sql = ConversationDAO.sqlQueryGroupOrStrangerConversationByName
+        let condition = "AND ((c.category = 'GROUP' AND c.name LIKE :escaped ESCAPE '/') OR (c.category = 'CONTACT' AND u1.relationship = 'STRANGER' AND u1.full_name LIKE :escaped ESCAPE '/'))"
+        let order = "(c.category = 'GROUP' AND c.name = :raw COLLATE NOCASE) OR (c.category = 'CONTACT' AND u1.full_name = :raw COLLATE NOCASE) DESC, "
+        var sql = String(format: Self.sqlQueryConversation, condition, order)
         if let limit = limit {
             sql += " LIMIT \(limit)"
         }
-        let keyword = "%\(keyword.sqlEscaped)%"
-        return db.select(with: sql, arguments: [keyword, keyword])
+        let arguments = ["escaped": "%\(keyword.sqlEscaped)%", "raw": keyword]
+        return db.select(with: sql, arguments: StatementArguments(arguments))
     }
     
     public func getConversationStatus(conversationId: String) -> Int? {
@@ -287,7 +304,7 @@ public final class ConversationDAO: UserDatabaseDAO {
     public func conversationList(limit: Int? = nil, circleId: String? = nil) -> [ConversationItem] {
         var sql: String
         if circleId == nil {
-            sql = String(format: Self.sqlQueryConversation, "")
+            sql = String(format: Self.sqlQueryConversation, "", "")
         } else {
             sql = """
                 SELECT c.conversation_id as conversationId, c.owner_id as ownerId, c.icon_url as iconUrl,
@@ -361,7 +378,7 @@ public final class ConversationDAO: UserDatabaseDAO {
                                         iconUrl: nil,
                                         announcement: nil,
                                         lastMessageId: nil,
-                                        lastMessageCreatedAt: createdAt,
+                                        lastMessageCreatedAt: nil,
                                         lastReadMessageId: nil,
                                         unseenMessageCount: 0,
                                         status: ConversationStatus.START.rawValue,
@@ -388,7 +405,7 @@ public final class ConversationDAO: UserDatabaseDAO {
             try db.writeAndReturnError { (db) -> Void in
                 try conversation.insert(db)
                 try participants.save(db)
-                db.afterNextTransactionCommit { (_) in
+                db.afterNextTransaction { (_) in
                     // Avoid potential deadlock
                     // TODO: Nested transactions could be auto detected, make some assertion?
                     DispatchQueue.global().async {
@@ -509,7 +526,7 @@ public final class ConversationDAO: UserDatabaseDAO {
             
             resultConversation = try ConversationItem.fetchOne(db, sql: ConversationDAO.sqlQueryConversationByCoversationId, arguments: [conversationId], adapter: nil)
             
-            db.afterNextTransactionCommit { (_) in
+            db.afterNextTransaction { (_) in
                 let change = ConversationChange(conversationId: conversationId,
                                                 action: .updateConversation(conversation: conversation))
                 NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: change)
@@ -536,6 +553,12 @@ public final class ConversationDAO: UserDatabaseDAO {
         if oldConversation.announcement != conversation.announcement, !conversation.announcement.isEmpty {
             AppGroupUserDefaults.User.hasUnreadAnnouncement[conversationId] = true
         }
+        let status: ConversationStatus
+        if conversation.category == ConversationCategory.GROUP.rawValue && !conversation.participants.contains { $0.userId == myUserId } {
+            status = .QUIT
+        } else {
+            status = .SUCCESS
+        }
         db.write { (db) in
             try Participant
                 .filter(Participant.column(of: .conversationId) == conversationId)
@@ -546,13 +569,12 @@ public final class ConversationDAO: UserDatabaseDAO {
             try participants.save(db)
             try ParticipantSessionDAO.shared.syncConversationParticipantSession(conversation: conversation, db: db)
             try db.execute(sql: ParticipantDAO.sqlUpdateStatus, arguments: [conversationId])
-            
             let assignments = [
                 Conversation.column(of: .ownerId).set(to: ownerId),
                 Conversation.column(of: .category).set(to: conversation.category),
                 Conversation.column(of: .name).set(to: conversation.name),
                 Conversation.column(of: .announcement).set(to: conversation.announcement),
-                Conversation.column(of: .status).set(to: ConversationStatus.SUCCESS.rawValue),
+                Conversation.column(of: .status).set(to: status.rawValue),
                 Conversation.column(of: .muteUntil).set(to: conversation.muteUntil),
                 Conversation.column(of: .codeUrl).set(to: conversation.codeUrl),
                 Conversation.column(of: .expireIn).set(to: conversation.expireIn),
@@ -566,10 +588,10 @@ public final class ConversationDAO: UserDatabaseDAO {
                 ConcurrentJobQueue.shared.addJob(job: RefreshUserJob(userIds: userIds))
             }
             
-            db.afterNextTransactionCommit { (_) in
-                if oldConversation.status != ConversationStatus.SUCCESS.rawValue {
+            db.afterNextTransaction { (_) in
+                if oldConversation.status != status.rawValue {
                     let change = ConversationChange(conversationId: conversationId,
-                                                    action: .updateConversationStatus(status: .SUCCESS))
+                                                    action: .updateConversationStatus(status: status))
                     NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: change)
                 }
                 let change = ConversationChange(conversationId: conversationId,
@@ -582,6 +604,31 @@ public final class ConversationDAO: UserDatabaseDAO {
     public func makeConversationId(userId: String, ownerUserId: String) -> String {
         let merged = min(userId, ownerUserId) + max(userId, ownerUserId)
         return merged.uuidDigest()
+    }
+    
+    public func updateLastMessageIdOnInsertMessage(conversationId: String, messageId: String, createdAt: String, database: GRDB.Database) throws {
+        let sql = """
+        UPDATE conversations SET last_message_id = ?, last_message_created_at = ?
+        WHERE conversation_id = ? AND (last_message_created_at ISNULL OR ? >= last_message_created_at)
+        """
+        try database.execute(sql: sql, arguments: [messageId, createdAt, conversationId, createdAt])
+    }
+    
+    public func updateLastMessageIdOnDeleteMessage(conversationId: String, messageId: String? = nil, database: GRDB.Database) throws {
+        var sql = "UPDATE conversations SET last_message_id = (SELECT id FROM messages WHERE conversation_id = ? ORDER BY created_at DESC LIMIT 1)"
+        let arguments: StatementArguments
+        if let messageId = messageId {
+            // Reduce redundant updating to conversation table by checking whether `last_message_id` matches or not.
+            sql += " WHERE conversation_id = ? AND last_message_id = ?"
+            arguments = [conversationId, conversationId, messageId]
+        } else {
+            sql += " WHERE conversation_id = ?"
+            arguments = [conversationId, conversationId]
+        }
+        try database.execute(sql: sql, arguments: arguments)
+        database.afterNextTransaction { db in
+            NotificationCenter.default.post(onMainThread: conversationDidChangeNotification, object: nil)
+        }
     }
     
 }
@@ -601,6 +648,25 @@ extension ConversationDAO {
                 .deleteAll(db)
         }
         return transcriptMessageIds
+    }
+    
+    private func shouldCleanUpWallpaper(conversationId: String) -> Bool {
+        let sql = """
+            SELECT 1
+            FROM conversations c
+            INNER JOIN users u ON u.user_id = c.owner_id
+            WHERE (c.conversation_id = ?) AND ((c.category = ? AND c.status = ?) OR (c.category = ? AND u.relationship != ?))
+            LIMIT 1
+        """
+        let arguments: StatementArguments = [
+            conversationId,
+            ConversationCategory.GROUP.rawValue,
+            ConversationStatus.QUIT.rawValue,
+            ConversationCategory.CONTACT.rawValue,
+            Relationship.FRIEND.rawValue
+        ]
+        let value: Int64 = db.select(with: sql, arguments: arguments) ?? 0
+        return value != 0
     }
     
 }

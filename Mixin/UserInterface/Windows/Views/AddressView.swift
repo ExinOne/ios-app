@@ -6,12 +6,15 @@ class AddressView: UIStackView {
     @IBOutlet weak var assetIconView: AssetIconView!
     @IBOutlet weak var pinField: PinField!
     @IBOutlet weak var loadingView: ActivityIndicatorView!
-    @IBOutlet weak var pinTipLabel: UILabel!
     @IBOutlet weak var addressLabel: UILabel!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var subtitleLabel: UILabel!
+    @IBOutlet weak var subtitlePlaceView: UIView!
     @IBOutlet weak var dismissButton: UIButton!
-
+    
+    @IBOutlet weak var passwordViewHeightConstraint: NSLayoutConstraint!
+    
     enum action {
         case add
         case update
@@ -41,7 +44,7 @@ class AddressView: UIStackView {
     }
 
     @IBAction func dismissAction(_ sender: Any) {
-        superView?.dismissPopupControllerAnimated()
+        superView?.dismissPopupController(animated: true)
     }
 
     func render(action: action, asset: AssetItem, addressRequest: AddressRequest?, address: Address?, dismissCallback: ((Bool) -> Void)?, superView: BottomSheetView) {
@@ -60,6 +63,19 @@ class AddressView: UIStackView {
         case .delete:
             titleLabel.text = R.string.localizable.delete_withdraw_address(asset.symbol)
         }
+        if let chainName = asset.depositNetworkName {
+            subtitleLabel.text = chainName
+            subtitleLabel.isHidden = false
+            subtitlePlaceView.isHidden = false
+        } else {
+            subtitleLabel.isHidden = true
+            subtitlePlaceView.isHidden = true
+        }
+        if TIP.status == .needsInitialize {
+            passwordViewHeightConstraint.constant = 70
+        } else {
+            passwordViewHeightConstraint.constant = 60
+        }
         if let address = addressRequest {
             nameLabel.text = address.label
             addressLabel.text = address.fullAddress
@@ -69,7 +85,6 @@ class AddressView: UIStackView {
         }
         assetIconView.setIcon(asset: asset)
         pinField.clear()
-
         dismissButton.isEnabled = true
         pinField.becomeFirstResponder()
     }
@@ -89,7 +104,6 @@ extension AddressView: PinFieldDelegate {
         dismissButton.isEnabled = false
         UIView.animate(withDuration: 0.15) {
             self.pinField.isHidden = true
-            self.pinTipLabel.isHidden = true
             self.loadingView.isHidden = false
         }
         loadingView.startAnimating()
@@ -109,7 +123,7 @@ extension AddressView: PinFieldDelegate {
                 case let .failure(error):
                     PINVerificationFailureHandler.handle(error: error) { (description) in
                         self?.superView?.alert(description)
-                        self?.superView?.dismissPopupControllerAnimated()
+                        self?.superView?.dismissPopupController(animated: true)
                     }
                 }
             }
@@ -139,14 +153,14 @@ extension AddressView: PinFieldDelegate {
                         message = R.string.localizable.invalid_malformed_address_hint(self.asset.symbol)
                     }
                     self.superView?.alert(message)
-                    self.superView?.dismissPopupControllerAnimated()
+                    self.superView?.dismissPopupController(animated: true)
                 case let .failure(error):
                     guard let self = self else {
                         return
                     }
                     PINVerificationFailureHandler.handle(error: error) { (description) in
                         self.superView?.alert(description)
-                        self.superView?.dismissPopupControllerAnimated()
+                        self.superView?.dismissPopupController(animated: true)
                     }
                 }
             }

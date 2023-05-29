@@ -4,13 +4,29 @@ import MixinServices
 
 class SignalLoadingViewController: UIViewController {
     
-    private let userIdToGreetAfterLoaded: String? = "0f7305a4-a72f-462c-a566-c7e70d8fb7ab"
-    private let userFullnameToGreetAfterLoaded: String? = "JustChat"
+    private var isUsernameJustInitialized = false
     
+    private var newUserInitialBots: [InitializeBotJob.Bot] {
+        guard let account = LoginManager.shared.account else {
+            return []
+        }
+        guard ["+971", "+91"].contains(where: account.phone.hasPrefix) else {
+            return []
+        }
+        return [
+            InitializeBotJob.Bot(userId: "68ef7899-3e81-4b3d-8124-83ae652def89", fullname: "Mixin Bots"),
+            InitializeBotJob.Bot(userId: "96c1460b-c7c4-480a-a342-acaa73995a37", fullname: "Mixin Data"),
+        ]
+    }
     
+    private var allUsersInitialBots: [InitializeBotJob.Bot] {
+        [InitializeBotJob.Bot(userId: "773e5e77-4107-45c2-b648-8fc722ed77f5", fullname: "Team Mixin")]
+    }
     
-    class func instance() -> SignalLoadingViewController {
-        return R.storyboard.home.signal()!
+    class func instance(isUsernameJustInitialized: Bool) -> SignalLoadingViewController {
+        let controller = R.storyboard.home.signal()!
+        controller.isUsernameJustInitialized = isUsernameJustInitialized
+        return controller
     }
     
     override func viewDidLoad() {
@@ -18,6 +34,10 @@ class SignalLoadingViewController: UIViewController {
         Logger.general.info(category: "SignalLoading", message: "isPrekeyLoaded:\(AppGroupUserDefaults.Crypto.isPrekeyLoaded), isSessionSynchronized:\(AppGroupUserDefaults.Crypto.isSessionSynchronized), isCircleSynchronized:\(AppGroupUserDefaults.User.isCircleSynchronized)")
         let startTime = Date()
         DispatchQueue.global().async {
+            AppGroupKeychain.tipPriv = nil
+            AppGroupKeychain.ephemeralSeed = nil
+            Logger.tip.info(category: "SignalLoading", message: "TIP Secrets cleared")
+            
             SignalDatabase.reloadCurrent()
 
             self.syncSignalKeys()
@@ -219,13 +239,20 @@ class SignalLoadingViewController: UIViewController {
     }
     
     private func dismiss() {
-        print("dismiss")
-        let vc = makeInitialViewController()
+        let vc = makeInitialViewController(isUsernameJustInitialized: isUsernameJustInitialized)
         AppDelegate.current.mainWindow.rootViewController = vc
-        if vc is HomeContainerViewController, let userId = userIdToGreetAfterLoaded, let fullname = userFullnameToGreetAfterLoaded {
-            print("dismiss  " + userId)
-            print("dismiss  " + fullname)
-            ConcurrentJobQueue.shared.addJob(job: InitializeBotJob(botUserId: userId, botFullname: fullname))
+        if vc is HomeContainerViewController {
+            initialize(bots: allUsersInitialBots)
+            if isUsernameJustInitialized {
+                initialize(bots: newUserInitialBots)
+            }
+        }
+    }
+    
+    private func initialize(bots: [InitializeBotJob.Bot]) {
+        for bot in bots {
+            let job = InitializeBotJob(bot: bot)
+            ConcurrentJobQueue.shared.addJob(job: job)
         }
     }
     

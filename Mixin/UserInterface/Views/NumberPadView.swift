@@ -1,29 +1,45 @@
 import UIKit
-import AVKit
+import MixinServices
 
 class NumberPadView: UIView, XibDesignable {
 
+    @IBOutlet weak var tipView: UIView!
+    
     @IBOutlet weak var contentViewBottomConstraint: NSLayoutConstraint!
+    @IBOutlet weak var tipViewHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var tipTopConstraint: NSLayoutConstraint!
+    @IBOutlet weak var buttonsTopConstraint: NSLayoutConstraint!
     
     weak var target: UIKeyInput?
     
     private let contentBottomMargin: CGFloat = 2
     
     private var contentHeight: CGFloat {
-        let height: CGFloat = ScreenHeight.current <= .medium ? 216 : 226
-        if bottomSafeAreaInset > 0 {
-            return height - 10
-        } else {
-            return height
+        var height: CGFloat
+        switch ScreenHeight.current {
+        case .short, .medium, .long:
+            height = 216
+        case .extraLong:
+            height = 226
         }
+        if !tipView.isHidden {
+            height += tipViewHeightConstraint.constant
+        }
+        return height
     }
     
     private var bottomSafeAreaInset: CGFloat {
-        var bottom = UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
-        if bottom > 0 {
-            bottom += 41
+        let safeAreaBottomInset = UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
+        if safeAreaBottomInset > 0 {
+            switch ScreenHeight.current {
+            case .short, .medium:
+                return 58
+            case .long, .extraLong:
+                return 75
+            }
+        } else {
+            return 0
         }
-        return bottom
     }
     
     override var intrinsicContentSize: CGSize {
@@ -62,10 +78,21 @@ class NumberPadView: UIView, XibDesignable {
         } else {
             backgroundColor = R.color.keyboard_background_13()
         }
-        var bounds = UIScreen.main.bounds
-        bounds.size.height = contentHeight + bottomSafeAreaInset
+        switch TIP.status {
+        case .ready:
+            tipView.isHidden = false
+            tipTopConstraint.priority = .defaultHigh
+            buttonsTopConstraint.priority = .defaultLow
+        default:
+            tipView.isHidden = true
+            tipTopConstraint.priority = .defaultLow
+            buttonsTopConstraint.priority = .defaultHigh
+        }
         contentViewBottomConstraint.constant = contentBottomMargin + bottomSafeAreaInset
-        self.bounds = bounds
+        self.bounds = CGRect(x: 0,
+                             y: 0,
+                             width: UIScreen.main.bounds.width,
+                             height: contentHeight + bottomSafeAreaInset)
         layoutIfNeeded()
     }
     

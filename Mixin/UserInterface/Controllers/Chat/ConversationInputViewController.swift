@@ -1,6 +1,7 @@
 import UIKit
 import Photos
 import MixinServices
+import QuickLook
 
 protocol ConversationInputInteractiveResizableViewController {
     var interactiveResizableScrollView: UIScrollView { get }
@@ -157,9 +158,9 @@ class ConversationInputViewController: UIViewController {
     // MARK: - Life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        updateTextViewFonts()
         lastSelectedRange = textView.selectedRange
         lastTextCountWhenMentionRangeChanges = textView.text.count
-        typingAttributes[.font] = textView.font
         typingAttributes[.foregroundColor] = textView.textColor
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardDidShow(_:)), name: UIResponder.keyboardDidShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeFrame(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
@@ -169,7 +170,6 @@ class ConversationInputViewController: UIViewController {
         textView.textContainer.lineFragmentPadding = 0
         textView.inputAccessoryView = interactiveDismissResponder
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
-        textView.placeholderLabel.font = .systemFont(ofSize: 13)
         textView.placeholderLabel.adjustsFontSizeToFitWidth = true
         textView.placeholderPadding = UIEdgeInsets(top: textView.textContainerInset.top,
                                                    left: textView.textContainerInset.left,
@@ -187,6 +187,8 @@ class ConversationInputViewController: UIViewController {
                 textViewDidChange(textView)
                 textView.contentOffset.y = textView.contentSize.height - textView.frame.height
             }
+        } else {
+            layoutTextView()
         }
     }
     
@@ -244,6 +246,15 @@ class ConversationInputViewController: UIViewController {
         }
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if traitCollection.preferredContentSizeCategory != previousTraitCollection?.preferredContentSizeCategory {
+            updateTextViewFonts()
+            textView.layoutManager.ensureLayout(for: textView.textContainer)
+            layoutTextView()
+        }
+    }
+    
     // MARK: - Actions
     @IBAction func unblockAction(_ sender: Any) {
         guard let user = composer.ownerUser else {
@@ -253,7 +264,7 @@ class ConversationInputViewController: UIViewController {
         UserAPI.unblockUser(userId: user.userId) { (result) in
             switch result {
             case .success(let userResponse):
-                UserDAO.shared.updateUsers(users: [userResponse], sendNotificationAfterFinished: true)
+                UserDAO.shared.updateUsers(users: [userResponse])
             case let .failure(error):
                 showAutoHiddenHud(style: .error, text: error.localizedDescription)
             }
@@ -528,7 +539,11 @@ extension ConversationInputViewController {
             return
         }
         let keyboardWillBeInvisible = (screenHeight - endFrame.origin.y) <= 1
-        guard textView.isFirstResponder || (keyboardWillBeInvisible && customInputViewController == nil) || (presentedViewController?.isBeingDismissed ?? false) else {
+        guard
+            textView.isFirstResponder ||
+            (keyboardWillBeInvisible && customInputViewController == nil) ||
+            ((presentedViewController?.isBeingDismissed ?? false) && !(presentedViewController is QLPreviewController))
+        else {
             return
         }
         if !keyboardWillBeInvisible {
@@ -756,28 +771,12 @@ extension ConversationInputViewController: UITextViewDelegate {
         
         lastTextCountWhenMentionRangeChanges = textView.text.count
         
-        guard let lineHeight = textView.font?.lineHeight else {
-            return
-        }
         if sendButton.alpha == 0 && !textView.text.isEmpty {
             layoutForTextViewIsEmpty(false, animated: true)
         } else if sendButton.alpha == 1 && textView.text.isEmpty {
             layoutForTextViewIsEmpty(true, animated: true)
         }
-        let maxHeight = ceil(lineHeight * CGFloat(maxInputRow)
-            + textView.textContainerInset.top
-            + textView.textContainerInset.bottom)
-        let sizeToFit = CGSize(width: textView.bounds.width,
-                               height: UIView.layoutFittingExpandedSize.height)
-        let contentHeight = ceil(textView.sizeThatFits(sizeToFit).height)
-        textView.isScrollEnabled = contentHeight > maxHeight
-        let newHeight = min(contentHeight, maxHeight)
-        let diff = newHeight - textViewHeightConstraint.constant
-        if abs(diff) > 0.1 {
-            textViewHeightConstraint.constant = newHeight
-            setPreferredContentHeight(preferredContentHeight + diff, animated: true)
-            interactiveDismissResponder.height += diff
-        }
+        layoutTextView()
         
         detectAndReportMentionCandidateIfNeeded()
         lastMentionDetectedText = textView.text
@@ -1010,13 +1009,39 @@ extension ConversationInputViewController {
         }
     }
     
-    private func layoutForTextViewIsEmpty(_ isEmpty: Bool, animated: Bool) {
+    private func layoutTextView() {
+        guard let lineHeight = textView.font?.lineHeight else {
+            return
+        }
+        let maxHeight = ceil(lineHeight * CGFloat(maxInputRow)
+                             + textView.textContainerInset.top
+                             + textView.textContainerInset.bottom)
+        let sizeToFit = CGSize(width: textView.bounds.width,
+                               height: UIView.layoutFittingExpandedSize.height)
+        let contentHeight = ceil(textView.sizeThatFits(sizeToFit).height)
+        textView.isScrollEnabled = contentHeight > maxHeight
         
+        // 36 to keep layout consistent when text size is set to smaller than default in Dynamic Type settings
+        let newHeight = max(36, min(contentHeight, maxHeight))
+        
+        let diff = newHeight - textViewHeightConstraint.constant
+        if abs(diff) > 0.1 {
+            textViewHeightConstraint.constant = newHeight
+            setPreferredContentHeight(preferredContentHeight + diff, animated: true)
+            interactiveDismissResponder.height += diff
+        }
+    }
+    
+    private func layoutForTextViewIsEmpty(_ isEmpty: Bool, animated: Bool) {
+        // If text is empty, update text view constraint without animation
+        // to eliminate placeholder flicker issue when adjusting size to fit width
         func layout() {
             if isEmpty {
-                beginEditingTextViewTrailingConstraint.priority = .almostInexist
+                if !animated {
+                    beginEditingTextViewTrailingConstraint.priority = .almostInexist
+                    endEditingTextViewTrailingConstraint.priority = .almostRequired
+                }
                 beginEditingRightActionsStackLeadingConstraint.priority = .almostInexist
-                endEditingTextViewTrailingConstraint.priority = .almostRequired
                 endEditingRightActionsStackTrailingConstraint.priority = .almostRequired
                 sendButton.alpha = 0
                 rightActionsStackView.alpha = 1
@@ -1034,8 +1059,12 @@ extension ConversationInputViewController {
             }
             inputBarView.layoutIfNeeded()
         }
-        
         if animated {
+            if isEmpty {
+                beginEditingTextViewTrailingConstraint.priority = .almostInexist
+                endEditingTextViewTrailingConstraint.priority = .almostRequired
+                inputBarView.layoutIfNeeded()
+            }
             UIView.animate(withDuration: 0.2, animations: layout)
         } else {
             layout()
@@ -1134,6 +1163,12 @@ extension ConversationInputViewController {
         textView.text = ""
         textViewDidChange(textView)
         quote = nil
+    }
+    
+    private func updateTextViewFonts() {
+        textView.font = MessageFontSet.normalContent.scaled
+        textView.placeholderLabel.font = MessageFontSet.inputPlaceholder.scaled
+        typingAttributes[.font] = textView.font
     }
     
 }

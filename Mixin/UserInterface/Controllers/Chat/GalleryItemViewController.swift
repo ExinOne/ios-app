@@ -8,6 +8,8 @@ class GalleryItemViewController: UIViewController {
         
         static let forward = Action(rawValue: 1 << 0)
         static let saveToLibrary = Action(rawValue: 1 << 1)
+        static let share = Action(rawValue: 1 << 2)
+        static let showInChat = Action(rawValue: 1 << 3)
     }
     
     let operationButton = LargeModernNetworkOperationButton()
@@ -101,6 +103,10 @@ class GalleryItemViewController: UIViewController {
     }
     
     func saveToLibrary() {
+        
+    }
+    
+    func share() {
         
     }
     

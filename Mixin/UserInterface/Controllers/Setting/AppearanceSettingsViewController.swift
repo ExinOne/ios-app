@@ -14,11 +14,22 @@ class AppearanceSettingsViewController: SettingsTableViewController {
     
     private lazy var userInterfaceStyleRow = SettingsRow(title: R.string.localizable.interface_style(), accessory: .disclosure)
     private lazy var languageRow = SettingsRow(title: R.string.localizable.language(),
-                                               subtitle: R.string.localizable.english(),
+                                               subtitle: R.string.localizable.current_language(),
                                                accessory: .disclosure)
+    private let chatBackgroundRow = SettingsRow(title: R.string.localizable.chat_background(), accessory: .disclosure)
+    private let chatTextSizeRow = SettingsRow(title: R.string.localizable.chat_text_size(), subtitle: chatTextSizeSubtitle, accessory: .disclosure)
+    
+    private class var chatTextSizeSubtitle: String {
+        if AppGroupUserDefaults.User.useSystemFont {
+            return R.string.localizable.system()
+        } else {
+            return "\(AppGroupUserDefaults.User.chatFontSize.fontSize)pt"
+        }
+    }
     
     private lazy var dataSource = SettingsDataSource(sections: [
-        SettingsSection(rows: [currencyRow])
+        SettingsSection(rows: [currencyRow]),
+        SettingsSection(rows: [chatBackgroundRow, chatTextSizeRow])
     ])
     
     class func instance() -> UIViewController {
@@ -57,7 +68,21 @@ extension AppearanceSettingsViewController: UITableViewDelegate {
                 pickCurrency()
             }
         case 2:
-            pickCurrency()
+            if isLanguageAvailable {
+                pickCurrency()
+            } else {
+                if indexPath.row == 0 {
+                    changeChatBackground()
+                } else {
+                    changeChatTextSize()
+                }
+            }
+        case 3:
+            if indexPath.row == 0 {
+                changeChatBackground()
+            } else {
+                changeChatTextSize()
+            }
         default:
             break
         }
@@ -86,6 +111,10 @@ extension AppearanceSettingsViewController {
             subtitle = ""
         }
         userInterfaceStyleRow.subtitle = subtitle
+    }
+    
+    @objc private func updatechatTextSizeSubtitle() {
+        chatTextSizeRow.subtitle = Self.chatTextSizeSubtitle
     }
     
     private func pickUserInterfaceStyle() {
@@ -117,6 +146,16 @@ extension AppearanceSettingsViewController {
     private func pickCurrency() {
         let vc = CurrencySelectorViewController()
         present(vc, animated: true, completion: nil)
+    }
+    
+    private func changeChatBackground() {
+        let vc = PreviewWallpaperViewController.instance(scope: .global)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    private func changeChatTextSize() {
+        let vc = ChatTextSizeViewController.instance(fontSizeDidChange: updatechatTextSizeSubtitle)
+        navigationController?.pushViewController(vc, animated: true)
     }
     
 }

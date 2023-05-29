@@ -43,11 +43,12 @@ class AttachmentUploadJob: AttachmentLoadingJob {
         if let content = message.content,
            !content.isEmpty,
            isAttachmentMetadataReady,
-           let data = Data(base64Encoded: content),
-           let attachmentExtra = try? JSONDecoder.default.decode(AttachmentExtra.self, from: data),
+           let attachmentExtra = AttachmentExtra.decode(from: content),
            UUID(uuidString: attachmentExtra.attachmentId) != nil,
            !attachmentExtra.createdAt.isEmpty,
-           abs(attachmentExtra.createdAt.toUTCDate().timeIntervalSinceNow) < secondsPerDay {
+           abs(attachmentExtra.createdAt.toUTCDate().timeIntervalSinceNow) < secondsPerDay
+        {
+            Logger.general.debug(category: "AttachmentUploadJob", message: "Using existed attachment ID: \(attachmentExtra.attachmentId)")
             uploadFinished(attachmentId: attachmentExtra.attachmentId, key: message.mediaKey, digest: message.mediaDigest, createdAt: attachmentExtra.createdAt)
             finishJob()
             return true
@@ -149,7 +150,7 @@ class AttachmentUploadJob: AttachmentLoadingJob {
         uploadFinished(attachmentId: attachResponse.attachmentId, key: key, digest: digest, createdAt: attachResponse.createdAt)
     }
     
-    private func uploadFinished(attachmentId: String, key: Data?, digest: Data?, createdAt: String?) {
+    private func uploadFinished(attachmentId: String, key: Data?, digest: Data?, createdAt: String) {
         let transferMediaData = TransferAttachmentData(key: key,
                                                        digest: digest,
                                                        attachmentId: attachmentId,
@@ -161,7 +162,8 @@ class AttachmentUploadJob: AttachmentLoadingJob {
                                                        name: message.name,
                                                        duration: message.mediaDuration,
                                                        waveform: message.mediaWaveform,
-                                                       createdAt: createdAt)
+                                                       createdAt: createdAt,
+                                                       isShareable: true)
         let content = (try? JSONEncoder.default.encode(transferMediaData).base64EncodedString()) ?? ""
         message.content = content
         message.mediaKey = key

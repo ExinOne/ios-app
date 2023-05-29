@@ -1,8 +1,9 @@
 import UIKit
+import SDWebImage
 
 class AlbumCollectionViewCell: UICollectionViewCell {
     
-    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var imageView: AnimatedStickerView!
     @IBOutlet weak var dotImageView: UIImageView!
     
     override func awakeFromNib() {
@@ -16,7 +17,7 @@ class AlbumCollectionViewCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        imageView.sd_cancelCurrentImageLoad()
+        imageView.prepareForReuse()
         dotImageView.isHidden = true
     }
     

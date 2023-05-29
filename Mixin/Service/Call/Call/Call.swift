@@ -68,10 +68,10 @@ class Call: NSObject {
         fatalError("")
     }
     
-    var localizedState: String? {
+    var localizedState: String {
         switch state {
         case .connected:
-            return formattedConnectionDuration
+            return formattedConnectionDuration ?? state.localizedDescription
         default:
             return state.localizedDescription
         }
@@ -102,7 +102,7 @@ class Call: NSObject {
         self.uuidString = uuidString
         self.conversationId = conversationId
         self.rtcClient = WebRTCClient()
-        self.queue = Queue(label: "one.mixin.messenger.Call-" + uuidString)
+        self.queue = Queue(label: "one.mixin.messenger.Call-" + uuidString, qos: .userInitiated)
         self.isOutgoing = isOutgoing
         self.internalState = state
         self.state = state

@@ -10,7 +10,7 @@ protocol WebRTCClientDelegate: AnyObject {
     
     // Group call only
     func webRTCClient(_ client: WebRTCClient, senderPublicKeyForUserWith userId: String, sessionId: String) -> Data?
-    func webRTCClient(_ client: WebRTCClient, didAddReceiverWith userId: String, trackDisabled: Bool)
+    func webRTCClient(_ client: WebRTCClient, didAddReceiverWith streamId: StreamId, trackDisabled: Bool)
 }
 
 class WebRTCClient: NSObject {
@@ -31,7 +31,7 @@ class WebRTCClient: NSObject {
     
     private(set) var trackDisabledUserIds: Set<String> = []
     
-    private let queue = DispatchQueue(label: "one.mixin.messenger.WebRTCClient")
+    private let queue = DispatchQueue(label: "one.mixin.messenger.WebRTCClient", qos: .userInitiated)
     
     private var session: Session? = 0
     private var peerConnection: RTCPeerConnection?
@@ -173,29 +173,23 @@ class WebRTCClient: NSObject {
             // See self.tracksUserId for queue dispatching
             self.queue.async {
                 var audioLevels: [String: Double] = [:]
-                for (key, value) in report.statistics {
-                    if key.hasPrefix("RTCMediaStreamTrack_sender_") {
-                        if isAudioTrackEnabled {
-                            guard
-                                let mediaSourceId = value.values["mediaSourceId"] as? String,
-                                let source = report.statistics[mediaSourceId],
-                                let level = source.values["audioLevel"] as? Double
-                            else {
-                                continue
-                            }
+                for statistic in report.statistics.values {
+                    switch statistic.type {
+                    case "inbound-rtp":
+                        if let trackId = statistic.values["trackIdentifier"] as? String,
+                           let userId = self.tracksUserId[trackId],
+                           let level = statistic.values["audioLevel"] as? Double
+                        {
+                            audioLevels[userId] = level
+                        }
+                    case "media-source":
+                        if isAudioTrackEnabled, let level = statistic.values["audioLevel"] as? Double {
                             audioLevels[myUserId] = level
                         } else {
                             audioLevels[myUserId] = 0
                         }
-                    } else if key.hasPrefix("RTCMediaStreamTrack_receiver_") {
-                        guard
-                            let trackId = value.values["trackIdentifier"] as? String,
-                            let userId = self.tracksUserId[trackId],
-                            let level = value.values["audioLevel"] as? Double
-                        else {
-                            continue
-                        }
-                        audioLevels[userId] = level
+                    default:
+                        break
                     }
                 }
                 DispatchQueue.main.async {
@@ -255,11 +249,17 @@ extension WebRTCClient: RTCPeerConnectionDelegate {
     }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
-        
+        queue.async {
+            let receiver = self.rtpReceivers[stream.streamId].debugDescription
+            Logger.call.info(category: "WebRTCClient", message: "PeerConnection: \(peerConnection) didAdd: \(stream.streamId), receiver: \(receiver)")
+        }
     }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
-        
+        queue.async {
+            let receiver = self.rtpReceivers[stream.streamId].debugDescription
+            Logger.call.info(category: "WebRTCClient", message: "PeerConnection: \(peerConnection) didRemove: \(stream.streamId), receiver: \(receiver)")
+        }
     }
     
     func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
@@ -298,16 +298,13 @@ extension WebRTCClient: RTCPeerConnectionDelegate {
     }
     
     func peerConnection(_ peerConnection: RTCPeerConnection, didAdd rtpReceiver: RTCRtpReceiver, streams mediaStreams: [RTCMediaStream]) {
-        let streamIds = mediaStreams
-            .map(\.streamId)
+        let rawStreamIDs = mediaStreams.map(\.streamId)
+        Logger.call.info(category: "WebRTCClient", message: "RtpReceiver: \(rtpReceiver) comes with streams: \(rawStreamIDs)")
+        let streamIds = rawStreamIDs
             .compactMap(StreamId.init(rawValue:))
             .filter({ $0.userId != myUserId })
         assert(streamIds.count <= 1)
-        if streamIds.count > 1 {
-            Logger.call.warn(category: "WebRTCClient", message: "RtpReceiver: \(rtpReceiver) comes with multiple streams: \(streamIds)")
-        }
         guard let id = streamIds.first else {
-            Logger.call.error(category: "WebRTCClient", message: "RtpReceiver: \(rtpReceiver) comes with empty stream")
             return
         }
         let frameKey = delegate?.webRTCClient(self, senderPublicKeyForUserWith: id.userId, sessionId: id.sessionId)
@@ -327,12 +324,24 @@ extension WebRTCClient: RTCPeerConnectionDelegate {
                 self.tracksUserId[trackId] = id.userId
             }
             if disableTrack {
-                DispatchQueue.main.sync {
+                DispatchQueue.main.async {
                     _ = self.trackDisabledUserIds.insert(id.userId)
                 }
             }
         }
-        delegate?.webRTCClient(self, didAddReceiverWith: id.userId, trackDisabled: disableTrack)
+        delegate?.webRTCClient(self, didAddReceiverWith: id, trackDisabled: disableTrack)
+    }
+    
+    func peerConnection(_ peerConnection: RTCPeerConnection, didRemove rtpReceiver: RTCRtpReceiver) {
+        queue.sync {
+            Logger.call.info(category: "WebRTCClient", message: "RtpReceiver: \(rtpReceiver) did remove")
+            self.rtpReceivers.filter { (_, value) in
+                value == rtpReceiver
+            }.forEach { (key, _) in
+                Logger.call.info(category: "WebRTCClient", message: "Removed receiver for: \(key)")
+                self.rtpReceivers.removeValue(forKey: key)
+            }
+        }
     }
     
 }
@@ -342,7 +351,7 @@ extension WebRTCClient {
     // Complete with nil when session is invalidated
     private func loadIceServers(session: Session, completion: @escaping ([RTCIceServer]?) -> Void) {
         Logger.call.info(category: "WebRTCClient", message: "Fetch ICE Server, session: \(session)")
-        CallAPI.turn(queue: queue) { [weak self] result in
+        CallAPI.turn(queue: .global(qos: .userInitiated)) { [weak self] result in
             switch result {
             case let .success(servers):
                 let iceServers = servers.map {

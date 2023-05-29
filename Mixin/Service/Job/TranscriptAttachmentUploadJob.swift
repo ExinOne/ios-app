@@ -54,12 +54,13 @@ final class TranscriptAttachmentUploadJob: AsynchronousJob {
                let createdAt = child.mediaCreatedAt?.toUTCDate(),
                abs(createdAt.timeIntervalSinceNow) < secondsPerDay
             {
+                Logger.general.debug(category: "AttachmentUploadJob", message: "Using existed attachment ID: \(content)")
                 continue
             } else if let content = child.content,
-                      let data = Data(base64Encoded: content),
-                      let extra = try? JSONDecoder.default.decode(AttachmentExtra.self, from: data),
+                      let extra = AttachmentExtra.decode(from: content),
                       abs(extra.createdAt.toUTCDate().timeIntervalSinceNow) < secondsPerDay
             {
+                Logger.general.debug(category: "AttachmentUploadJob", message: "Using existed attachment ID: \(extra.attachmentId)")
                 child.content = extra.attachmentId
                 continue
             } else if let mediaUrl = child.mediaUrl {
@@ -246,7 +247,7 @@ extension TranscriptAttachmentUploadJob {
                             let metadata = Metadata(mediaKey: key,
                                                     mediaDigest: digest,
                                                     attachmentId: attachmentResponse.attachmentId)
-                            let createdAt = attachmentResponse.createdAt ?? Date().toUTCString()
+                            let createdAt = attachmentResponse.createdAt
                             self.job?.request(self, succeedWith: metadata, createdAt: createdAt)
                         } else {
                             let error = Error.missingMetadata(hasKey: !stream.key.isNilOrEmpty,
@@ -257,7 +258,7 @@ extension TranscriptAttachmentUploadJob {
                         let metadata = Metadata(mediaKey: nil,
                                                 mediaDigest: nil,
                                                 attachmentId: attachmentResponse.attachmentId)
-                        let createdAt = attachmentResponse.createdAt ?? Date().toUTCString()
+                        let createdAt = attachmentResponse.createdAt
                         self.job?.request(self, succeedWith: metadata, createdAt: createdAt)
                     }
                 case .failure(let error):

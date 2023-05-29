@@ -189,7 +189,17 @@ public class ReceiveMessageService: MixinService {
             } while true
         }
     }
-
+    
+    public func requestResendKey(conversationId: String, recipientId: String, sessionId: String?) {
+        let transferPlainData = PlainJsonMessagePayload(action: PlainDataAction.RESEND_KEY.rawValue, messages: nil, ackMessages: nil)
+        let encoded = (try? JSONEncoder.default.encode(transferPlainData).base64EncodedString()) ?? ""
+        let messageId = UUID().uuidString.lowercased()
+        let params = BlazeMessageParam(conversationId: conversationId, recipientId: recipientId, category: MessageCategory.PLAIN_JSON.rawValue, data: encoded, status: MessageStatus.SENDING.rawValue, messageId: messageId, sessionId: sessionId)
+        let blazeMessage = BlazeMessage(params: params, action: BlazeMessageAction.createMessage.rawValue)
+        SendMessageService.shared.sendMessage(conversationId: conversationId, userId: recipientId, blazeMessage: blazeMessage, action: .REQUEST_RESEND_KEY)
+        RatchetSenderKeyDAO.shared.setRatchetSenderKeyStatus(groupId: conversationId, senderId: recipientId, status: RatchetStatus.REQUESTING.rawValue, sessionId: sessionId)
+    }
+    
     private func processReceiveMessage(data: BlazeMessageData) {
         guard LoginManager.shared.isLoggedIn else {
             return
@@ -321,7 +331,7 @@ public class ReceiveMessageService: MixinService {
             return
         }
         if case let .success(response) = UserAPI.showUser(userId: appId) {
-            UserDAO.shared.updateUsers(users: [response], sendNotificationAfterFinished: false)
+            UserDAO.shared.updateUsers(users: [response])
         } else {
             ConcurrentJobQueue.shared.addJob(job: RefreshUserJob(userIds: [appId]))
         }
@@ -514,7 +524,7 @@ public class ReceiveMessageService: MixinService {
                 refreshKeys(conversationId: data.conversationId)
                 let status = RatchetSenderKeyDAO.shared.getRatchetSenderKeyStatus(groupId: data.conversationId, senderId: data.userId, sessionId: data.sessionId)
                 if status == nil {
-                    requestResendKey(conversationId: data.conversationId, recipientId: data.userId, messageId: data.messageId, sessionId: data.sessionId)
+                    requestResendKey(conversationId: data.conversationId, recipientId: data.userId, sessionId: data.sessionId)
                 }
             }
         }
@@ -527,15 +537,15 @@ public class ReceiveMessageService: MixinService {
         guard
             let cipher = Data(base64Encoded: data.data),
             let pk = RequestSigning.edDSAPrivateKey,
-            let sidString = LoginManager.shared.account?.session_id,
+            let sidString = LoginManager.shared.account?.sessionID,
             let mySessionId = UUID(uuidString: sidString)
         else {
-            let hasSessionId = LoginManager.shared.account?.session_id != nil
+            let hasSessionId = LoginManager.shared.account?.sessionID != nil
             let info = [
                 "is_cipher_valid": Data(base64Encoded: data.data) != nil,
                 "has_pk": RequestSigning.edDSAPrivateKey != nil,
                 "has_sid": hasSessionId,
-                "is_sid_valid": hasSessionId && UUID(uuidString: LoginManager.shared.account?.session_id ?? "") != nil
+                "is_sid_valid": hasSessionId && UUID(uuidString: LoginManager.shared.account?.sessionID ?? "") != nil
             ]
             Logger.conversation(id: data.conversationId).error(category: "EncryptedBotMessage", message: "Failed to decrypt", userInfo: info)
             reporter.report(error: MixinServicesError.decryptBotMessage(info))
@@ -843,35 +853,29 @@ public class ReceiveMessageService: MixinService {
             ReceiveMessageService.shared.processUnknownMessage(data: data)
             return nil
         }
-
-        if let stickerId = transferStickerData.stickerId {
-            guard !stickerId.isEmpty, UUID(uuidString: stickerId) != nil else {
-                Logger.conversation(id: data.conversationId).error(category: "ParseSticker", message: "Invalid TransferStickerData: \(String(data: decryptedData, encoding: .utf8))")
-                ReceiveMessageService.shared.processUnknownMessage(data: data)
-                return nil
-            }
-            guard !StickerDAO.shared.isExist(stickerId: stickerId) else {
-                return transferStickerData
-            }
-
-            repeat {
-                switch StickerAPI.sticker(stickerId: stickerId) {
-                case let .success(sticker):
-                    StickerDAO.shared.insertOrUpdateSticker(sticker: sticker)
-                    if let sticker = StickerDAO.shared.getSticker(stickerId: sticker.stickerId) {
-                        StickerPrefetcher.prefetch(stickers: [sticker])
-                    }
-                    return transferStickerData
-                case .failure(.notFound):
-                    return nil
-                case let .failure(error):
-                    checkNetworkAndWebSocket()
-                }
-            } while LoginManager.shared.isLoggedIn
+        let stickerId = transferStickerData.stickerId
+        guard !stickerId.isEmpty, UUID(uuidString: stickerId) != nil else {
+            Logger.conversation(id: data.conversationId).error(category: "ParseSticker", message: "Invalid TransferStickerData: \(String(data: decryptedData, encoding: .utf8))")
+            ReceiveMessageService.shared.processUnknownMessage(data: data)
             return nil
-        } else if let stickerName = transferStickerData.name, let albumId = transferStickerData.albumId, let sticker = StickerDAO.shared.getSticker(albumId: albumId, name: stickerName) {
-            return TransferStickerData(stickerId: sticker.stickerId, name: nil, albumId: nil)
         }
+        guard !StickerDAO.shared.isExist(stickerId: stickerId) else {
+            return transferStickerData
+        }
+        repeat {
+            switch StickerAPI.sticker(stickerId: stickerId) {
+            case let .success(sticker):
+                StickerDAO.shared.insertOrUpdateSticker(sticker: sticker)
+                if let sticker = StickerDAO.shared.getSticker(stickerId: sticker.stickerId) {
+                    StickerPrefetcher.prefetch(stickers: [sticker])
+                }
+                return transferStickerData
+            case .failure(.notFound):
+                return nil
+            case let .failure(error):
+                checkNetworkAndWebSocket()
+            }
+        } while LoginManager.shared.isLoggedIn
         return nil
     }
     
@@ -914,6 +918,10 @@ public class ReceiveMessageService: MixinService {
                     continue
                 }
                 ConcurrentJobQueue.shared.addJob(job: RefreshStickerJob(stickerId: stickerId))
+            } else if child.category.hasSuffix("_CONTACT") {
+                if let userId = child.sharedUserId, !UserDAO.shared.isExist(userId: userId) {
+                    absentUserIds.insert(userId)
+                }
             }
         }
         if !absentUserIds.isEmpty {
@@ -1104,25 +1112,14 @@ public class ReceiveMessageService: MixinService {
         }
 
         Logger.conversation(id: conversationId).info(category: "ReceiveMessageService", message: "Request resend messages: [\(messages.joined(separator: ","))]")
-        let transferPlainData = PlainJsonMessagePayload(action: PlainDataAction.RESEND_MESSAGES.rawValue, messageId: nil, messages: messages, ackMessages: nil)
+        let transferPlainData = PlainJsonMessagePayload(action: PlainDataAction.RESEND_MESSAGES.rawValue, messages: messages, ackMessages: nil)
         let encoded = (try? JSONEncoder.default.encode(transferPlainData).base64EncodedString()) ?? ""
         let messageId = UUID().uuidString.lowercased()
         let params = BlazeMessageParam(conversationId: conversationId, recipientId: userId, category: MessageCategory.PLAIN_JSON.rawValue, data: encoded, status: MessageStatus.SENDING.rawValue, messageId: messageId, sessionId: sessionId)
         let blazeMessage = BlazeMessage(params: params, action: BlazeMessageAction.createMessage.rawValue)
         SendMessageService.shared.sendMessage(conversationId: conversationId, userId: userId, blazeMessage: blazeMessage, action: .REQUEST_RESEND_MESSAGES)
     }
-
-    private func requestResendKey(conversationId: String, recipientId: String, messageId: String, sessionId: String?) {
-        let transferPlainData = PlainJsonMessagePayload(action: PlainDataAction.RESEND_KEY.rawValue, messageId: messageId, messages: nil, ackMessages: nil)
-        let encoded = (try? JSONEncoder.default.encode(transferPlainData).base64EncodedString()) ?? ""
-        let messageId = UUID().uuidString.lowercased()
-        let params = BlazeMessageParam(conversationId: conversationId, recipientId: recipientId, category: MessageCategory.PLAIN_JSON.rawValue, data: encoded, status: MessageStatus.SENDING.rawValue, messageId: messageId, sessionId: sessionId)
-        let blazeMessage = BlazeMessage(params: params, action: BlazeMessageAction.createMessage.rawValue)
-        SendMessageService.shared.sendMessage(conversationId: conversationId, userId: recipientId, blazeMessage: blazeMessage, action: .REQUEST_RESEND_KEY)
-
-        RatchetSenderKeyDAO.shared.setRatchetSenderKeyStatus(groupId: conversationId, senderId: recipientId, status: RatchetStatus.REQUESTING.rawValue, sessionId: sessionId)
-    }
-
+    
     private func updateRemoteMessageStatus(messageId: String, status: MessageStatus) {
         SendMessageService.shared.sendAckMessage(messageId: messageId, status: status)
     }
@@ -1200,22 +1197,26 @@ extension ReceiveMessageService {
         guard let base64Data = Data(base64Encoded: data.data), let snapshot = (try? JSONDecoder.default.decode(Snapshot.self, from: base64Data)) else {
             return
         }
-
         if let opponentId = snapshot.opponentId {
             checkUser(userId: opponentId, tryAgain: true)
         }
-
-        switch AssetAPI.asset(assetId: snapshot.assetId) {
-        case let .success(asset):
+        let chainId: String?
+        if let asset = AssetDAO.shared.getAsset(assetId: snapshot.assetId) {
+            chainId = asset.chainId
+        } else if case let .success(asset) = AssetAPI.asset(assetId: snapshot.assetId) {
             AssetDAO.shared.insertOrUpdateAssets(assets: [asset])
-        case .failure:
-            ConcurrentJobQueue.shared.addJob(job: RefreshAssetsJob(assetId: snapshot.assetId))
+            chainId = asset.chainId
+        } else {
+            chainId = nil
         }
-
+        if let chainId, !ChainDAO.shared.isExist(chainId: chainId), case let .success(chain) = AssetAPI.chain(chainId: chainId) {
+            ChainDAO.shared.insertOrUpdateChains([chain])
+        }
+        let job = RefreshAssetsJob(request: .asset(id: snapshot.assetId, untilDepositEntriesNotEmpty: false))
+        ConcurrentJobQueue.shared.addJob(job: job)
         if snapshot.type == SnapshotType.deposit.rawValue, let transactionHash = snapshot.transactionHash {
             SnapshotDAO.shared.removePendingDeposits(assetId: snapshot.assetId, transactionHash: transactionHash)
         }
-
         SnapshotDAO.shared.saveSnapshots(snapshots: [snapshot])
         let message = Message.createMessage(snapshotMesssage: snapshot, data: data)
         MessageDAO.shared.insertMessage(message: message, messageSource: data.source, silentNotification: data.silentNotification, expireIn: data.expireIn)
